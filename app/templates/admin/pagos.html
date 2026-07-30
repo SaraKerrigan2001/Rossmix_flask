@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+{% block title %}Gestión de Pagos - Rossmix{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Gestión de Pagos</h1>
+        <div class="breadcrumb-r">
+            <a href="{{ url_for('dashboard_admin') }}">Panel Admin</a>
+            <i class="bi bi-chevron-right"></i> <span>Pagos</span>
+        </div>
+    </div>
+    <a href="{{ url_for('admin_citas') }}" class="btn-secondary-r">
+        <i class="bi bi-calendar3"></i> Ver Citas
+    </a>
+</div>
+
+<!-- Resumen rápido -->
+<div style="display:grid; grid-template-columns:repeat(3,1fr); gap:1.2rem; margin-bottom:2rem;">
+    <div class="r-card" style="padding:1.4rem; display:flex; align-items:center; gap:1rem;">
+        <div style="background:#ecfdf5;color:#059669;width:46px;height:46px;border-radius:12px;
+                    display:flex;align-items:center;justify-content:center;font-size:1.3rem;">
+            <i class="bi bi-cash-stack"></i>
+        </div>
+        <div>
+            <div style="font-size:1.6rem;font-weight:800;color:#1a1a1a;">{{ pagos|length }}</div>
+            <div style="font-size:0.82rem;color:#888;">Pagos Registrados</div>
+        </div>
+    </div>
+    <div class="r-card" style="padding:1.4rem; display:flex; align-items:center; gap:1rem;">
+        <div style="background:#fff0f6;color:#c41e3a;width:46px;height:46px;border-radius:12px;
+                    display:flex;align-items:center;justify-content:center;font-size:1.3rem;">
+            <i class="bi bi-currency-dollar"></i>
+        </div>
+        <div>
+            {% set total = pagos | sum(attribute='0.monto') %}
+            <div style="font-size:1.6rem;font-weight:800;color:#1a1a1a;">
+                ${{ "{:,.0f}".format(total) }}
+            </div>
+            <div style="font-size:0.82rem;color:#888;">Total Recaudado</div>
+        </div>
+    </div>
+    <div class="r-card" style="padding:1.4rem; display:flex; align-items:center; gap:1rem; border-left:4px solid #c41e3a;">
+        <div style="background:#fff0f6;color:#c41e3a;width:46px;height:46px;border-radius:12px;
+                    display:flex;align-items:center;justify-content:center;font-size:1.3rem;">
+            <i class="bi bi-hourglass-split"></i>
+        </div>
+        <div>
+            <div style="font-size:1rem;font-weight:700;color:#c41e3a;">Registrar pago</div>
+            <div style="font-size:0.82rem;color:#888;">Desde la sección Citas</div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabla de pagos -->
+<div class="r-card">
+    <div class="r-card-header d-flex justify-content-between align-items-center">
+        <div>
+            <h2><i class="bi bi-credit-card" style="color:#059669;"></i> Pagos Registrados</h2>
+            <span style="font-size:0.85rem;color:#888;">{{ pagos|length }} pago(s)</span>
+        </div>
+        <div class="dropdown">
+            <button class="btn-rossmix dropdown-toggle" type="button" id="exportPagosDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="background:#059669;">
+                <i class="bi bi-file-earmark-excel"></i> Exportar a Excel
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="exportPagosDropdown">
+                <li><a class="dropdown-item" href="{{ url_for('admin_exportar_excel', tipo='pagos', periodo='diario') }}">Diario (Hoy)</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('admin_exportar_excel', tipo='pagos', periodo='semana') }}">Semanal</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('admin_exportar_excel', tipo='pagos', periodo='mes') }}">Mensual</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('admin_exportar_excel', tipo='pagos', periodo='ano') }}">Anual</a></li>
+            </ul>
+        </div>
+    </div>
+    {% if pagos %}
+    <div style="overflow-x:auto;">
+        <table class="r-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Código Cita</th>
+                    <th>Cliente</th>
+                    <th>Servicio</th>
+                    <th>Monto</th>
+                    <th>Método</th>
+                    <th>Estado</th>
+                    <th>Fecha Pago</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pago, cita, usuario, servicio in pagos %}
+                <tr id="pago-{{ pago.id_pago }}">
+                    <td style="color:#9ca3af;font-size:0.82rem;">#{{ pago.id_pago }}</td>
+                    <td>
+                        <code style="background:#f8f8f8;padding:0.2rem 0.5rem;border-radius:6px;font-size:0.82rem;">
+                            {{ cita.codigo_reserva or '—' }}
+                        </code>
+                    </td>
+                    <td><strong>{{ usuario.nombre }}</strong></td>
+                    <td style="color:#6b7280;">{{ servicio.nombre_servicio }}</td>
+                    <td><strong style="color:#059669;">${{ "{:,.0f}".format(pago.monto) }}</strong></td>
+                    <td>
+                        <span style="background:#f0f9ff;color:#0369a1;padding:0.25rem 0.7rem;
+                                     border-radius:20px;font-size:0.78rem;font-weight:600;text-transform:capitalize;">
+                            {{ pago.metodo_pago }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if pago.estado_pago == 'completado' %}
+                            <span class="badge-active">Completado</span>
+                        {% elif pago.estado_pago == 'reembolsado' %}
+                            <span class="badge-inactive">Reembolsado</span>
+                        {% else %}
+                            <span style="background:#fef9c3;color:#854d0e;padding:0.25rem 0.7rem;border-radius:20px;font-size:0.78rem;font-weight:600;">
+                                Pendiente
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td style="color:#6b7280;font-size:0.85rem;">
+                        {{ pago.fecha_pago.strftime('%d/%m/%Y %H:%M') if pago.fecha_pago else '—' }}
+                    </td>
+                    <td>
+                        <button onclick="confirmarEliminar({{ pago.id_pago }})"
+                                style="background:#fee2e2;color:#dc2626;border:none;padding:0.4rem 0.7rem;
+                                       border-radius:8px;font-size:0.82rem;font-weight:600;cursor:pointer;"
+                                title="Reembolsar / Eliminar">
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="r-card-body" style="text-align:center;padding:3rem;color:#9ca3af;">
+        <i class="bi bi-credit-card" style="font-size:2.5rem;display:block;margin-bottom:0.8rem;"></i>
+        No hay pagos registrados aún.
+        <br><a href="{{ url_for('admin_citas') }}" style="color:#c41e3a;font-weight:600;">
+            Registrar desde Citas
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Modal -->
+<div id="modalEliminar" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);
+     z-index:3000;align-items:center;justify-content:center;">
+    <div style="background:white;border-radius:16px;padding:2rem;max-width:420px;width:90%;
+                box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+        <h3 style="font-family:'Playfair Display',serif;margin-bottom:0.8rem;">Reembolsar Pago</h3>
+        <p style="color:#6b7280;margin-bottom:1.5rem;font-size:0.95rem;">
+            ¿Confirmas el reembolso? El pago se eliminará y la cita quedará marcada como cancelada.
+        </p>
+        <div style="display:flex;gap:1rem;justify-content:flex-end;">
+            <button onclick="cerrarModal()" class="btn-secondary-r">Cancelar</button>
+            <button id="btnConfirmar" class="btn-rossmix" style="background:linear-gradient(135deg,#dc2626,#ef4444);">
+                <i class="bi bi-arrow-counterclockwise"></i> Reembolsar
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+let pagoId = null;
+function confirmarEliminar(id) {
+    pagoId = id;
+    document.getElementById('modalEliminar').style.display = 'flex';
+}
+function cerrarModal() { document.getElementById('modalEliminar').style.display = 'none'; }
+document.getElementById('btnConfirmar').addEventListener('click', function() {
+    if (!pagoId) return;
+    fetch(`/admin/pagos/eliminar/${pagoId}`, { method: 'POST' })
+        .then(r => r.json())
+        .then(d => {
+            cerrarModal();
+            if (d.success) {
+                document.getElementById(`pago-${pagoId}`)?.remove();
+            } else { alert(d.message); }
+        });
+});
+</script>
+{% endblock %}

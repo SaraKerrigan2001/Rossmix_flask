@@ -1,0 +1,548 @@
+{% extends 'base.html' %}
+
+{% block title %}Mis Citas - Rossmix{% endblock %}
+
+{% block extra_css %}
+<style>
+    .citas-container {
+        background: linear-gradient(135deg, #ffffff 0%, #fff5fa 100%);
+        border-radius: 30px;
+        padding: 3rem;
+        box-shadow: 0 15px 50px rgba(255, 105, 180, 0.3);
+        margin-top: 2rem;
+        border: 3px solid rgba(255, 215, 0, 0.4);
+        position: relative;
+    }
+
+    h1 {
+        font-family: 'Playfair Display', serif;
+        background: linear-gradient(135deg, #ff69b4 0%, #ff1493 50%, #c71585 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-size: 2.5rem;
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .tabs {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .tab-btn {
+        padding: 1rem 2rem;
+        background: linear-gradient(135deg, #ffffff, #fffbfc);
+        border: 3px solid #ffb6c1;
+        border-radius: 20px;
+        font-weight: 700;
+        color: #c71585;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .tab-btn:hover {
+        transform: translateY(-3px);
+        border-color: #ff69b4;
+    }
+
+    .tab-btn.active {
+        background: linear-gradient(135deg, #ff69b4, #ff1493);
+        color: white;
+        border-color: #ff1493;
+    }
+
+    .tab-content {
+        display: none;
+    }
+
+    .tab-content.active {
+        display: block;
+    }
+
+    .citas-grid {
+        display: grid;
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+
+    .cita-card {
+        background: linear-gradient(135deg, #ffffff, #fffbfc);
+        border: 3px solid #ffb6c1;
+        border-radius: 20px;
+        padding: 2rem;
+        transition: all 0.3s;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .cita-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(255, 105, 180, 0.3);
+        border-color: #ff69b4;
+    }
+
+    .cita-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .cita-titulo {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.5rem;
+        color: #ff1493;
+        font-weight: 700;
+    }
+
+    .estado-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        white-space: nowrap;
+    }
+
+    .estado-pendiente_pago {
+        background: linear-gradient(135deg, #ffd700, #ffed4e);
+        color: #c71585;
+        border: 2px solid #ff69b4;
+    }
+
+    .estado-confirmada {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+        border: 2px solid #20c997;
+    }
+
+    .estado-completada {
+        background: linear-gradient(135deg, #6c757d, #5a6268);
+        color: white;
+        border: 2px solid #5a6268;
+    }
+
+    .estado-cancelada {
+        background: linear-gradient(135deg, #dc3545, #c82333);
+        color: white;
+        border: 2px solid #c82333;
+    }
+
+    .cita-info {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .info-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #666;
+    }
+
+    .info-icon {
+        font-size: 1.3rem;
+    }
+
+    .info-text {
+        font-weight: 600;
+    }
+
+    .info-valor {
+        color: #ff1493;
+        font-weight: 700;
+    }
+
+    .cita-detalles {
+        background: linear-gradient(135deg, #e3f2fd, #f0f8ff);
+        border: 2px solid rgba(255, 105, 180, 0.3);
+        border-radius: 15px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .detalle-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid rgba(255, 182, 193, 0.2);
+    }
+
+    .detalle-row:last-child {
+        border-bottom: none;
+    }
+
+    .cita-acciones {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        padding: 0.8rem 1.5rem;
+        border-radius: 15px;
+        font-weight: 700;
+        text-decoration: none;
+        transition: all 0.3s;
+        border: none;
+        cursor: pointer;
+        font-size: 1rem;
+    }
+
+    .btn-cancelar {
+        background: linear-gradient(135deg, #dc3545, #c82333);
+        color: white;
+    }
+
+    .btn-cancelar:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
+    }
+
+    .btn-ver {
+        background: linear-gradient(135deg, #ff69b4, #ff1493);
+        color: white;
+    }
+
+    .btn-ver:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(255, 105, 180, 0.3);
+    }
+
+    .btn-nueva {
+        background: linear-gradient(135deg, #ff69b4, #ff1493);
+        color: white;
+        padding: 1.2rem 2rem;
+        border-radius: 20px;
+        font-size: 1.2rem;
+        margin-bottom: 2rem;
+        display: inline-block;
+    }
+
+    .btn-nueva:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(255, 105, 180, 0.4);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: linear-gradient(135deg, #fffbfc, #ffffff);
+        border: 3px dashed #ffb6c1;
+        border-radius: 20px;
+        color: #c71585;
+    }
+
+    .empty-icon {
+        font-size: 5rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    .empty-state h3 {
+        font-family: 'Playfair Display', serif;
+        color: #ff1493;
+        font-size: 1.8rem;
+        margin-bottom: 1rem;
+    }
+
+    .codigo-reserva {
+        font-family: 'Courier New', monospace;
+        background: #ffe5f3;
+        padding: 0.3rem 0.6rem;
+        border-radius: 5px;
+        font-weight: 700;
+        color: #c71585;
+    }
+
+    .btn-volver {
+        text-align: center;
+        margin-top: 2rem;
+    }
+
+    .btn-volver a {
+        color: #ff1493;
+        text-decoration: none;
+        font-weight: 600;
+        border-bottom: 2px solid transparent;
+        transition: all 0.3s;
+    }
+
+    .btn-volver a:hover {
+        border-bottom-color: #ff1493;
+    }
+
+    .tiempo-restante {
+        font-size: 0.9rem;
+        color: #666;
+        margin-top: 0.5rem;
+        font-style: italic;
+    }
+
+    .alerta-cancelacion {
+        background: linear-gradient(135deg, #ffe5e5, #fff5f5);
+        border: 2px solid #ff1493;
+        padding: 0.8rem;
+        border-radius: 10px;
+        margin-top: 0.5rem;
+        color: #c71585;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="citas-container">
+    <h1>📅 Mis Citas</h1>
+
+    <!-- Botón para nueva cita -->
+    <div style="text-align: center;">
+        <a href="{{ url_for('agendar_paso1') }}" class="btn-nueva">
+            ➕ Agendar Nueva Cita
+        </a>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+        <button class="tab-btn active" onclick="cambiarTab('futuras')">
+            🔮 Próximas Citas ({{ citas_futuras|length }})
+        </button>
+        <button class="tab-btn" onclick="cambiarTab('pasadas')">
+            📜 Historial ({{ citas_pasadas|length }})
+        </button>
+    </div>
+
+    <!-- Contenido Tab Futuras -->
+    <div id="tab-futuras" class="tab-content active">
+        {% if citas_futuras %}
+            <div class="citas-grid">
+                {% for cita, servicio, empleado in citas_futuras %}
+                <div class="cita-card">
+                    <div class="cita-header">
+                        <div class="cita-titulo">{{ servicio.nombre_servicio }}</div>
+                        <div class="estado-badge estado-{{ cita.estado }}">
+                            {% if cita.estado == 'pendiente_pago' %}
+                                ⏳ Pendiente de Pago
+                            {% elif cita.estado == 'confirmada' %}
+                                ✅ Confirmada
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="cita-info">
+                        <div class="info-item">
+                            <span class="info-icon">📅</span>
+                            <div>
+                                <div class="info-text">Fecha</div>
+                                <div class="info-valor">{{ cita.fecha_hora_inicio.strftime('%d/%m/%Y') }}</div>
+                            </div>
+                        </div>
+
+                        <div class="info-item">
+                            <span class="info-icon">🕐</span>
+                            <div>
+                                <div class="info-text">Hora</div>
+                                <div class="info-valor">{{ cita.fecha_hora_inicio.strftime('%I:%M %p') }}</div>
+                            </div>
+                        </div>
+
+                        <div class="info-item">
+                            <span class="info-icon">👤</span>
+                            <div>
+                                <div class="info-text">Especialista</div>
+                                <div class="info-valor">{{ empleado.nombre }}</div>
+                            </div>
+                        </div>
+
+                        <div class="info-item">
+                            <span class="info-icon">⏱️</span>
+                            <div>
+                                <div class="info-text">Duración</div>
+                                <div class="info-valor">{{ servicio.duracion_minutos }} min</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="cita-detalles">
+                        <div class="detalle-row">
+                            <span>Código de Reserva:</span>
+                            <span class="codigo-reserva">{{ cita.codigo_reserva }}</span>
+                        </div>
+                        <div class="detalle-row">
+                            <span>Precio Total:</span>
+                            <span>${{ '{:,.0f}'.format(cita.monto_total) }}</span>
+                        </div>
+                        <div class="detalle-row">
+                            <span>Abono:</span>
+                            <span>${{ '{:,.0f}'.format(cita.monto_abono) }}</span>
+                        </div>
+                        <div class="detalle-row">
+                            <span>Saldo Pendiente:</span>
+                            <span style="font-weight: 700; color: #ff1493;">${{ '{:,.0f}'.format(cita.saldo_pendiente) }}</span>
+                        </div>
+                    </div>
+
+                    {% set ahora = now() %}
+                    {% set horas_restantes = ((cita.fecha_hora_inicio - ahora).total_seconds() / 3600)|int %}
+                    
+                    {% if horas_restantes > 2 %}
+                        <p class="tiempo-restante">
+                            ⏰ Faltan {{ horas_restantes }} horas para tu cita
+                        </p>
+                    {% else %}
+                        <div class="alerta-cancelacion">
+                            ⚠️ Ya no puedes cancelar esta cita (faltan menos de 2 horas)
+                        </div>
+                    {% endif %}
+
+                    <div class="cita-acciones">
+                        <a href="{{ url_for('cita_confirmada', codigo=cita.codigo_reserva) }}" class="btn btn-ver">
+                            👁️ Ver Detalles
+                        </a>
+                        {% if cita.estado == 'pendiente_pago' %}
+                        <a href="{{ url_for('cliente_pagos_registrar', id_cita=cita.id_cita) }}" class="btn" style="background: linear-gradient(135deg, #ffd700, #ffed4e); color: #c71585;">
+                            💳 Pagar Saldo
+                        </a>
+                        {% endif %}
+                        {% if horas_restantes > 2 %}
+                            <button class="btn btn-cancelar" onclick="cancelarCita({{ cita.id_cita }}, '{{ servicio.nombre_servicio }}')">
+                                ❌ Cancelar Cita
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">📭</div>
+                <h3>No tienes citas programadas</h3>
+                <p>¡Agenda tu primera cita para disfrutar de nuestros servicios!</p>
+                <a href="{{ url_for('agendar_paso1') }}" class="btn-nueva" style="margin-top: 1.5rem;">
+                    ➕ Agendar Ahora
+                </a>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Contenido Tab Pasadas -->
+    <div id="tab-pasadas" class="tab-content">
+        {% if citas_pasadas %}
+            <div class="citas-grid">
+                {% for cita, servicio, empleado in citas_pasadas %}
+                <div class="cita-card" style="opacity: 0.8;">
+                    <div class="cita-header">
+                        <div class="cita-titulo">{{ servicio.nombre_servicio }}</div>
+                        <div class="estado-badge estado-{{ cita.estado }}">
+                            {% if cita.estado == 'completada' %}
+                                ✅ Completada
+                            {% elif cita.estado == 'cancelada' %}
+                                ❌ Cancelada
+                            {% elif cita.estado == 'no_asistio' %}
+                                ⏭️ No Asistió
+                            {% else %}
+                                {{ cita.estado }}
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="cita-info">
+                        <div class="info-item">
+                            <span class="info-icon">📅</span>
+                            <div>
+                                <div class="info-text">Fecha</div>
+                                <div class="info-valor">{{ cita.fecha_hora_inicio.strftime('%d/%m/%Y') }}</div>
+                            </div>
+                        </div>
+
+                        <div class="info-item">
+                            <span class="info-icon">👤</span>
+                            <div>
+                                <div class="info-text">Especialista</div>
+                                <div class="info-valor">{{ empleado.nombre }}</div>
+                            </div>
+                        </div>
+
+                        <div class="info-item">
+                            <span class="info-icon">💰</span>
+                            <div>
+                                <div class="info-text">Total Pagado</div>
+                                <div class="info-valor">${{ '{:,.0f}'.format(cita.monto_total) }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="cita-detalles">
+                        <div class="detalle-row">
+                            <span>Código:</span>
+                            <span class="codigo-reserva">{{ cita.codigo_reserva }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">📜</div>
+                <h3>No tienes historial de citas</h3>
+                <p>Aquí aparecerán tus citas pasadas</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="btn-volver">
+        <a href="{{ url_for('dashboard_cliente') }}">← Volver al Dashboard</a>
+    </div>
+</div>
+
+<script>
+    function cambiarTab(tab) {
+        // Remover clase active de todos los botones y contenidos
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        
+        // Agregar clase active al botón y contenido seleccionado
+        if (tab === 'futuras') {
+            document.querySelector('.tab-btn:first-child').classList.add('active');
+            document.getElementById('tab-futuras').classList.add('active');
+        } else {
+            document.querySelector('.tab-btn:last-child').classList.add('active');
+            document.getElementById('tab-pasadas').classList.add('active');
+        }
+    }
+
+    async function cancelarCita(idCita, nombreServicio) {
+        if (!confirm(`¿Estás seguro de cancelar tu cita de ${nombreServicio}?`)) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`{{ url_for('cancelar_cita', id_cita=0) }}`.replace('0', idCita), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                alert('✅ ' + data.message);
+                location.reload();
+            } else {
+                alert('❌ ' + data.error);
+            }
+        } catch (error) {
+            alert('❌ Error al cancelar la cita. Intenta de nuevo.');
+            console.error('Error:', error);
+        }
+    }
+</script>
+{% endblock %}

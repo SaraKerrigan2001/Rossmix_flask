@@ -1,0 +1,526 @@
+{% extends 'base.html' %}
+
+{% block title %}Confirmar Cita - Rossmix{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Hero Section */
+    .citas-hero {
+        background: linear-gradient(135deg, #8b008b 0%, #c71585 50%, #ff1493 100%);
+        border-radius: 30px;
+        padding: 3rem 2rem;
+        text-align: center;
+        margin: 2rem 0 3rem 0;
+        box-shadow: 0 20px 60px rgba(139, 0, 139, 0.4);
+        border: 3px solid rgba(255, 215, 0, 0.5);
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .citas-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255, 215, 0, 0.15) 0%, transparent 70%);
+        animation: pulse 4s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); opacity: 0.5; }
+        50% { transform: scale(1.1); opacity: 0.8; }
+    }
+
+    .citas-hero h1 {
+        font-size: 3rem;
+        font-family: 'Playfair Display', serif;
+        font-weight: 700;
+        margin-bottom: 0.8rem;
+        text-shadow: 3px 3px 10px rgba(0, 0, 0, 0.3);
+        position: relative;
+        z-index: 1;
+    }
+
+    .citas-hero p {
+        font-size: 1.2rem;
+        opacity: 0.95;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* Steps Indicator */
+    .steps-indicator {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 1rem;
+        margin: 2rem 0 3rem 0;
+        flex-wrap: wrap;
+    }
+
+    .step-item {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+    }
+
+    .step-circle {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1.3rem;
+    }
+
+    .step-completed .step-circle {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+        box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+    }
+
+    .step-active .step-circle {
+        background: linear-gradient(135deg, #ff69b4, #ff1493);
+        color: white;
+        box-shadow: 0 8px 25px rgba(255, 105, 180, 0.5);
+        transform: scale(1.15);
+        animation: bounce 0.6s ease;
+    }
+
+    @keyframes bounce {
+        0%, 100% { transform: scale(1.15); }
+        50% { transform: scale(1.25); }
+    }
+
+    .step-label {
+        font-weight: 600;
+        font-size: 1.05rem;
+    }
+
+    .step-completed .step-label {
+        color: #28a745;
+    }
+
+    .step-active .step-label {
+        color: #ff1493;
+    }
+
+    .step-arrow {
+        color: #ffb6c1;
+        font-size: 2rem;
+    }
+
+    /* Container Principal */
+    .confirmation-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    /* Resumen de Cita */
+    .appointment-summary {
+        background: white;
+        border-radius: 30px;
+        padding: 3rem;
+        margin: 2rem 0;
+        box-shadow: 0 15px 50px rgba(255, 105, 180, 0.3);
+        border: 3px solid rgba(255, 215, 0, 0.4);
+    }
+
+    .appointment-summary h2 {
+        font-size: 2.5rem;
+        color: #ff1493;
+        margin-bottom: 2rem;
+        font-family: 'Playfair Display', serif;
+        text-align: center;
+    }
+
+    .summary-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.5rem 0;
+        border-bottom: 2px solid rgba(255, 182, 193, 0.2);
+    }
+
+    .summary-item:last-child {
+        border-bottom: none;
+    }
+
+    .summary-label {
+        font-weight: 600;
+        color: #666;
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+    }
+
+    .summary-value {
+        font-weight: 700;
+        color: #ff1493;
+        font-size: 1.3rem;
+        text-align: right;
+    }
+
+    .summary-icon {
+        font-size: 1.8rem;
+    }
+
+    /* Información de Pago */
+    .payment-section {
+        background: linear-gradient(135deg, #fff9e6, #fffbf0);
+        border-radius: 30px;
+        padding: 3rem;
+        margin: 2rem 0;
+        border: 3px solid #ffd700;
+        box-shadow: 0 15px 50px rgba(255, 215, 0, 0.3);
+    }
+
+    .payment-section h2 {
+        font-size: 2.5rem;
+        color: #ff1493;
+        margin-bottom: 2rem;
+        font-family: 'Playfair Display', serif;
+        text-align: center;
+    }
+
+    .payment-details {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        border: 2px solid rgba(255, 105, 180, 0.3);
+    }
+
+    .payment-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 1rem 0;
+        border-bottom: 1px solid #ffe5f3;
+        font-size: 1.1rem;
+    }
+
+    .payment-row:last-child {
+        border-bottom: none;
+        border-top: 3px solid #ff69b4;
+        padding-top: 1.5rem;
+        margin-top: 1rem;
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #ff1493;
+    }
+
+    /* Cuenta Bancaria */
+    .bank-account {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        text-align: center;
+        border: 3px solid #ff69b4;
+        box-shadow: 0 8px 25px rgba(255, 105, 180, 0.2);
+    }
+
+    .bank-account h3 {
+        color: #ff1493;
+        font-size: 1.8rem;
+        margin-bottom: 1rem;
+        font-family: 'Playfair Display', serif;
+    }
+
+    .bank-info {
+        margin: 1.5rem 0;
+        color: #666;
+        font-size: 1.1rem;
+    }
+
+    .account-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #c71585;
+        font-family: 'Courier New', monospace;
+        letter-spacing: 3px;
+        background: #ffe5f3;
+        padding: 1rem;
+        border-radius: 15px;
+        margin: 1.5rem 0;
+    }
+
+    .btn-copy {
+        background: linear-gradient(135deg, #ffd700, #ffed4e);
+        color: #8b008b;
+        border: 2px solid #ff69b4;
+        padding: 1rem 2rem;
+        border-radius: 20px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-size: 1.1rem;
+    }
+
+    .btn-copy:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
+    }
+
+    /* Instrucciones */
+    .instructions {
+        background: linear-gradient(135deg, #e8f5e9, #f1f8f6);
+        border-radius: 20px;
+        padding: 2rem;
+        margin: 2rem 0;
+        border: 3px solid #28a745;
+        box-shadow: 0 10px 30px rgba(40, 167, 69, 0.2);
+    }
+
+    .instructions h3 {
+        color: #28a745;
+        font-size: 1.8rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+    }
+
+    .instructions ol {
+        margin-left: 2rem;
+        color: #666;
+    }
+
+    .instructions li {
+        margin-bottom: 1rem;
+        font-size: 1.1rem;
+        line-height: 1.7;
+    }
+
+    /* Botón Confirmar */
+    .btn-confirm {
+        width: 100%;
+        padding: 1.8rem;
+        background: linear-gradient(135deg, #ff69b4, #ff1493);
+        color: white;
+        border: none;
+        border-radius: 25px;
+        font-weight: 700;
+        font-size: 1.4rem;
+        cursor: pointer;
+        transition: all 0.4s;
+        margin-top: 2rem;
+        box-shadow: 0 10px 30px rgba(255, 105, 180, 0.4);
+    }
+
+    .btn-confirm:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 40px rgba(255, 105, 180, 0.6);
+    }
+
+    /* Advertencia */
+    .warning-box {
+        background: linear-gradient(135deg, #ffe5e5, #fff5f5);
+        border: 3px solid #ff1493;
+        border-radius: 20px;
+        padding: 1.5rem;
+        margin-top: 2rem;
+        text-align: center;
+        color: #c71585;
+        font-weight: 600;
+        font-size: 1.05rem;
+    }
+
+    /* Volver */
+    .back-link {
+        text-align: center;
+        margin: 3rem 0 2rem 0;
+    }
+
+    .back-link a {
+        color: #ff1493;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 1.1rem;
+        border-bottom: 2px solid transparent;
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .back-link a:hover {
+        border-bottom-color: #ff1493;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="citas-hero">
+    <h1>✅ Confirma tu Cita</h1>
+    <p>Revisa los detalles y completa tu reserva</p>
+</div>
+
+<!-- Steps Indicator -->
+<div class="steps-indicator">
+    <div class="step-item step-completed">
+        <div class="step-circle">✓</div>
+        <div class="step-label">Servicio</div>
+    </div>
+    <div class="step-arrow">→</div>
+    <div class="step-item step-completed">
+        <div class="step-circle">✓</div>
+        <div class="step-label">Empleado</div>
+    </div>
+    <div class="step-arrow">→</div>
+    <div class="step-item step-completed">
+        <div class="step-circle">✓</div>
+        <div class="step-label">Fecha y Hora</div>
+    </div>
+    <div class="step-arrow">→</div>
+    <div class="step-item step-active">
+        <div class="step-circle">4</div>
+        <div class="step-label">Confirmación</div>
+    </div>
+</div>
+
+<div class="confirmation-container">
+    <!-- Resumen de Cita -->
+    <div class="appointment-summary">
+        <h2>📋 Resumen de tu Cita</h2>
+        
+        <div class="summary-item">
+            <div class="summary-label">
+                <span class="summary-icon">💅</span>
+                Servicio
+            </div>
+            <div class="summary-value">{{ servicio.nombre_servicio }}</div>
+        </div>
+        
+        <div class="summary-item">
+            <div class="summary-label">
+                <span class="summary-icon">👤</span>
+                Especialista
+            </div>
+            <div class="summary-value">{{ empleado.nombre if empleado else 'Asignación Automática' }}</div>
+        </div>
+        
+        <div class="summary-item">
+            <div class="summary-label">
+                <span class="summary-icon">📅</span>
+                Fecha
+            </div>
+            <div class="summary-value">{{ fecha_hora_inicio.strftime('%d de %B, %Y') }}</div>
+        </div>
+        
+        <div class="summary-item">
+            <div class="summary-label">
+                <span class="summary-icon">🕐</span>
+                Hora
+            </div>
+            <div class="summary-value">{{ fecha_hora_inicio.strftime('%I:%M %p') }} - {{ fecha_hora_fin.strftime('%I:%M %p') }}</div>
+        </div>
+        
+        <div class="summary-item">
+            <div class="summary-label">
+                <span class="summary-icon">⏱️</span>
+                Duración
+            </div>
+            <div class="summary-value">{{ servicio.duracion_minutos }} minutos</div>
+        </div>
+    </div>
+
+    <!-- Información de Pago -->
+    <div class="payment-section">
+        <h2>💰 Información de Pago</h2>
+        
+        <div class="payment-details">
+            <div class="payment-row">
+                <span>Precio del servicio:</span>
+                <span>${{ '{:,.0f}'.format(servicio.precio_total) }}</span>
+            </div>
+            <div class="payment-row">
+                <span>Abono requerido (para apartar):</span>
+                <span style="color: #ff1493;">$5,000</span>
+            </div>
+            <div class="payment-row">
+                <span>Saldo pendiente (pagar en el salón):</span>
+                <span>${{ '{:,.0f}'.format(servicio.precio_total - 5000) }}</span>
+            </div>
+        </div>
+
+        <!-- Cuenta Bancaria -->
+        <div class="bank-account">
+            <h3>🏦 Realiza tu abono a:</h3>
+            <div class="bank-info">
+                <p><strong>Banco:</strong> Bancolombia</p>
+                <p><strong>Tipo:</strong> Cuenta de Ahorros</p>
+                <p><strong>Titular:</strong> Rossmix Salón de Belleza</p>
+            </div>
+            <div class="account-number" id="account-number">1234-5678-9012-3456</div>
+            <button class="btn-copy" onclick="copiarCuenta()">
+                📋 Copiar Número de Cuenta
+            </button>
+        </div>
+    </div>
+
+    <!-- Instrucciones -->
+    <div class="instructions">
+        <h3>📝 Instrucciones</h3>
+        <ol>
+            <li><strong>Realiza la transferencia</strong> de $5,000 a la cuenta indicada</li>
+            <li><strong>Guarda el comprobante</strong> de pago</li>
+            <li><strong>Confirma tu cita</strong> haciendo clic en el botón de abajo</li>
+            <li>Te enviaremos un <strong>código de reserva</strong> único</li>
+            <li><strong>El saldo restante</strong> lo pagas al llegar al salón</li>
+        </ol>
+    </div>
+
+    <!-- Formulario de Confirmación -->
+    <form action="{{ url_for('confirmar_cita') }}" method="POST" id="form-confirmar">
+        <input type="hidden" name="id_servicio" value="{{ servicio.id_servicio }}">
+        <input type="hidden" name="id_empleado" value="{{ id_empleado }}">
+        <input type="hidden" name="fecha_hora_inicio" value="{{ fecha_hora_inicio.strftime('%Y-%m-%d %H:%M:%S') }}">
+        <input type="hidden" name="fecha_hora_fin" value="{{ fecha_hora_fin.strftime('%Y-%m-%d %H:%M:%S') }}">
+        
+        <button type="submit" class="btn-confirm">
+            ✅ Confirmar y Agendar Cita
+        </button>
+    </form>
+
+    <div class="warning-box">
+        ⚠️ <strong>Importante:</strong> Al confirmar, tu cita quedará agendada en estado "Pendiente de Pago". Debes realizar la transferencia para que sea confirmada definitivamente.
+    </div>
+
+    <div class="back-link">
+        <a href="{{ url_for('agendar_paso3', id_servicio=servicio.id_servicio, id_empleado=id_empleado) }}">← Cambiar Fecha u Hora</a>
+    </div>
+</div>
+
+<script>
+    function copiarCuenta() {
+        const numero = document.getElementById('account-number').textContent;
+        navigator.clipboard.writeText(numero).then(() => {
+            const btn = event.target;
+            const textoOriginal = btn.textContent;
+            btn.textContent = '✅ ¡Copiado!';
+            btn.style.background = 'linear-gradient(135deg, #28a745, #20c997)';
+            btn.style.color = 'white';
+            
+            setTimeout(() => {
+                btn.textContent = textoOriginal;
+                btn.style.background = '';
+                btn.style.color = '';
+            }, 2000);
+        });
+    }
+
+    // Prevenir doble envío
+    document.getElementById('form-confirmar').addEventListener('submit', function() {
+        const btn = this.querySelector('button[type="submit"]');
+        btn.disabled = true;
+        btn.textContent = '⏳ Procesando...';
+    });
+</script>
+{% endblock %}

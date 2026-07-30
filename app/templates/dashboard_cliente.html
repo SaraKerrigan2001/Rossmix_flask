@@ -1,0 +1,443 @@
+{% extends 'base.html' %}
+{% block title %}Mi Dashboard - Rossmix{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── Layout general ─────────────────────────────────── */
+.client-wrapper {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem 2rem 4rem;
+}
+
+/* ── Hero banner ────────────────────────────────────── */
+.client-hero {
+    background: linear-gradient(135deg, #c41e3a 0%, #ff1493 60%, #ff69b4 100%);
+    border-radius: 24px;
+    padding: 3rem 3rem;
+    margin-bottom: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 2rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 12px 40px rgba(196,30,58,0.25);
+}
+.client-hero::before {
+    content: '';
+    position: absolute; top: -80px; right: -80px;
+    width: 280px; height: 280px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 50%;
+}
+.client-hero::after {
+    content: '';
+    position: absolute; bottom: -60px; left: 30%;
+    width: 200px; height: 200px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 50%;
+}
+.hero-text-block { position: relative; z-index: 1; }
+.hero-text-block h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.4rem; font-weight: 700;
+    color: white; margin: 0 0 0.4rem;
+}
+.hero-text-block h1 span { color: #ffd700; }
+.hero-text-block p { color: rgba(255,255,255,0.88); font-size: 1rem; margin: 0; }
+.hero-actions {
+    display: flex; gap: 1rem; flex-wrap: wrap;
+    position: relative; z-index: 1;
+}
+.hero-btn-white {
+    background: white; color: #c41e3a;
+    padding: 0.8rem 2rem; border-radius: 10px;
+    font-weight: 700; font-size: 0.95rem;
+    text-decoration: none; display: inline-flex;
+    align-items: center; gap: 0.5rem;
+    transition: all 0.25s; border: none;
+}
+.hero-btn-white:hover {
+    background: #ffd700; color: #333;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+.hero-btn-outline {
+    background: rgba(255,255,255,0.15);
+    color: white; border: 2px solid rgba(255,255,255,0.6);
+    padding: 0.8rem 2rem; border-radius: 10px;
+    font-weight: 700; font-size: 0.95rem;
+    text-decoration: none; display: inline-flex;
+    align-items: center; gap: 0.5rem;
+    backdrop-filter: blur(4px);
+    transition: all 0.25s;
+}
+.hero-btn-outline:hover {
+    background: rgba(255,255,255,0.28); color: white;
+    transform: translateY(-3px);
+}
+
+/* ── Tarjetas de estado rápido ──────────────────────── */
+.quick-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.2rem;
+    margin-bottom: 2.5rem;
+}
+@media (max-width: 992px)  { .quick-stats { grid-template-columns: repeat(2,1fr); } }
+@media (max-width: 480px)  { .quick-stats { grid-template-columns: 1fr; } }
+
+.qs-card {
+    background: white; border-radius: 16px;
+    padding: 1.4rem 1.2rem;
+    box-shadow: 0 2px 14px rgba(0,0,0,0.06);
+    display: flex; align-items: center; gap: 1rem;
+    border-left: 4px solid transparent;
+    transition: transform 0.25s;
+}
+.qs-card:hover { transform: translateY(-3px); }
+.qs-card.c-pink   { border-color: #ff1493; }
+.qs-card.c-purple { border-color: #8b5cf6; }
+.qs-card.c-gold   { border-color: #f59e0b; }
+.qs-card.c-teal   { border-color: #10b981; }
+.qs-ico {
+    width: 46px; height: 46px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; flex-shrink: 0;
+}
+.qs-ico.c-pink   { background: #fff0f6; color: #ff1493; }
+.qs-ico.c-purple { background: #f5f0ff; color: #8b5cf6; }
+.qs-ico.c-gold   { background: #fffbeb; color: #f59e0b; }
+.qs-ico.c-teal   { background: #ecfdf5; color: #10b981; }
+.qs-info .qs-num { font-size: 1.6rem; font-weight: 800; color: #1a1a1a; line-height: 1; }
+.qs-info .qs-lbl { font-size: 0.8rem; color: #999; margin-top: 0.2rem; }
+
+/* ── Cuerpo principal: 2 columnas ───────────────────── */
+.client-body {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 1.5rem;
+    align-items: start;
+}
+@media (max-width: 1100px) { .client-body { grid-template-columns: 1fr; } }
+
+/* ── Card de servicios ──────────────────────────────── */
+.panel-card {
+    background: white; border-radius: 18px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+    overflow: hidden;
+}
+.panel-card-header {
+    padding: 1.4rem 1.8rem;
+    border-bottom: 2px solid #f5f5f5;
+    display: flex; align-items: center; justify-content: space-between;
+}
+.panel-card-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.15rem; font-weight: 700;
+    color: #1a1a1a; margin: 0;
+}
+.panel-card-header a {
+    font-size: 0.85rem; color: #c41e3a;
+    text-decoration: none; font-weight: 600;
+}
+.panel-card-header a:hover { text-decoration: underline; }
+.panel-card-body { padding: 1.8rem; }
+
+/* ── Grid de servicios ──────────────────────────────── */
+.svc-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+@media (max-width: 576px) { .svc-grid { grid-template-columns: 1fr; } }
+
+.svc-item {
+    border-radius: 14px; padding: 1.4rem;
+    display: flex; align-items: center; gap: 1rem;
+    text-decoration: none; color: inherit;
+    transition: all 0.25s; border: 1.5px solid #f0f0f0;
+}
+.svc-item:hover {
+    border-color: #ffb3d1;
+    box-shadow: 0 6px 20px rgba(196,30,58,0.1);
+    transform: translateY(-3px); color: inherit;
+}
+.svc-letter {
+    width: 50px; height: 50px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem; font-weight: 700; flex-shrink: 0;
+}
+.sl-pink   { background: #fff0f6; color: #c41e3a; }
+.sl-purple { background: #f5f0ff; color: #7c3aed; }
+.sl-teal   { background: #ecfdf5; color: #059669; }
+.sl-gold   { background: #fffbeb; color: #d97706; }
+
+.svc-details h4 { font-size: 0.95rem; font-weight: 700; margin: 0 0 0.2rem; color: #1a1a1a; }
+.svc-details p  { font-size: 0.8rem; color: #999; margin: 0; }
+
+/* ── Panel lateral derecho ──────────────────────────── */
+.side-col { display: flex; flex-direction: column; gap: 1.5rem; }
+
+/* ── Tarjeta de cita próxima ────────────────────────── */
+.next-appt-card {
+    background: linear-gradient(135deg, #c41e3a 0%, #ff1493 100%);
+    border-radius: 18px; padding: 1.8rem;
+    color: white;
+    box-shadow: 0 8px 30px rgba(196,30,58,0.2);
+}
+.next-appt-card h3 {
+    font-size: 0.85rem; text-transform: uppercase;
+    letter-spacing: 1px; opacity: 0.8; margin: 0 0 1rem;
+    display: flex; align-items: center; gap: 0.4rem;
+}
+.appt-info { margin-bottom: 1.2rem; }
+.appt-info .appt-service {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem; font-weight: 700; margin: 0 0 0.3rem;
+}
+.appt-info .appt-detail {
+    font-size: 0.88rem; opacity: 0.88;
+    display: flex; align-items: center; gap: 0.4rem;
+    margin-bottom: 0.2rem;
+}
+.appt-actions { display: flex; gap: 0.7rem; }
+.appt-btn {
+    flex: 1; text-align: center;
+    padding: 0.55rem; border-radius: 8px;
+    font-size: 0.82rem; font-weight: 600;
+    text-decoration: none; transition: all 0.2s;
+}
+.appt-btn-white { background: white; color: #c41e3a; }
+.appt-btn-white:hover { background: #ffd700; color: #333; }
+.appt-btn-border { border: 1.5px solid rgba(255,255,255,0.6); color: white; }
+.appt-btn-border:hover { background: rgba(255,255,255,0.15); color: white; }
+.no-appt {
+    text-align: center; padding: 1rem 0;
+    opacity: 0.85; font-size: 0.95rem;
+}
+.no-appt i { font-size: 2rem; display: block; margin-bottom: 0.5rem; }
+
+/* ── Tarjeta de tips / info ─────────────────────────── */
+.tip-card {
+    background: white; border-radius: 18px;
+    padding: 1.6rem;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+}
+.tip-card h3 {
+    font-size: 1rem; font-weight: 700;
+    color: #1a1a1a; margin: 0 0 1rem;
+    padding-bottom: 0.7rem;
+    border-bottom: 2px solid #f5f5f5;
+    display: flex; align-items: center; gap: 0.4rem;
+}
+.tip-item {
+    display: flex; align-items: flex-start; gap: 0.8rem;
+    margin-bottom: 1rem; padding-bottom: 1rem;
+    border-bottom: 1px solid #f8f8f8;
+}
+.tip-item:last-child { margin-bottom: 0; padding-bottom: 0; border: none; }
+.tip-icon {
+    width: 34px; height: 34px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; flex-shrink: 0; margin-top: 1px;
+}
+.tip-icon.pink   { background: #fff0f6; color: #c41e3a; }
+.tip-icon.gold   { background: #fffbeb; color: #d97706; }
+.tip-icon.teal   { background: #ecfdf5; color: #059669; }
+.tip-text h4 { font-size: 0.88rem; font-weight: 600; color: #1a1a1a; margin: 0 0 0.15rem; }
+.tip-text p  { font-size: 0.8rem; color: #888; margin: 0; line-height: 1.5; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="client-wrapper">
+
+    <!-- HERO BANNER -->
+    <div class="client-hero">
+        <div class="hero-text-block">
+            <h1>Hola, <span>{{ session.nombre.split()[0] }}</span></h1>
+            <p>Bienvenida a tu espacio personal de belleza en Rossmix</p>
+        </div>
+        <div class="hero-actions">
+            <a href="{{ url_for('agendar_paso1') }}" class="hero-btn-white">
+                <i class="bi bi-plus-circle"></i> Agendar Cita
+            </a>
+            <a href="{{ url_for('mis_citas') }}" class="hero-btn-outline">
+                <i class="bi bi-calendar3"></i> Mis Citas
+            </a>
+        </div>
+    </div>
+
+    <!-- ESTADÍSTICAS RÁPIDAS -->
+    <div class="quick-stats">
+        <div class="qs-card c-pink">
+            <div class="qs-ico c-pink"><i class="bi bi-calendar-check"></i></div>
+            <div class="qs-info">
+                <div class="qs-num">{{ stats.citas_pendientes }}</div>
+                <div class="qs-lbl">Citas Pendientes</div>
+            </div>
+        </div>
+        <div class="qs-card c-purple">
+            <div class="qs-ico c-purple"><i class="bi bi-check2-circle"></i></div>
+            <div class="qs-info">
+                <div class="qs-num">{{ stats.citas_completadas }}</div>
+                <div class="qs-lbl">Citas Completadas</div>
+            </div>
+        </div>
+        <div class="qs-card c-gold">
+            <div class="qs-ico c-gold"><i class="bi bi-star"></i></div>
+            <div class="qs-info">
+                <div class="qs-num">4</div>
+                <div class="qs-lbl">Servicios Disponibles</div>
+            </div>
+        </div>
+        <div class="qs-card c-teal">
+            <div class="qs-ico c-teal"><i class="bi bi-shield-check"></i></div>
+            <div class="qs-info">
+                <div class="qs-num">2h</div>
+                <div class="qs-lbl">Límite Cancelación</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CUERPO PRINCIPAL -->
+    <div class="client-body">
+
+        <!-- COLUMNA IZQUIERDA: Servicios -->
+        <div>
+            <div class="panel-card">
+                <div class="panel-card-header">
+                    <h2><i class="bi bi-scissors" style="color:#c41e3a;"></i> Nuestros Servicios</h2>
+                    <a href="{{ url_for('agendar_paso1') }}">Agendar ahora &rarr;</a>
+                </div>
+                <div class="panel-card-body">
+                    <div class="svc-grid">
+                        <a href="{{ url_for('agendar_paso1') }}" class="svc-item">
+                            <div class="svc-letter sl-pink">N</div>
+                            <div class="svc-details">
+                                <h4>Uñas y Nail Art</h4>
+                                <p>Manicure, pedicure, acrílicas y decoración</p>
+                            </div>
+                        </a>
+                        <a href="{{ url_for('agendar_paso1') }}" class="svc-item">
+                            <div class="svc-letter sl-purple">H</div>
+                            <div class="svc-details">
+                                <h4>Estilismo de Cabello</h4>
+                                <p>Cortes, tintes, mechas y alisados</p>
+                            </div>
+                        </a>
+                        <a href="{{ url_for('agendar_paso1') }}" class="svc-item">
+                            <div class="svc-letter sl-teal">D</div>
+                            <div class="svc-details">
+                                <h4>Depilación</h4>
+                                <p>Piernas, axilas y zona facial con cera</p>
+                            </div>
+                        </a>
+                        <a href="{{ url_for('agendar_paso1') }}" class="svc-item">
+                            <div class="svc-letter sl-gold">C</div>
+                            <div class="svc-details">
+                                <h4>Cejas y Pestañas</h4>
+                                <p>Diseño, laminado y extensiones</p>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Aviso de cancelación -->
+            <div style="margin-top:1.5rem; background:white; border-radius:14px; padding:1.2rem 1.6rem;
+                        box-shadow:0 2px 14px rgba(0,0,0,0.06); display:flex; align-items:center; gap:1rem;
+                        border-left: 4px solid #f59e0b;">
+                <div style="background:#fffbeb; color:#d97706; width:40px; height:40px; border-radius:10px;
+                            display:flex; align-items:center; justify-content:center; font-size:1.2rem; flex-shrink:0;">
+                    <i class="bi bi-exclamation-triangle"></i>
+                </div>
+                <div>
+                    <strong style="color:#1a1a1a; font-size:0.9rem;">Politica de Cancelación</strong>
+                    <p style="margin:0; font-size:0.82rem; color:#888; margin-top:0.1rem;">
+                        Las citas deben cancelarse con mínimo <strong>2 horas</strong> de anticipación desde la sección "Mis Citas".
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- COLUMNA DERECHA -->
+        <div class="side-col">
+
+            <!-- Próxima cita -->
+            <div class="next-appt-card">
+                <h3><i class="bi bi-calendar-event"></i> Próxima Cita</h3>
+                {% if proxima_cita %}
+                    {% set cita, servicio, empleado = proxima_cita %}
+                    <div class="appt-info">
+                        <div class="appt-service">{{ servicio.nombre_servicio }}</div>
+                        <div class="appt-detail">
+                            <i class="bi bi-calendar3"></i>
+                            {{ cita.fecha_hora_inicio.strftime('%d/%m/%Y') }}
+                        </div>
+                        <div class="appt-detail">
+                            <i class="bi bi-clock"></i>
+                            {{ cita.fecha_hora_inicio.strftime('%H:%M') }} - {{ cita.fecha_hora_fin.strftime('%H:%M') }}
+                        </div>
+                        {% if empleado %}
+                        <div class="appt-detail">
+                            <i class="bi bi-person"></i> {{ empleado.nombre }}
+                        </div>
+                        {% endif %}
+                        <div class="appt-detail" style="margin-top:0.5rem;">
+                            <span style="background:rgba(255,255,255,0.2); border-radius:6px; padding:0.15rem 0.6rem; font-size:0.8rem;">
+                                {{ cita.codigo_reserva }}
+                            </span>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="no-appt">
+                        <i class="bi bi-calendar-x"></i>
+                        No tienes citas programadas
+                    </div>
+                {% endif %}
+                <div class="appt-actions">
+                    <a href="{{ url_for('agendar_paso1') }}" class="appt-btn appt-btn-white">
+                        Agendar Ahora
+                    </a>
+                    <a href="{{ url_for('mis_citas') }}" class="appt-btn appt-btn-border">
+                        Ver Historial
+                    </a>
+                </div>
+            </div>
+
+            <!-- Tips -->
+            <div class="tip-card">
+                <h3><i class="bi bi-lightbulb" style="color:#d97706;"></i> Consejos</h3>
+                <div class="tip-item">
+                    <div class="tip-icon pink"><i class="bi bi-clock"></i></div>
+                    <div class="tip-text">
+                        <h4>Llega puntual</h4>
+                        <p>Te recomendamos llegar 5 minutos antes de tu cita.</p>
+                    </div>
+                </div>
+                <div class="tip-item">
+                    <div class="tip-icon gold"><i class="bi bi-credit-card"></i></div>
+                    <div class="tip-text">
+                        <h4>Reserva con abono</h4>
+                        <p>Solo $5,000 para apartar tu cita. El resto al llegar.</p>
+                    </div>
+                </div>
+                <div class="tip-item">
+                    <div class="tip-icon teal"><i class="bi bi-telephone"></i></div>
+                    <div class="tip-text">
+                        <h4>Necesitas ayuda</h4>
+                        <p>Contáctanos si tienes alguna duda sobre tu cita.</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+{% endblock %}

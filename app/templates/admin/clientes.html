@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+{% block title %}Gestión de Clientes - Rossmix{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>{{ view_title or 'Gestión de Clientes' }}</h1>
+        <div class="breadcrumb-r">
+            <a href="{{ url_for('dashboard_admin') }}">Panel Admin</a>
+            <i class="bi bi-chevron-right"></i> <span>Clientes</span>
+        </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+        <div class="filter-btn-group">
+            <a href="{{ url_for('admin_clientes') }}" class="btn-filter {% if filter_label != 'Hoy' %}active{% endif %}">Todos</a>
+            <a href="{{ url_for('admin_clientes_hoy') }}" class="btn-filter {% if filter_label == 'Hoy' %}active{% endif %}">Hoy</a>
+        </div>
+        <span class="meta-badge">
+            <i class="bi bi-people"></i> {{ clientes|length }} cliente(s)
+        </span>
+    </div>
+</div>
+
+<div class="r-card">
+    <div class="r-card-header d-flex justify-content-between align-items-center">
+        <h2><i class="bi bi-people-fill" style="color:#c41e3a;"></i> Clientes Registrados</h2>
+        <div class="dropdown">
+            <button class="btn-rossmix dropdown-toggle" type="button" id="exportClientesDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="background:#059669;">
+                <i class="bi bi-file-earmark-excel"></i> Exportar a Excel
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="exportClientesDropdown">
+                <li><a class="dropdown-item" href="{{ url_for('admin_exportar_excel', tipo='clientes', periodo='diario') }}">Diario (Hoy)</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('admin_exportar_excel', tipo='clientes', periodo='semana') }}">Semanal</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('admin_exportar_excel', tipo='clientes', periodo='mes') }}">Mensual</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('admin_exportar_excel', tipo='clientes', periodo='ano') }}">Anual</a></li>
+            </ul>
+        </div>
+    </div>
+    {% if clientes %}
+    <div class="overflow-x-auto">
+        <table class="r-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Email</th>
+                    <th>Teléfono</th>
+                    <th>Citas</th>
+                    <th>Estado</th>
+                    <th>Registro</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cliente in clientes %}
+                <tr id="cliente-{{ cliente.id }}">
+                    <td class="cell-muted">#{{ cliente.id }}</td>
+                    <td>
+                        <div class="row-flex">
+                            <div class="avatar-circle">
+                                {{ cliente.nombre[0].upper() }}
+                            </div>
+                            <strong>{{ cliente.nombre }}</strong>
+                        </div>
+                    </td>
+                    <td class="small-muted">{{ cliente.email }}</td>
+                    <td>{{ cliente.telefono }}</td>
+                    <td>
+                        <span class="pill-count">{{ cliente.citas|length }}</span>
+                    </td>
+                    <td>
+                        <a href="{{ url_for('admin_citas') }}?estado=cancelada&cliente_id={{ cliente.id }}" class="cancel-count-link">
+                            {{ cliente.citas_canceladas or 0 }} cancelada(s)
+                        </a>
+                    </td>
+                    <td>
+                        {% if cliente.activo %}
+                            <span class="badge-active">Activo</span>
+                        {% else %}
+                            <span class="badge-inactive">Inactivo</span>
+                        {% endif %}
+                    </td>
+                    <td class="cell-muted">
+                        {{ cliente.fecha_registro.strftime('%d/%m/%Y') if cliente.fecha_registro else '—' }}
+                    </td>
+                    <td>
+                        <div class="actions-row">
+                            <a href="{{ url_for('admin_clientes_editar', id_cliente=cliente.id) }}" class="edit-action" title="Editar">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="{{ url_for('admin_citas') }}?cliente_id={{ cliente.id }}" class="history-action" title="Historial de Citas">
+                                <i class="bi bi-clock"></i>
+                            </a>
+                            <button onclick="confirmarEliminar({{ cliente.id }}, '{{ cliente.nombre }}')" class="delete-action" title="Eliminar">
+                                <i class="bi bi-trash3"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="r-card-body" style="text-align:center; padding:3rem; color:#9ca3af;">
+        <i class="bi bi-people" style="font-size:2.5rem; display:block; margin-bottom:0.8rem;"></i>
+        No hay clientes registrados.
+    </div>
+    {% endif %}
+</div>
+
+<!-- Modal confirmación -->
+<div id="modalEliminar" class="modal-eliminar">
+    <div class="modal-inner">
+        <h3 class="modal-title">Confirmar Eliminación</h3>
+        <p id="modalMsg" class="modal-msg"></p>
+        <div class="modal-actions">
+            <button onclick="cerrarModal()" class="btn-secondary-r">Cancelar</button>
+            <button id="btnConfirmarEliminar" class="btn-rossmix btn-danger-gradient">
+                <i class="bi bi-trash3"></i> Eliminar
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+let clienteId = null;
+function confirmarEliminar(id, nombre) {
+    clienteId = id;
+    document.getElementById('modalMsg').textContent = `¿Eliminar al cliente "${nombre}"? Esta acción no se puede deshacer.`;
+    document.getElementById('modalEliminar').style.display = 'flex';
+}
+function cerrarModal() { document.getElementById('modalEliminar').style.display = 'none'; }
+
+document.getElementById('btnConfirmarEliminar').addEventListener('click', function() {
+    if (!clienteId) return;
+    fetch(`/admin/clientes/eliminar/${clienteId}`, { method:'POST' })
+        .then(r => r.json())
+        .then(d => {
+            cerrarModal();
+            if (d.success) {
+                document.getElementById(`cliente-${clienteId}`)?.remove();
+            } else {
+                alert(d.message);
+            }
+        });
+});
+</script>
+{% endblock %}

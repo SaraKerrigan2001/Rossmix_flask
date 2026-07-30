@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% block title %}Gestión de Servicios - Rossmix{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Gestión de Servicios</h1>
+        <div class="breadcrumb-r">
+            <a href="{{ url_for('dashboard_admin') }}">Panel Admin</a>
+            <i class="bi bi-chevron-right"></i> <span>Servicios</span>
+        </div>
+    </div>
+    <a href="{{ url_for('admin_servicios_crear') }}" class="btn-rossmix">
+        <i class="bi bi-plus-lg"></i> Nuevo Servicio
+    </a>
+</div>
+
+<div class="r-card">
+    <div class="r-card-header d-flex justify-content-between align-items-center">
+        <div>
+            <h2><i class="bi bi-scissors" style="color:#059669;"></i> Servicios</h2>
+            <span style="font-size:0.85rem; color:#888;">{{ servicios|length }} servicio(s)</span>
+        </div>
+        <div class="dropdown">
+            <button class="btn-rossmix dropdown-toggle" type="button" id="exportServiciosDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="background:#059669;">
+                <i class="bi bi-file-earmark-excel"></i> Exportar a Excel
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="exportServiciosDropdown">
+                <li><a class="dropdown-item" href="{{ url_for('admin_exportar_excel', tipo='servicios', periodo='diario') }}">Diario (Hoy)</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('admin_exportar_excel', tipo='servicios', periodo='semana') }}">Semanal</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('admin_exportar_excel', tipo='servicios', periodo='mes') }}">Mensual</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('admin_exportar_excel', tipo='servicios', periodo='ano') }}">Anual</a></li>
+            </ul>
+        </div>
+    </div>
+    {% if servicios %}
+    <div style="overflow-x:auto;">
+        <table class="r-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Descripción</th>
+                    <th>Precio</th>
+                    <th>Duración</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for svc in servicios %}
+                <tr id="servicio-{{ svc.id_servicio }}">
+                    <td style="color:#9ca3af; font-size:0.82rem;">#{{ svc.id_servicio }}</td>
+                    <td><strong>{{ svc.nombre_servicio }}</strong></td>
+                    <td style="color:#6b7280; max-width:240px;">
+                        <small>{{ (svc.descripcion[:60] + '…') if svc.descripcion and svc.descripcion|length > 60 else (svc.descripcion or '—') }}</small>
+                    </td>
+                    <td><strong style="color:#c41e3a;">${{ "{:,.0f}".format(svc.precio_total) }}</strong></td>
+                    <td>
+                        <span style="background:#f0fdf4;color:#166534;padding:0.2rem 0.7rem;border-radius:20px;font-size:0.8rem;font-weight:600;">
+                            {{ svc.duracion_minutos }} min
+                        </span>
+                    </td>
+                    <td>
+                        {% if svc.activo %}
+                            <span class="badge-active">Activo</span>
+                        {% else %}
+                            <span class="badge-inactive">Inactivo</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="display:flex; gap:0.4rem;">
+                            <a href="{{ url_for('admin_servicios_editar', id_servicio=svc.id_servicio) }}"
+                               style="background:#fef3c7;color:#d97706;padding:0.4rem 0.7rem;border-radius:8px;font-size:0.82rem;font-weight:600;text-decoration:none;" title="Editar">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <button onclick="confirmarEliminar({{ svc.id_servicio }}, '{{ svc.nombre_servicio }}')"
+                                    style="background:#fee2e2;color:#dc2626;border:none;padding:0.4rem 0.7rem;border-radius:8px;font-size:0.82rem;font-weight:600;cursor:pointer;" title="Eliminar">
+                                <i class="bi bi-trash3"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="r-card-body" style="text-align:center; padding:3rem; color:#9ca3af;">
+        <i class="bi bi-scissors" style="font-size:2.5rem; display:block; margin-bottom:0.8rem;"></i>
+        No hay servicios registrados.
+        <a href="{{ url_for('admin_servicios_crear') }}" style="color:#c41e3a; font-weight:600;">Crear el primero</a>
+    </div>
+    {% endif %}
+</div>
+
+<div id="modalEliminar" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:3000; align-items:center; justify-content:center;">
+    <div style="background:white; border-radius:16px; padding:2rem; max-width:420px; width:90%; box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+        <h3 style="font-family:'Playfair Display',serif; margin-bottom:0.8rem;">Confirmar Eliminación</h3>
+        <p id="modalMsg" style="color:#6b7280; margin-bottom:1.5rem; font-size:0.95rem;"></p>
+        <div style="display:flex; gap:1rem; justify-content:flex-end;">
+            <button onclick="cerrarModal()" class="btn-secondary-r">Cancelar</button>
+            <button id="btnConfirmar" class="btn-rossmix" style="background:linear-gradient(135deg,#dc2626,#ef4444);">
+                <i class="bi bi-trash3"></i> Eliminar
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+let svcId = null;
+function confirmarEliminar(id, nombre) {
+    svcId = id;
+    document.getElementById('modalMsg').textContent = `¿Eliminar el servicio "${nombre}"?`;
+    document.getElementById('modalEliminar').style.display = 'flex';
+}
+function cerrarModal() { document.getElementById('modalEliminar').style.display = 'none'; }
+document.getElementById('btnConfirmar').addEventListener('click', function() {
+    if (!svcId) return;
+    fetch(`/admin/servicios/eliminar/${svcId}`, { method:'POST' })
+        .then(r => r.json())
+        .then(d => {
+            cerrarModal();
+            if (d.success) { document.getElementById(`servicio-${svcId}`)?.remove(); }
+            else { alert(d.message); }
+        });
+});
+</script>
+{% endblock %}

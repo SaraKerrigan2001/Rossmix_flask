@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% block title %}Notificaciones - Rossmix{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Todas las notificaciones</h1>
+        <div class="breadcrumb-r">
+            <a href="{{ url_for('dashboard_cliente') if session.tipo_usuario!='admin' else url_for('dashboard_admin') }}">Panel</a>
+            <i class="bi bi-chevron-right"></i> <span>Notificaciones</span>
+        </div>
+    </div>
+    <div style="align-self:center;">
+        <a href="#" id="marcarTodasPageBtn" class="btn-secondary-r">Marcar todas como leídas</a>
+    </div>
+</div>
+
+<div class="r-card">
+    <div class="r-card-body">
+        {% if notificaciones %}
+            <ul style="list-style:none; padding:0;">
+                {% for n in notificaciones %}
+                    <li style="padding:1rem; border-bottom:1px solid #f3f3f3; background:{% if not n.leido %}#fff7f7{% else %}white{% endif %};">
+                        <div style="display:flex; justify-content:space-between; align-items:center; gap:1rem;">
+                            <div>
+                                <strong>{{ n.titulo }}</strong>
+                                <div style="color:#6b7280; margin-top:0.35rem;">{{ n.mensaje }}</div>
+                                <small style="color:#9ca3af;">{{ n.fecha.strftime('%d/%m/%Y %H:%M') }}</small>
+                            </div>
+                            <div style="text-align:right;">
+                                {% if n.target %}
+                                    <a href="{{ n.target }}" class="btn-rossmix" style="display:inline-block;">Abrir</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <div class="r-card-body" style="text-align:center; color:#9ca3af;">No tienes notificaciones.</div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+document.getElementById('marcarTodasPageBtn')?.addEventListener('click', e => {
+    e.preventDefault();
+    fetch('/notificaciones/marcar-todas', { method: 'POST' })
+        .then(r => r.json()).then(d => {
+            if (d.success) location.reload();
+        });
+});
+</script>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Paginación simple: enlaces prev/next
+document.addEventListener('DOMContentLoaded', function(){
+    const page = {{ page or 1 }};
+    const total = {{ total_pages or 1 }};
+    const container = document.createElement('div');
+    container.style.marginTop = '1rem';
+    container.style.display = 'flex';
+    container.style.justifyContent = 'center';
+    container.style.gap = '0.5rem';
+
+    function makeLink(p, label){
+        const a = document.createElement('a');
+        a.href = `{{ url_for('notificaciones') }}?page=${p}`;
+        a.textContent = label;
+        a.className = 'btn-secondary-r';
+        return a;
+    }
+
+    if (page > 1) container.appendChild(makeLink(page-1, 'Anterior'));
+    container.appendChild(makeLink(1, 'Inicio'));
+    if (page < total) container.appendChild(makeLink(page+1, 'Siguiente'));
+
+    document.querySelector('.r-card').appendChild(container);
+});
+</script>
+{% endblock %}

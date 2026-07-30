@@ -1,0 +1,25 @@
+# Entornos virtuales
+.venv/
+.venv313/
+venv/
+ENV/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Respaldos
+app.py.bak
+*.bak
+
+# IDEs
+.vscode/
+.idea/
+.gemini/
+antigravity-ide/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp

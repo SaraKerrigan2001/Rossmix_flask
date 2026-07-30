@@ -1,0 +1,498 @@
+{% extends 'base.html' %}
+
+{% block title %}Seleccionar Especialista - Rossmix{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Hero Section */
+    .citas-hero {
+        background: linear-gradient(135deg, #8b008b 0%, #c71585 50%, #ff1493 100%);
+        border-radius: 30px;
+        padding: 3rem 2rem;
+        text-align: center;
+        margin: 2rem 0 3rem 0;
+        box-shadow: 0 20px 60px rgba(139, 0, 139, 0.4);
+        border: 3px solid rgba(255, 215, 0, 0.5);
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .citas-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255, 215, 0, 0.15) 0%, transparent 70%);
+        animation: pulse 4s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); opacity: 0.5; }
+        50% { transform: scale(1.1); opacity: 0.8; }
+    }
+
+    .citas-hero h1 {
+        font-size: 3rem;
+        font-family: 'Playfair Display', serif;
+        font-weight: 700;
+        margin-bottom: 0.8rem;
+        text-shadow: 3px 3px 10px rgba(0, 0, 0, 0.3);
+        position: relative;
+        z-index: 1;
+    }
+
+    .citas-hero p {
+        font-size: 1.2rem;
+        opacity: 0.95;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* Steps Indicator */
+    .steps-indicator {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 1rem;
+        margin: 2rem 0 3rem 0;
+        flex-wrap: wrap;
+    }
+
+    .step-item {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+    }
+
+    .step-circle {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1.3rem;
+        transition: all 0.3s;
+    }
+
+    .step-completed .step-circle {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+        box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+    }
+
+    .step-active .step-circle {
+        background: linear-gradient(135deg, #ff69b4, #ff1493);
+        color: white;
+        box-shadow: 0 8px 25px rgba(255, 105, 180, 0.5);
+        transform: scale(1.15);
+        animation: bounce 0.6s ease;
+    }
+
+    @keyframes bounce {
+        0%, 100% { transform: scale(1.15); }
+        50% { transform: scale(1.25); }
+    }
+
+    .step-inactive .step-circle {
+        background: white;
+        color: #c71585;
+        border: 3px solid #ffb6c1;
+    }
+
+    .step-label {
+        font-weight: 600;
+        font-size: 1.05rem;
+    }
+
+    .step-active .step-label {
+        color: #ff1493;
+    }
+
+    .step-completed .step-label {
+        color: #28a745;
+    }
+
+    .step-inactive .step-label {
+        color: #999;
+    }
+
+    .step-arrow {
+        color: #ffb6c1;
+        font-size: 2rem;
+    }
+
+    /* Info Servicio Seleccionado */
+    .service-selected {
+        background: white;
+        border-radius: 25px;
+        padding: 2rem;
+        margin: 2rem 0;
+        box-shadow: 0 10px 40px rgba(255, 105, 180, 0.2);
+        border: 3px solid rgba(255, 215, 0, 0.4);
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .service-selected-icon {
+        font-size: 4rem;
+        filter: drop-shadow(3px 3px 10px rgba(255, 105, 180, 0.3));
+    }
+
+    .service-selected-info h3 {
+        font-size: 2rem;
+        color: #ff1493;
+        margin-bottom: 0.5rem;
+        font-family: 'Playfair Display', serif;
+    }
+
+    .service-selected-details {
+        display: flex;
+        gap: 2rem;
+        color: #666;
+        font-weight: 500;
+    }
+
+    /* Opción Aleatoria Destacada */
+    .random-option {
+        background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+        border-radius: 30px;
+        padding: 3rem;
+        text-align: center;
+        margin: 3rem 0;
+        box-shadow: 0 15px 50px rgba(255, 215, 0, 0.4);
+        border: 4px solid #ff69b4;
+        cursor: pointer;
+        text-decoration: none;
+        display: block;
+        transition: all 0.4s;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .random-option::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+    }
+
+    .random-option:hover::before {
+        width: 500px;
+        height: 500px;
+    }
+
+    .random-option:hover {
+        transform: scale(1.05);
+        box-shadow: 0 20px 60px rgba(255, 215, 0, 0.6);
+    }
+
+    .random-icon {
+        font-size: 5rem;
+        margin-bottom: 1rem;
+        filter: drop-shadow(3px 3px 10px rgba(139, 0, 139, 0.4));
+        position: relative;
+        z-index: 1;
+    }
+
+    .random-option h3 {
+        font-size: 2.5rem;
+        color: #8b008b;
+        margin-bottom: 1rem;
+        font-family: 'Playfair Display', serif;
+        font-weight: 700;
+        position: relative;
+        z-index: 1;
+    }
+
+    .random-option p {
+        font-size: 1.2rem;
+        color: #c71585;
+        font-weight: 600;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* Separador */
+    .separator {
+        text-align: center;
+        margin: 3rem 0;
+        position: relative;
+    }
+
+    .separator::before,
+    .separator::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        width: 40%;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, #ffb6c1, transparent);
+    }
+
+    .separator::before {
+        left: 0;
+    }
+
+    .separator::after {
+        right: 0;
+    }
+
+    .separator span {
+        background: white;
+        padding: 0.5rem 2rem;
+        color: #ff1493;
+        font-weight: 700;
+        font-size: 1.2rem;
+        border: 2px solid #ffb6c1;
+        border-radius: 20px;
+        display: inline-block;
+    }
+
+    /* Grid de Empleados */
+    .employees-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 2rem;
+        margin: 3rem 0;
+    }
+
+    .employee-card {
+        background: white;
+        border-radius: 25px;
+        overflow: hidden;
+        box-shadow: 0 10px 40px rgba(255, 105, 180, 0.2);
+        transition: all 0.4s ease;
+        border: 3px solid transparent;
+        cursor: pointer;
+        text-decoration: none;
+        display: block;
+    }
+
+    .employee-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 5px;
+        background: linear-gradient(90deg, #ff69b4, #ffd700);
+        transform: scaleX(0);
+        transition: transform 0.4s;
+    }
+
+    .employee-card:hover::before {
+        transform: scaleX(1);
+    }
+
+    .employee-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 60px rgba(255, 105, 180, 0.4);
+        border-color: rgba(255, 215, 0, 0.5);
+    }
+
+    .employee-header {
+        background: linear-gradient(135deg, #ffe5f3 0%, #fff5fa 100%);
+        padding: 3rem 2rem;
+        text-align: center;
+    }
+
+    .employee-avatar {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #ff69b4, #ff1493);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem auto;
+        font-size: 4rem;
+        box-shadow: 0 8px 25px rgba(255, 105, 180, 0.4);
+        border: 5px solid white;
+        transition: transform 0.3s;
+    }
+
+    .employee-card:hover .employee-avatar {
+        transform: scale(1.1) rotate(5deg);
+    }
+
+    .employee-body {
+        padding: 2rem;
+        text-align: center;
+    }
+
+    .employee-name {
+        font-size: 1.8rem;
+        color: #ff1493;
+        margin-bottom: 0.8rem;
+        font-family: 'Playfair Display', serif;
+        font-weight: 700;
+    }
+
+    .employee-specialty {
+        color: #666;
+        font-size: 1.05rem;
+        margin-bottom: 1.5rem;
+        font-weight: 500;
+    }
+
+    .btn-select-employee {
+        width: 100%;
+        padding: 1rem;
+        background: linear-gradient(135deg, #ff69b4, #ff1493);
+        color: white;
+        border: none;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: all 0.3s;
+        box-shadow: 0 5px 15px rgba(255, 105, 180, 0.3);
+    }
+
+    .btn-select-employee:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(255, 105, 180, 0.5);
+    }
+
+    /* Animaciones */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .employee-card {
+        animation: fadeInUp 0.6s ease-out forwards;
+    }
+
+    .employee-card:nth-child(1) { animation-delay: 0.1s; }
+    .employee-card:nth-child(2) { animation-delay: 0.15s; }
+    .employee-card:nth-child(3) { animation-delay: 0.2s; }
+    .employee-card:nth-child(4) { animation-delay: 0.25s; }
+    .employee-card:nth-child(5) { animation-delay: 0.3s; }
+    .employee-card:nth-child(6) { animation-delay: 0.35s; }
+
+    /* Volver */
+    .back-link {
+        text-align: center;
+        margin: 3rem 0 2rem 0;
+    }
+
+    .back-link a {
+        color: #ff1493;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 1.1rem;
+        border-bottom: 2px solid transparent;
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .back-link a:hover {
+        border-bottom-color: #ff1493;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="citas-hero">
+    <h1>👤 Elige tu Especialista</h1>
+    <p>Selecciona quién realizará tu servicio o déjanos elegir por ti</p>
+</div>
+
+<!-- Steps Indicator -->
+<div class="steps-indicator">
+    <div class="step-item step-completed">
+        <div class="step-circle">✓</div>
+        <div class="step-label">Servicio</div>
+    </div>
+    <div class="step-arrow">→</div>
+    <div class="step-item step-active">
+        <div class="step-circle">2</div>
+        <div class="step-label">Empleado</div>
+    </div>
+    <div class="step-arrow">→</div>
+    <div class="step-item step-inactive">
+        <div class="step-circle">3</div>
+        <div class="step-label">Fecha y Hora</div>
+    </div>
+    <div class="step-arrow">→</div>
+    <div class="step-item step-inactive">
+        <div class="step-circle">4</div>
+        <div class="step-label">Confirmación</div>
+    </div>
+</div>
+
+<!-- Servicio Seleccionado -->
+<div class="service-selected">
+    <div class="service-selected-icon">
+        {% if 'Uña' in servicio.nombre_servicio %}💅
+        {% elif 'Cabello' in servicio.nombre_servicio or 'Pelo' in servicio.nombre_servicio %}💇
+        {% elif 'Ceja' in servicio.nombre_servicio or 'Pestaña' in servicio.nombre_servicio %}👁️
+        {% elif 'Depilación' in servicio.nombre_servicio or 'Láser' in servicio.nombre_servicio %}✨
+        {% else %}💖
+        {% endif %}
+    </div>
+    <div class="service-selected-info">
+        <h3>{{ servicio.nombre_servicio }}</h3>
+        <div class="service-selected-details">
+            <span>⏱️ {{ servicio.duracion_minutos }} minutos</span>
+            <span>💰 ${{ '{:,.0f}'.format(servicio.precio_total) }}</span>
+        </div>
+    </div>
+</div>
+
+<!-- Opción Aleatoria Destacada -->
+<a href="{{ url_for('agendar_paso3', id_servicio=servicio.id_servicio, id_empleado=0) }}" class="random-option">
+    <div class="random-icon">🎲</div>
+    <h3>Asignación Automática</h3>
+    <p>Deja que elijamos la mejor especialista disponible para ti</p>
+</a>
+
+<!-- Separador -->
+<div class="separator">
+    <span>O selecciona tu especialista favorita</span>
+</div>
+
+<!-- Grid de Empleados -->
+<div class="employees-grid">
+    {% for empleado in empleados %}
+    <a href="{{ url_for('agendar_paso3', id_servicio=servicio.id_servicio, id_empleado=empleado.id_empleado) }}" class="employee-card">
+        <div class="employee-header">
+            <div class="employee-avatar">👩</div>
+        </div>
+        <div class="employee-body">
+            <h3 class="employee-name">{{ empleado.nombre }}</h3>
+            <p class="employee-specialty">{{ empleado.especialidad if empleado.especialidad else 'Especialista en Belleza' }}</p>
+            <button class="btn-select-employee">Seleccionar →</button>
+        </div>
+    </a>
+    {% endfor %}
+</div>
+
+<!-- Volver -->
+<div class="back-link">
+    <a href="{{ url_for('agendar_paso1') }}">← Cambiar Servicio</a>
+</div>
+{% endblock %}

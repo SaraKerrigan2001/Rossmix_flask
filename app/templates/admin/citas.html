@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+{% block title %}Gestión de Citas - Rossmix{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Gestión de Citas</h1>
+        <div class="breadcrumb-r">
+            <a href="{{ url_for('dashboard_admin') }}">Panel Admin</a>
+            <i class="bi bi-chevron-right"></i> <span>Citas</span>
+        </div>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div class="r-card mb-4">
+    <div class="r-card-body">
+        <form method="GET" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="r-form-label">Estado</label>
+                <select name="estado" class="r-form-control">
+                    <option value="todas"          {% if estado_filtro=='todas' %}selected{% endif %}>Todas</option>
+                    <option value="pendiente_pago" {% if estado_filtro=='pendiente_pago' %}selected{% endif %}>Pendiente Pago</option>
+                    <option value="confirmada"     {% if estado_filtro=='confirmada' %}selected{% endif %}>Confirmada</option>
+                    <option value="en_atencion"    {% if estado_filtro=='en_atencion' %}selected{% endif %}>En Atención</option>
+                    <option value="completada"     {% if estado_filtro=='completada' %}selected{% endif %}>Completada</option>
+                    <option value="cancelada"      {% if estado_filtro=='cancelada' %}selected{% endif %}>Cancelada</option>
+                    <option value="no_asistio"     {% if estado_filtro=='no_asistio' %}selected{% endif %}>No Asistió</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="r-form-label">Fecha Desde</label>
+                <input type="date" name="fecha_desde" class="r-form-control"
+                       value="{{ request.args.get('fecha_desde','') }}">
+            </div>
+            <div class="col-md-3">
+                <label class="r-form-label">Fecha Hasta</label>
+                <input type="date" name="fecha_hasta" class="r-form-control"
+                       value="{{ request.args.get('fecha_hasta','') }}">
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn-rossmix">
+                    <i class="bi bi-search"></i> Filtrar
+                </button>
+                <a href="{{ url_for('admin_citas') }}" class="btn-secondary-r">
+                    <i class="bi bi-x-lg"></i> Limpiar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Tabla -->
+<div class="r-card">
+    <div class="r-card-header d-flex justify-content-between align-items-center">
+        <div>
+            <h2><i class="bi bi-calendar3" style="color:#c41e3a;"></i>
+                {% if cliente_filtrado %}
+                    Citas de {{ cliente_filtrado.nombre }}
+                {% else %}
+                    Citas
+                {% endif %}
+            </h2>
+            <span style="font-size:0.85rem; color:#888;">{{ citas|length }} resultado(s)</span>
+        </div>
+        <div class="dropdown">
+            <button class="btn-rossmix dropdown-toggle" type="button" id="exportCitasDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="background:#059669;">
+                <i class="bi bi-file-earmark-excel"></i> Exportar a Excel
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="exportCitasDropdown">
+                <li><a class="dropdown-item" href="{{ url_for('admin_exportar_excel', tipo='citas', periodo='diario') }}">Diario (Hoy)</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('admin_exportar_excel', tipo='citas', periodo='semana') }}">Semanal</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('admin_exportar_excel', tipo='citas', periodo='mes') }}">Mensual</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('admin_exportar_excel', tipo='citas', periodo='ano') }}">Anual</a></li>
+            </ul>
+        </div>
+    </div>
+    {% if citas %}
+    <div style="overflow-x:auto;">
+        <table class="r-table">
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Cliente</th>
+                    <th>Servicio</th>
+                    <th>Empleado</th>
+                    <th>Fecha</th>
+                    <th>Hora</th>
+                    <th>Monto</th>
+                    <th>Estado</th>
+                    <th>Pago</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cita, usuario, empleado, servicio in citas %}
+                <tr>
+                    <td><code style="background:#f8f8f8;padding:0.2rem 0.5rem;border-radius:6px;font-size:0.82rem;">{{ cita.codigo_reserva }}</code></td>
+                    <td><strong>{{ usuario.nombre }}</strong><br><small style="color:#9ca3af;">{{ usuario.email }}</small></td>
+                    <td>{{ servicio.nombre_servicio }}</td>
+                    <td>{{ empleado.nombre if empleado else '—' }}</td>
+                    <td>{{ cita.fecha_hora_inicio.strftime('%d/%m/%Y') }}</td>
+                    <td>{{ cita.fecha_hora_inicio.strftime('%H:%M') }} – {{ cita.fecha_hora_fin.strftime('%H:%M') }}</td>
+                    <td><strong style="color:#c41e3a;">${{ "{:,.0f}".format(cita.monto_total) }}</strong></td>
+                    <td>
+                        <select class="estado-select r-form-control"
+                                data-cita-id="{{ cita.id_cita }}"
+                                style="padding:0.35rem 0.7rem; font-size:0.82rem; min-width:140px;">
+                            <option value="pendiente_pago" {% if cita.estado=='pendiente_pago' %}selected{% endif %}>Pendiente Pago</option>
+                            <option value="confirmada"     {% if cita.estado=='confirmada' %}selected{% endif %}>Confirmada</option>
+                            <option value="en_atencion"    {% if cita.estado=='en_atencion' %}selected{% endif %}>En Atención</option>
+                            <option value="completada"     {% if cita.estado=='completada' %}selected{% endif %}>Completada</option>
+                            <option value="cancelada"      {% if cita.estado=='cancelada' %}selected{% endif %}>Cancelada</option>
+                            <option value="no_asistio"     {% if cita.estado=='no_asistio' %}selected{% endif %}>No Asistió</option>
+                        </select>
+                    </td>
+                    <td>
+                        {% if cita.pago %}
+                            <span class="badge-active">
+                                <i class="bi bi-check-circle"></i>
+                                ${{ "{:,.0f}".format(cita.pago.monto) }}
+                            </span>
+                        {% else %}
+                            <a href="{{ url_for('admin_pagos_registrar', id_cita=cita.id_cita) }}"
+                               style="background:#ecfdf5;color:#059669;padding:0.35rem 0.8rem;
+                                      border-radius:8px;font-size:0.8rem;font-weight:600;
+                                      text-decoration:none;white-space:nowrap;">
+                                <i class="bi bi-plus-circle"></i> Registrar
+                            </a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="r-card-body" style="text-align:center; padding:3rem; color:#9ca3af;">
+        <i class="bi bi-calendar-x" style="font-size:2.5rem; display:block; margin-bottom:0.8rem;"></i>
+        No se encontraron citas con los filtros aplicados.
+    </div>
+    {% endif %}
+</div>
+
+<script>
+document.querySelectorAll('.estado-select').forEach(sel => {
+    const original = sel.value;
+    sel.addEventListener('change', function() {
+        const id = this.dataset.citaId;
+        const nuevo = this.value;
+        const fd = new FormData();
+        fd.append('estado', nuevo);
+        fetch(`/admin/citas/cambiar-estado/${id}`, { method:'POST', body:fd })
+            .then(r => r.json())
+            .then(d => {
+                if (!d.success) { this.value = original; alert(d.message); }
+            })
+            .catch(() => { this.value = original; });
+    });
+});
+</script>
+{% endblock %}

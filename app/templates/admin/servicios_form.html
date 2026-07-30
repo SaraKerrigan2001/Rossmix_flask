@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Editar' if servicio else 'Crear' }} Servicio - Rossmix{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>{{ 'Editar' if servicio else 'Crear Nuevo' }} Servicio</h1>
+        <div class="breadcrumb-r">
+            <a href="{{ url_for('dashboard_admin') }}">Panel Admin</a>
+            <i class="bi bi-chevron-right"></i>
+            <a href="{{ url_for('admin_servicios') }}">Servicios</a>
+            <i class="bi bi-chevron-right"></i>
+            <span>{{ 'Editar' if servicio else 'Crear' }}</span>
+        </div>
+    </div>
+    <a href="{{ url_for('admin_servicios') }}" class="btn-secondary-r">
+        <i class="bi bi-arrow-left"></i> Volver
+    </a>
+</div>
+
+<div class="r-card" style="max-width: 720px;">
+    <div class="r-card-header">
+        <h2><i class="bi bi-scissors" style="color:#c41e3a;"></i>
+            {{ 'Editar' if servicio else 'Nuevo' }} Servicio
+        </h2>
+    </div>
+    <div class="r-card-body">
+        <form method="POST">
+            <div class="mb-4">
+                <label class="r-form-label">Nombre del Servicio *</label>
+                <input type="text" class="r-form-control" name="nombre_servicio"
+                       value="{{ servicio.nombre_servicio if servicio else '' }}"
+                       placeholder="Ej: Manicure Clásico, Pedicure Spa..." required>
+            </div>
+
+            <div class="mb-4">
+                <label class="r-form-label">Descripción</label>
+                <textarea class="r-form-control" name="descripcion" rows="3"
+                          placeholder="Describe brevemente el servicio...">{{ servicio.descripcion if servicio else '' }}</textarea>
+            </div>
+
+            <div class="row g-4 mb-4">
+                <div class="col-md-6">
+                    <label class="r-form-label">Precio *</label>
+                    <div style="display:flex; align-items:center; gap:0.5rem;">
+                        <span style="font-weight:600; color:#888;">$</span>
+                        <input type="number" class="r-form-control" name="precio_total"
+                               value="{{ servicio.precio_total if servicio else '' }}"
+                               min="0" step="1000" required placeholder="50000">
+                    </div>
+                    <p class="r-form-hint">Precio en pesos colombianos</p>
+                </div>
+                <div class="col-md-6">
+                    <label class="r-form-label">Duración *</label>
+                    <div style="display:flex; align-items:center; gap:0.5rem;">
+                        <input type="number" class="r-form-control" name="duracion_minutos"
+                               value="{{ servicio.duracion_minutos if servicio else '' }}"
+                               min="15" step="15" required placeholder="60">
+                        <span style="font-weight:600; color:#888; white-space:nowrap;">min</span>
+                    </div>
+                    <p class="r-form-hint">Múltiplo de 15 minutos</p>
+                </div>
+            </div>
+
+            {% if servicio %}
+            <div class="mb-4">
+                <label style="display:flex; align-items:center; gap:0.7rem; cursor:pointer;">
+                    <input type="checkbox" name="activo" style="width:18px;height:18px;accent-color:#c41e3a;"
+                           {% if servicio.activo %}checked{% endif %}>
+                    <span class="r-form-label" style="margin:0;">Servicio activo (visible para agendar)</span>
+                </label>
+            </div>
+            {% endif %}
+
+            <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-top:1.5rem; padding-top:1.5rem; border-top:2px solid #f5f5f5;">
+                <button type="submit" class="btn-rossmix">
+                    <i class="bi bi-check-lg"></i> Guardar Servicio
+                </button>
+                <a href="{{ url_for('admin_servicios') }}" class="btn-secondary-r">
+                    <i class="bi bi-x-lg"></i> Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

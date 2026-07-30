@@ -1,0 +1,772 @@
+{% extends 'base.html' %}
+
+
+{% block title %}Rossmix - Discover Your Perfect Nail Design{% endblock %}
+
+{% block extra_css %}
+<style>
+/* =============================================
+   HERO SECTION
+============================================= */
+.hero-main {
+    background: linear-gradient(135deg, #fff 0%, #fff5f8 60%, #ffe8f3 100%);
+    padding: 5rem 2rem 4rem;
+    position: relative;
+    overflow: hidden;
+}
+.hero-main::after {
+    content: '';
+    position: absolute;
+    top: -120px; right: -120px;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(255, 20, 147, 0.08) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+.hero-container {
+    max-width: 1300px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+}
+@media (max-width: 992px) {
+    .hero-container { grid-template-columns: 1fr; gap: 2.5rem; }
+}
+.hero-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #fff0f8, #ffe5f3);
+    color: #c41e3a;
+    border: 1px solid #ffb3d1;
+    border-radius: 30px;
+    padding: 0.4rem 1.2rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    letter-spacing: 0.5px;
+}
+.hero-text h1 {
+    font-size: 3.8rem;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    line-height: 1.15;
+    margin-bottom: 1.5rem;
+    color: #1a1a1a;
+}
+.hero-text h1 .highlight {
+    background: linear-gradient(135deg, #c41e3a 0%, #ff1493 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-style: italic;
+}
+.hero-text p {
+    font-size: 1.05rem;
+    color: #666;
+    margin-bottom: 2.5rem;
+    line-height: 1.8;
+    max-width: 500px;
+}
+.hero-buttons { display: flex; gap: 1rem; flex-wrap: wrap; }
+.btn-pink {
+    background: linear-gradient(135deg, #c41e3a, #ff1493);
+    color: white; border: none;
+    padding: 0.9rem 2.2rem;
+    border-radius: 25px; font-weight: 600;
+    font-size: 1rem; cursor: pointer;
+    transition: all 0.3s;
+    text-decoration: none; display: inline-block;
+}
+.btn-pink:hover {
+    color: white;
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(196, 30, 58, 0.35);
+}
+.btn-outline-pink {
+    background: white; color: #c41e3a;
+    border: 2px solid #c41e3a;
+    padding: 0.9rem 2.2rem;
+    border-radius: 25px; font-weight: 600;
+    font-size: 1rem; cursor: pointer;
+    transition: all 0.3s;
+    text-decoration: none; display: inline-block;
+}
+.btn-outline-pink:hover {
+    background: #c41e3a; color: white;
+    transform: translateY(-3px);
+}
+/* Hero image grid */
+.hero-gallery {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+.hero-img-box {
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+    aspect-ratio: 1;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700; font-size: 3rem;
+    color: #ff1493;
+    transition: transform 0.3s;
+}
+.hero-img-box:hover { transform: scale(1.03); }
+.hero-img-box.bg1 { background: linear-gradient(135deg, #ffe5f3, #ffc8e3); }
+.hero-img-box.bg2 { background: linear-gradient(135deg, #f5e5ff, #e8d0ff); }
+.hero-img-box.bg3 { background: linear-gradient(135deg, #ffe8cc, #ffd4a3); }
+.hero-img-box.bg4 { background: linear-gradient(135deg, #d4f0ff, #b8e3ff); }
+/* Mini card flotante */
+.hero-float-card {
+    background: white;
+    border-radius: 14px;
+    padding: 0.8rem 1.2rem;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+    font-size: 0.85rem;
+    position: absolute;
+}
+
+/* =============================================
+   SECTION TITLE GENERAL
+============================================= */
+.section-wrap {
+    max-width: 1300px;
+    margin: 5rem auto;
+    padding: 0 2rem;
+}
+.section-title {
+    font-size: 1.8rem;
+    font-family: 'Playfair Display', serif;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 2rem;
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.section-title .dot {
+    width: 10px; height: 10px;
+    background: linear-gradient(135deg, #c41e3a, #ff1493);
+    border-radius: 50%; display: inline-block;
+}
+
+/* =============================================
+   TRENDING CATEGORIES
+============================================= */
+.categories-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+}
+@media (max-width: 1100px) { .categories-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 576px)  { .categories-grid { grid-template-columns: 1fr; } }
+
+.cat-card {
+    border-radius: 20px;
+    overflow: hidden;
+    position: relative;
+    height: 220px;
+    cursor: pointer;
+    transition: transform 0.3s, box-shadow 0.3s;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+.cat-card:hover { transform: translateY(-6px); box-shadow: 0 12px 35px rgba(0,0,0,0.15); }
+.cat-card::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, transparent 30%, rgba(0,0,0,0.65) 100%);
+    z-index: 1;
+}
+.cat-bg {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 5rem;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700; color: white;
+    letter-spacing: -2px;
+}
+.cat-bg.c1 { background: linear-gradient(135deg, #ffb347, #ff8c00); }
+.cat-bg.c2 { background: linear-gradient(135deg, #ff69b4, #da70d6); }
+.cat-bg.c3 { background: linear-gradient(135deg, #b0c4de, #9bb3cf); }
+.cat-bg.c4 { background: linear-gradient(135deg, #c8a2e8, #9370db); }
+.cat-info {
+    position: absolute; bottom: 16px; left: 16px; right: 16px;
+    z-index: 2; color: white;
+}
+.cat-info h3 { font-size: 1.15rem; font-weight: 700; margin-bottom: 0.2rem; }
+.cat-info p  { font-size: 0.82rem; opacity: 0.9; margin: 0; }
+.cat-info .quick-view {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    background: rgba(255,255,255,0.25);
+    border: 1px solid rgba(255,255,255,0.5);
+    border-radius: 20px; padding: 0.2rem 0.8rem;
+    font-size: 0.78rem; margin-top: 0.5rem;
+    color: white; text-decoration: none;
+    backdrop-filter: blur(4px);
+    transition: background 0.2s;
+}
+.cat-info .quick-view:hover { background: rgba(255,255,255,0.4); }
+
+/* =============================================
+   NAIL INSPIRATION GALLERY
+============================================= */
+.gallery-layout {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2.5rem;
+    align-items: start;
+}
+@media (max-width: 1100px) { .gallery-layout { grid-template-columns: 1fr; } }
+
+.gallery-tabs {
+    display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 1.5rem;
+}
+.gallery-tab {
+    background: #f5f5f5; border: none; border-radius: 20px;
+    padding: 0.4rem 1rem; font-size: 0.88rem;
+    cursor: pointer; color: #555; transition: all 0.2s;
+}
+.gallery-tab.active, .gallery-tab:hover {
+    background: linear-gradient(135deg, #c41e3a, #ff1493);
+    color: white;
+}
+.gallery-masonry {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+}
+@media (max-width: 576px) { .gallery-masonry { grid-template-columns: repeat(2, 1fr); } }
+
+.gallery-item {
+    border-radius: 14px; overflow: hidden;
+    background: white;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+    position: relative; cursor: pointer;
+    transition: all 0.3s;
+}
+.gallery-item:hover { transform: translateY(-4px); box-shadow: 0 8px 25px rgba(0,0,0,0.14); }
+.gallery-item:nth-child(2) { margin-top: 1.5rem; }
+.gallery-item:nth-child(5) { margin-top: 1.5rem; }
+.g-img {
+    width: 100%; aspect-ratio: 3/4;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700; font-size: 2rem; color: #ff1493;
+}
+.g-img.gi1 { background: linear-gradient(135deg, #ffe5f3, #ffb6d9); }
+.g-img.gi2 { background: linear-gradient(135deg, #f0e5ff, #d4b3ff); }
+.g-img.gi3 { background: linear-gradient(135deg, #ffe8cc, #ffc891); }
+.g-img.gi4 { background: linear-gradient(135deg, #e5f3ff, #b3d9ff); }
+.g-img.gi5 { background: linear-gradient(135deg, #e5ffe8, #b3ffbd); }
+.g-img.gi6 { background: linear-gradient(135deg, #fff3e5, #ffd4a3); }
+.gallery-item-actions {
+    position: absolute; top: 8px; right: 8px;
+    display: flex; flex-direction: column; gap: 0.3rem;
+    opacity: 0; transition: opacity 0.3s;
+}
+.gallery-item:hover .gallery-item-actions { opacity: 1; }
+.g-action-btn {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: white; border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.9rem; color: #666;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    transition: color 0.2s;
+}
+.g-action-btn:hover { color: #ff1493; }
+
+/* Panel filtros */
+.filter-panel {
+    background: white; border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+    position: sticky; top: 90px;
+}
+.filter-panel h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem; font-weight: 600;
+    margin-bottom: 1.5rem; color: #1a1a1a;
+}
+.filter-group { margin-bottom: 1.5rem; }
+.filter-group label {
+    font-size: 0.85rem; font-weight: 600;
+    color: #888; text-transform: uppercase;
+    letter-spacing: 0.5px; margin-bottom: 0.7rem;
+    display: block;
+}
+.filter-chips { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.chip {
+    padding: 0.35rem 0.9rem; border-radius: 20px;
+    font-size: 0.85rem; border: 1.5px solid #e0e0e0;
+    background: white; color: #555; cursor: pointer;
+    transition: all 0.2s;
+}
+.chip.active, .chip:hover {
+    border-color: #c41e3a;
+    background: linear-gradient(135deg, #fff0f8, #ffe5f3);
+    color: #c41e3a; font-weight: 600;
+}
+.btn-show-designs {
+    width: 100%;
+    background: linear-gradient(135deg, #c41e3a, #ff1493);
+    color: white; border: none; border-radius: 12px;
+    padding: 1rem; font-size: 1rem; font-weight: 600;
+    cursor: pointer; transition: all 0.3s; margin-top: 0.5rem;
+}
+.btn-show-designs:hover { opacity: 0.9; transform: translateY(-2px); }
+
+/* =============================================
+   MOST SAVED DESIGNS (carrusel horizontal)
+============================================= */
+.saved-scroll-wrap { position: relative; }
+.saved-scroll {
+    display: flex; gap: 1.2rem;
+    overflow-x: auto; padding: 0.5rem 0 1rem;
+    scroll-behavior: smooth;
+}
+.saved-scroll::-webkit-scrollbar { height: 6px; }
+.saved-scroll::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 6px; }
+.saved-scroll::-webkit-scrollbar-thumb { background: #ff69b4; border-radius: 6px; }
+
+.saved-card {
+    min-width: 175px; background: white;
+    border-radius: 16px; overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    position: relative; flex-shrink: 0;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+.saved-card:hover { transform: translateY(-5px); box-shadow: 0 10px 28px rgba(0,0,0,0.13); }
+.saved-rank {
+    position: absolute; top: 8px; left: 8px; z-index: 1;
+    width: 28px; height: 28px; border-radius: 50%;
+    background: linear-gradient(135deg, #ffd700, #ffb300);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.78rem; font-weight: 700; color: #333;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+.saved-img {
+    width: 100%; aspect-ratio: 3/4;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700; font-size: 2.5rem; color: #ff1493;
+}
+.si1 { background: linear-gradient(135deg, #ffe5f3, #ffc0d8); }
+.si2 { background: linear-gradient(135deg, #f0e5ff, #d9b3ff); }
+.si3 { background: linear-gradient(135deg, #ffe5cc, #ffba80); }
+.si4 { background: linear-gradient(135deg, #e0f5e0, #aae0aa); }
+.si5 { background: linear-gradient(135deg, #e5eeff, #aabfff); }
+.si6 { background: linear-gradient(135deg, #ffe8e8, #ffb3b3); }
+.saved-meta { padding: 0.8rem; }
+.saved-meta h4 { font-size: 0.88rem; font-weight: 600; margin-bottom: 0.3rem; color: #1a1a1a; }
+.saved-meta .stat { font-size: 0.78rem; color: #aaa; }
+.trend-score {
+    display: inline-block;
+    background: linear-gradient(135deg, #fff0f8, #ffe5f3);
+    color: #c41e3a; border-radius: 10px;
+    padding: 0.15rem 0.5rem; font-size: 0.75rem; font-weight: 600;
+    margin-top: 0.3rem;
+}
+
+/* =============================================
+   NAIL TRENDS FORECAST 2026
+============================================= */
+.forecast-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+}
+@media (max-width: 992px)  { .forecast-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 480px)  { .forecast-grid { grid-template-columns: 1fr; } }
+.forecast-card {
+    background: white; border-radius: 20px;
+    padding: 2rem 1.5rem; text-align: center;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.07);
+    border: 1px solid #f0e8ff;
+    transition: transform 0.3s;
+}
+.forecast-card:hover { transform: translateY(-5px); }
+.forecast-label { font-size: 0.9rem; color: #888; margin-bottom: 0.4rem; font-weight: 500; }
+.forecast-pct {
+    font-size: 2.6rem; font-weight: 800;
+    background: linear-gradient(135deg, #c41e3a, #ff1493);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text; line-height: 1;
+    margin-bottom: 0.4rem;
+}
+.forecast-sublabel { font-size: 0.82rem; color: #bbb; }
+
+/* =============================================
+   NAIL COLLECTIONS GRID
+============================================= */
+.collections-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.2rem;
+}
+@media (max-width: 992px)  { .collections-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 576px)  { .collections-grid { grid-template-columns: repeat(2, 1fr); } }
+.coll-card {
+    border-radius: 16px; overflow: hidden;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+    cursor: pointer; transition: all 0.3s;
+}
+.coll-card:hover { transform: translateY(-4px); box-shadow: 0 10px 28px rgba(0,0,0,0.13); }
+.coll-img {
+    width: 100%; aspect-ratio: 1;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700; font-size: 2rem; color: white;
+}
+.col1 { background: linear-gradient(135deg, #ffb3d1, #ff69b4); }
+.col2 { background: linear-gradient(135deg, #c8a2e8, #9370db); }
+.col3 { background: linear-gradient(135deg, #a8d8ea, #6baed6); }
+.col4 { background: linear-gradient(135deg, #ffe5a0, #ffc400); }
+.col5 { background: linear-gradient(135deg, #b8e6b8, #5cb85c); }
+.col6 { background: linear-gradient(135deg, #ffcba4, #ff8c42); }
+.col7 { background: linear-gradient(135deg, #ffd1dc, #ff9eb5); }
+.col8 { background: linear-gradient(135deg, #d4e1f7, #96b4e8); }
+.coll-name {
+    background: white; padding: 0.6rem 0.8rem;
+    font-size: 0.85rem; font-weight: 600; color: #333;
+    text-align: center;
+}
+
+/* =============================================
+   CTA NEVER RUN OUT BANNER
+============================================= */
+.cta-banner-wrap { padding: 0 2rem; max-width: 1300px; margin: 4rem auto; }
+.cta-banner {
+    background: linear-gradient(135deg, #ffc0d4 0%, #ff69b4 50%, #c41e3a 100%);
+    border-radius: 28px;
+    padding: 4rem 3rem;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 2rem; flex-wrap: wrap;
+    box-shadow: 0 20px 60px rgba(196, 30, 58, 0.25);
+    position: relative; overflow: hidden;
+}
+.cta-banner::before {
+    content: '';
+    position: absolute; top: -60px; right: 100px;
+    width: 220px; height: 220px;
+    background: rgba(255,255,255,0.12); border-radius: 50%;
+}
+.cta-banner::after {
+    content: '';
+    position: absolute; bottom: -80px; left: 50px;
+    width: 280px; height: 280px;
+    background: rgba(255,255,255,0.08); border-radius: 50%;
+}
+.cta-text { color: white; position: relative; z-index: 1; }
+.cta-text h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem; font-weight: 700;
+    margin-bottom: 0.7rem; line-height: 1.2;
+}
+.cta-text p { font-size: 1rem; opacity: 0.9; max-width: 500px; }
+.cta-actions {
+    display: flex; gap: 1rem; flex-wrap: wrap;
+    position: relative; z-index: 1;
+}
+.cta-actions .btn-white {
+    background: white; color: #c41e3a;
+    padding: 1rem 2.5rem; border-radius: 25px;
+    font-weight: 700; font-size: 1rem; border: none;
+    text-decoration: none; display: inline-block;
+    transition: all 0.3s;
+}
+.cta-actions .btn-white:hover {
+    background: #ffd700; color: #333;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+}
+.cta-actions .btn-outline-white {
+    background: transparent; color: white;
+    border: 2px solid white;
+    padding: 1rem 2.5rem; border-radius: 25px;
+    font-weight: 700; font-size: 1rem;
+    text-decoration: none; display: inline-block;
+    transition: all 0.3s;
+}
+.cta-actions .btn-outline-white:hover {
+    background: white; color: #c41e3a;
+    transform: translateY(-3px);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- =============================================
+     HERO SECTION
+============================================= -->
+<section class="hero-main">
+    <div class="hero-container">
+        <div class="hero-text">
+            <span class="hero-badge">Trending Nail Inspiration Daily</span>
+            <h1>
+                Discover Your Next<br>
+                <span class="highlight">Perfect Nail<br>Design</span>
+            </h1>
+            <p>
+                Browse thousands of trending nail designs, simple nail ideas,
+                spring manicure techniques and the hottest nail trends of 2026.
+            </p>
+            <div class="hero-buttons">
+                {% if not session.usuario_id %}
+                    <a href="{{ url_for('registro') }}" class="btn-pink">Explore Designs</a>
+                    <a href="{{ url_for('login') }}" class="btn-outline-pink">View 2026 Trends</a>
+                {% else %}
+                    <a href="{{ url_for('agendar_paso1') }}" class="btn-pink">Agendar Cita</a>
+                    {% if session.tipo_usuario == 'cliente' %}
+                        <a href="{{ url_for('dashboard_cliente') }}" class="btn-outline-pink">Mis Citas</a>
+                    {% else %}
+                        <a href="{{ url_for('dashboard_admin') }}" class="btn-outline-pink">Panel Admin</a>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+        <div class="hero-gallery">
+            <div class="hero-img-box bg1">N</div>
+            <div class="hero-img-box bg2">A</div>
+            <div class="hero-img-box bg3">I</div>
+            <div class="hero-img-box bg4">L</div>
+        </div>
+    </div>
+</section>
+
+<!-- =============================================
+     TRENDING NAIL CATEGORIES
+============================================= -->
+<div class="section-wrap">
+    <h2 class="section-title"><span class="dot"></span> Trending Nail Categories</h2>
+    <div class="categories-grid">
+        <div class="cat-card">
+            <div class="cat-bg c1">S</div>
+            <div class="cat-info">
+                <h3>Summer Nail Designs</h3>
+                <p>Bright colors and vacation vibes</p>
+                <a href="{{ url_for('agendar_paso1') }}" class="quick-view">Quick View</a>
+            </div>
+        </div>
+        <div class="cat-card">
+            <div class="cat-bg c2">P</div>
+            <div class="cat-info">
+                <h3>Spring Nail Designs</h3>
+                <p>Fresh florals and pastel shades</p>
+                <a href="{{ url_for('agendar_paso1') }}" class="quick-view">Quick View</a>
+            </div>
+        </div>
+        <div class="cat-card">
+            <div class="cat-bg c3">M</div>
+            <div class="cat-info">
+                <h3>Simple Nail Designs</h3>
+                <p>Minimal beauty for everyday wear</p>
+                <a href="{{ url_for('agendar_paso1') }}" class="quick-view">Quick View</a>
+            </div>
+        </div>
+        <div class="cat-card">
+            <div class="cat-bg c4">T</div>
+            <div class="cat-info">
+                <h3>2026 Nail Trends</h3>
+                <p>The latest looks everyone is saving</p>
+                <a href="{{ url_for('agendar_paso1') }}" class="quick-view">Quick View</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- =============================================
+     MOST SAVED DESIGNS THIS MONTH
+============================================= -->
+<div class="section-wrap">
+    <h2 class="section-title"><span class="dot"></span> Most Saved Nail Designs This Month</h2>
+    <div class="saved-scroll-wrap">
+        <div class="saved-scroll">
+            <div class="saved-card">
+                <span class="saved-rank">1</span>
+                <div class="saved-img si1">N</div>
+                <div class="saved-meta">
+                    <h4>Glazed Donut Nails</h4>
+                    <p class="stat"><i class="bi bi-bookmark"></i> 5.3k Saves</p>
+                    <span class="trend-score">Trend Score 92%</span>
+                </div>
+            </div>
+            <div class="saved-card">
+                <span class="saved-rank">2</span>
+                <div class="saved-img si2">A</div>
+                <div class="saved-meta">
+                    <h4>Aura Nails</h4>
+                    <p class="stat"><i class="bi bi-bookmark"></i> 4.1k Saves</p>
+                    <span class="trend-score">Trend Score 89%</span>
+                </div>
+            </div>
+            <div class="saved-card">
+                <span class="saved-rank">3</span>
+                <div class="saved-img si3">V</div>
+                <div class="saved-meta">
+                    <h4>Velvet Nails</h4>
+                    <p class="stat"><i class="bi bi-bookmark"></i> 3.8k Saves</p>
+                    <span class="trend-score">Trend Score 87%</span>
+                </div>
+            </div>
+            <div class="saved-card">
+                <span class="saved-rank">4</span>
+                <div class="saved-img si4">M</div>
+                <div class="saved-meta">
+                    <h4>Milky White Nails</h4>
+                    <p class="stat"><i class="bi bi-bookmark"></i> 3.2k Saves</p>
+                    <span class="trend-score">Trend Score 85%</span>
+                </div>
+            </div>
+            <div class="saved-card">
+                <span class="saved-rank">5</span>
+                <div class="saved-img si5">F</div>
+                <div class="saved-meta">
+                    <h4>Floral French Tips</h4>
+                    <p class="stat"><i class="bi bi-bookmark"></i> 3.0k Saves</p>
+                    <span class="trend-score">Trend Score 83%</span>
+                </div>
+            </div>
+            <div class="saved-card">
+                <span class="saved-rank">6</span>
+                <div class="saved-img si6">C</div>
+                <div class="saved-meta">
+                    <h4>Chrome Ombre Nails</h4>
+                    <p class="stat"><i class="bi bi-bookmark"></i> 2.8k Saves</p>
+                    <span class="trend-score">Trend Score 80%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =============================================
+     NAIL TRENDS FORECAST 2026
+============================================= -->
+<div class="section-wrap">
+    <h2 class="section-title"><span class="dot"></span> Nail Trends Forecast 2026</h2>
+    <div class="forecast-grid">
+        <div class="forecast-card">
+            <p class="forecast-label">Aura Nails</p>
+            <div class="forecast-pct">+245%</div>
+            <p class="forecast-sublabel">Pinterest Growth</p>
+        </div>
+        <div class="forecast-card">
+            <p class="forecast-label">Chrome Nails</p>
+            <div class="forecast-pct">+190%</div>
+            <p class="forecast-sublabel">Trending Searches</p>
+        </div>
+        <div class="forecast-card">
+            <p class="forecast-label">Soft Pastels</p>
+            <div class="forecast-pct">+165%</div>
+            <p class="forecast-sublabel">Seasonal Interest</p>
+        </div>
+        <div class="forecast-card">
+            <p class="forecast-label">Micro French Tips</p>
+            <div class="forecast-pct">+140%</div>
+            <p class="forecast-sublabel">User Saves</p>
+        </div>
+    </div>
+</div>
+
+<!-- =============================================
+     NAIL COLLECTIONS
+============================================= -->
+<div class="section-wrap">
+    <h2 class="section-title"><span class="dot"></span> Nail Collections</h2>
+    <div class="collections-grid">
+        <div class="coll-card">
+            <div class="coll-img col1">50</div>
+            <div class="coll-name">50 Summer Nail Designs</div>
+        </div>
+        <div class="coll-card">
+            <div class="coll-img col2">100</div>
+            <div class="coll-name">100 Simple Nail Ideas</div>
+        </div>
+        <div class="coll-card">
+            <div class="coll-img col3">SP</div>
+            <div class="coll-name">Spring Nail Inspiration</div>
+        </div>
+        <div class="coll-card">
+            <div class="coll-img col4">WD</div>
+            <div class="coll-name">Wedding Nail Collection</div>
+        </div>
+        <div class="coll-card">
+            <div class="coll-img col5">SH</div>
+            <div class="coll-name">Short Nail Designs</div>
+        </div>
+        <div class="coll-card">
+            <div class="coll-img col6">LX</div>
+            <div class="coll-name">Luxury Nail Ideas</div>
+        </div>
+        <div class="coll-card">
+            <div class="coll-img col7">MA</div>
+            <div class="coll-name">Minimal Nail Art</div>
+        </div>
+        <div class="coll-card">
+            <div class="coll-img col8">FT</div>
+            <div class="coll-name">French Tip Gallery</div>
+        </div>
+    </div>
+</div>
+
+<!-- =============================================
+     CTA BANNER
+============================================= -->
+<div class="cta-banner-wrap">
+    <div class="cta-banner">
+        <div class="cta-text">
+            <h2>Never Run Out Of<br>Nail Inspiration</h2>
+            <p>Find your favorite nail designs, discover new looks, and create your perfect manicure style.</p>
+        </div>
+        <div class="cta-actions">
+            {% if not session.usuario_id %}
+                <a href="{{ url_for('registro') }}" class="btn-white">Explore Designs</a>
+                <a href="{{ url_for('login') }}" class="btn-outline-white">Join Community</a>
+            {% else %}
+                <a href="{{ url_for('agendar_paso1') }}" class="btn-white">Agendar Cita</a>
+                {% if session.tipo_usuario == 'cliente' %}
+                    <a href="{{ url_for('dashboard_cliente') }}" class="btn-outline-white">Mis Citas</a>
+                {% else %}
+                    <a href="{{ url_for('dashboard_admin') }}" class="btn-outline-white">Panel Admin</a>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+// Tabs galeria
+document.querySelectorAll('.gallery-tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+        document.querySelectorAll('.gallery-tab').forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+    });
+});
+
+// Chips filtros
+document.querySelectorAll('.chip').forEach(chip => {
+    chip.addEventListener('click', function() {
+        const group = this.closest('.filter-chips');
+        group.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+        this.classList.add('active');
+    });
+});
+
+// Botones like galeria
+document.querySelectorAll('.g-action-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const icon = this.querySelector('i');
+        if (icon.classList.contains('bi-heart')) {
+            icon.classList.replace('bi-heart', 'bi-heart-fill');
+            this.style.color = '#ff1493';
+        } else if (icon.classList.contains('bi-heart-fill')) {
+            icon.classList.replace('bi-heart-fill', 'bi-heart');
+            this.style.color = '';
+        }
+    });
+});
+</script>
+{% endblock %}

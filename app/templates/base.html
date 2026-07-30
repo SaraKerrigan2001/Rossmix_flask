@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Rossmix - Salón de Belleza{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,700&family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #f4f5f7;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* ── NAVBAR ─────────────────────────────────────────── */
+        nav {
+            background: #ffffff;
+            padding: 0.85rem 2.5rem;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+            border-bottom: 3px solid #ffc0d8;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        nav .nav-inner {
+            max-width: 1500px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            font-family: 'Playfair Display', serif;
+            background: linear-gradient(135deg, #c41e3a 0%, #ff1493 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-decoration: none;
+        }
+        nav ul {
+            list-style: none;
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        nav ul li a {
+            text-decoration: none;
+            color: #555;
+            font-weight: 500;
+            font-size: 0.95rem;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        nav ul li a:hover { background: #fff0f6; color: #c41e3a; }
+        .nav-user-badge {
+            background: linear-gradient(135deg, #fff0f6, #ffe5f3);
+            color: #c41e3a;
+            font-weight: 600;
+            font-size: 0.88rem;
+            padding: 0.45rem 1.1rem;
+            border-radius: 25px;
+            border: 1.5px solid #ffb3d1;
+        }
+        .nav-btn-logout {
+            background: #fff0f6;
+            color: #c41e3a;
+            border: 1.5px solid #ffb3d1;
+            font-weight: 600;
+            font-size: 0.88rem;
+            padding: 0.45rem 1.1rem;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .nav-btn-logout:hover { background: #c41e3a; color: white; }
+
+        /* ── CONTENEDOR PRINCIPAL ───────────────────────────── */
+        .page-wrap {
+            flex: 1;
+            width: 100%;
+            max-width: 1500px;
+            margin: 0 auto;
+            padding: 2rem 2.5rem 3rem;
+        }
+        @media (max-width: 768px) { .page-wrap { padding: 1.5rem 1rem; } }
+
+        /* ── FLASH MESSAGES ─────────────────────────────────── */
+        .flash-messages {
+            position: fixed;
+            top: 80px; right: 20px;
+            z-index: 2000;
+            max-width: 380px;
+            display: flex; flex-direction: column; gap: 0.5rem;
+        }
+        .flash-msg {
+            padding: 1rem 1.4rem;
+            border-radius: 12px;
+            font-size: 0.92rem;
+            font-weight: 500;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+            animation: slideIn 0.35s ease-out;
+            display: flex; align-items: center; gap: 0.6rem;
+            border-left: 4px solid transparent;
+        }
+        .flash-success { background: #f0fdf4; color: #166534; border-color: #22c55e; }
+        .flash-error   { background: #fff1f2; color: #9f1239; border-color: #f43f5e; }
+        @keyframes slideIn {
+            from { transform: translateX(350px); opacity: 0; }
+            to   { transform: translateX(0);     opacity: 1; }
+        }
+
+        /* ── BOTONES GLOBALES ───────────────────────────────── */
+        .btn-rossmix {
+            background: linear-gradient(135deg, #c41e3a, #ff1493);
+            color: white; border: none;
+            padding: 0.65rem 1.8rem; border-radius: 10px;
+            font-size: 0.92rem; font-weight: 600;
+            cursor: pointer; text-decoration: none;
+            display: inline-flex; align-items: center; gap: 0.4rem;
+            transition: all 0.25s;
+        }
+        .btn-rossmix:hover { opacity: 0.88; color: white; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(196,30,58,0.3); }
+        .btn-secondary-r {
+            background: white; color: #555;
+            border: 1.5px solid #ddd;
+            padding: 0.65rem 1.8rem; border-radius: 10px;
+            font-size: 0.92rem; font-weight: 600;
+            cursor: pointer; text-decoration: none;
+            display: inline-flex; align-items: center; gap: 0.4rem;
+            transition: all 0.25s;
+        }
+        .btn-secondary-r:hover { border-color: #c41e3a; color: #c41e3a; transform: translateY(-2px); }
+
+        /* ── CARDS GENERAL ──────────────────────────────────── */
+        .r-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+            overflow: hidden;
+        }
+        .r-card-header {
+            padding: 1.3rem 1.8rem;
+            border-bottom: 2px solid #f5f5f5;
+            display: flex; align-items: center; justify-content: space-between;
+            flex-wrap: wrap; gap: 0.8rem;
+        }
+        .r-card-header h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.3rem; font-weight: 700;
+            color: #1a1a1a; margin: 0;
+        }
+        .r-card-body { padding: 1.8rem; }
+
+        /* ── TABLAS ─────────────────────────────────────────── */
+        .r-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        .r-table thead tr {
+            background: linear-gradient(135deg, #c41e3a, #ff1493);
+            color: white;
+        }
+        .r-table thead th {
+            padding: 1rem 1.2rem;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.85rem;
+            letter-spacing: 0.3px;
+        }
+        .r-table tbody tr {
+            border-bottom: 1px solid #f5f5f5;
+            transition: background 0.15s;
+        }
+        .r-table tbody tr:hover { background: #fff8fc; }
+        .r-table tbody td { padding: 1rem 1.2rem; color: #444; vertical-align: middle; }
+
+        /* ── BADGES ─────────────────────────────────────────── */
+        .badge-active   { background: #dcfce7; color: #166534; padding: 0.25rem 0.8rem; border-radius: 20px; font-size: 0.78rem; font-weight: 600; }
+        .badge-inactive { background: #f3f4f6; color: #6b7280; padding: 0.25rem 0.8rem; border-radius: 20px; font-size: 0.78rem; font-weight: 600; }
+        .badge-estado   { padding: 0.25rem 0.8rem; border-radius: 20px; font-size: 0.78rem; font-weight: 600; }
+        .be-pendiente   { background: #fef9c3; color: #854d0e; }
+        .be-confirmada  { background: #dbeafe; color: #1e40af; }
+        .be-completada  { background: #dcfce7; color: #166534; }
+        .be-cancelada   { background: #fee2e2; color: #991b1b; }
+        .be-atencion    { background: #ede9ff; color: #5b21b6; }
+
+        /* ── FORMULARIOS ────────────────────────────────────── */
+        .r-form-label { font-size: 0.88rem; font-weight: 600; color: #444; margin-bottom: 0.4rem; display: block; }
+        .r-form-control {
+            width: 100%; padding: 0.7rem 1rem;
+            border: 1.5px solid #e5e7eb; border-radius: 10px;
+            font-size: 0.92rem; font-family: 'Poppins', sans-serif;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            background: white; color: #333;
+        }
+        .r-form-control:focus {
+            outline: none;
+            border-color: #ff1493;
+            box-shadow: 0 0 0 3px rgba(255,20,147,0.1);
+        }
+        .r-form-hint { font-size: 0.78rem; color: #9ca3af; margin-top: 0.3rem; }
+
+        /* ── PAGE HEADER ────────────────────────────────────── */
+        .page-header {
+            display: flex; align-items: center; justify-content: space-between;
+            flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;
+        }
+        .page-header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem; font-weight: 700; color: #1a1a1a; margin: 0;
+        }
+        .page-header .breadcrumb-r {
+            font-size: 0.82rem; color: #9ca3af; margin-top: 0.2rem;
+            display: flex; align-items: center; gap: 0.4rem;
+        }
+        .page-header .breadcrumb-r a { color: #c41e3a; text-decoration: none; }
+        .page-header .breadcrumb-r a:hover { text-decoration: underline; }
+
+        /* ── FOOTER ─────────────────────────────────────────── */
+        footer {
+            background: white;
+            border-top: 2px solid #f0f0f0;
+            padding: 1.5rem 2rem;
+            text-align: center;
+            color: #888;
+            font-size: 0.88rem;
+        }
+        footer strong { color: #c41e3a; }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav>
+    <div class="nav-inner">
+        <a href="{{ url_for('index') }}" class="logo">Rossmix</a>
+        <ul>
+            {% if session.usuario_id %}
+                <li><span class="nav-user-badge"><i class="bi bi-person-circle"></i> {{ session.nombre|title }}</span></li>
+                <li style="position:relative;">
+                    <a href="#" id="btnNotifs" title="Notificaciones" style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.4rem 0.8rem;border-radius:8px;color:#555;text-decoration:none;">
+                        <i class="bi bi-bell" style="font-size:1.05rem;"></i>
+                        {% if notificaciones_unread and notificaciones_unread > 0 %}
+                            <span style="background:#dc2626;color:white;padding:0.15rem 0.55rem;border-radius:12px;font-size:0.75rem;font-weight:700;">{{ notificaciones_unread }}</span>
+                        {% endif %}
+                    </a>
+                    <div id="notifsDropdown" style="display:none; position:absolute; right:0; top:44px; width:360px; background:white; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.12); z-index:2000; overflow:hidden;">
+                        <div style="display:flex; align-items:center; justify-content:space-between; padding:0.6rem 0.8rem; border-bottom:1px solid #f3f3f3;">
+                            <strong>Notificaciones</strong>
+                            <a href="#" id="marcarTodasBtn" style="font-size:0.85rem; color:#6b7280; text-decoration:none;">Marcar todas</a>
+                        </div>
+                        <div style="max-height:380px; overflow:auto;">
+                        {% if notificaciones %}
+                                {% for n in notificaciones %}
+                                <div class="notif-item" data-id="{{ n.id }}" data-target="{{ n.target or '' }}" style="padding:0.7rem 0.9rem; border-bottom:1px solid #f3f3f3; cursor:pointer; background: {% if not n.leido %}#fff7f7{% else %}white{% endif %};">
+                                    <div style="display:flex;justify-content:space-between;align-items:center;gap:0.6rem;">
+                                        <strong style="font-size:0.95rem;">{{ n.titulo }}</strong>
+                                        <small style="color:#9ca3af; font-size:0.78rem;">{{ n.fecha.strftime('%d/%m/%Y %H:%M') }}</small>
+                                    </div>
+                                    {% if n.mensaje %}
+                                    <div style="color:#6b7280; font-size:0.9rem; margin-top:0.25rem;">{{ n.mensaje }}</div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div style="padding:0.9rem; color:#6b7280;">No hay notificaciones</div>
+                        {% endif %}
+                        </div>
+                    </div>
+                </li>
+                {% if session.tipo_usuario == 'admin' %}
+                    <li><a href="{{ url_for('dashboard_admin') }}"><i class="bi bi-grid"></i> Panel Admin</a></li>
+                {% else %}
+                    <li><a href="{{ url_for('dashboard_cliente') }}"><i class="bi bi-house"></i> Mi Panel</a></li>
+                    <li><a href="{{ url_for('mis_citas') }}"><i class="bi bi-calendar3"></i> Mis Citas</a></li>
+                    <li><a href="{{ url_for('agendar_paso1') }}"><i class="bi bi-plus-circle"></i> Agendar</a></li>
+                {% endif %}
+                <li><a href="{{ url_for('logout') }}" class="nav-btn-logout"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
+            {% else %}
+                <li><a href="{{ url_for('index') }}">Inicio</a></li>
+                <li><a href="{{ url_for('login') }}">Iniciar Sesión</a></li>
+                <li><a href="{{ url_for('registro') }}" style="background:linear-gradient(135deg,#c41e3a,#ff1493);color:white;padding:0.5rem 1.2rem;border-radius:8px;font-weight:600;">Registrarse</a></li>
+            {% endif %}
+        </ul>
+    </div>
+</nav>
+
+<!-- FLASH MESSAGES -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="flash-messages">
+            {% for category, message in messages %}
+                <div class="flash-msg flash-{{ category }}">
+                    {% if category == 'success' %}<i class="bi bi-check-circle-fill"></i>
+                    {% else %}<i class="bi bi-exclamation-circle-fill"></i>{% endif %}
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+
+<!-- CONTENIDO PRINCIPAL -->
+<div class="page-wrap">
+    {% block content %}{% endblock %}
+</div>
+
+<!-- FOOTER -->
+<footer>
+    <p>&copy; 2026 <strong>Rossmix</strong> — Salón de Belleza. Todos los derechos reservados.</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Auto-ocultar mensajes flash
+    setTimeout(() => {
+        document.querySelectorAll('.flash-msg').forEach(el => {
+            el.style.transition = 'opacity 0.4s';
+            el.style.opacity = '0';
+            setTimeout(() => el.remove(), 400);
+        });
+    }, 4500);
+</script>
+<script>
+    // Toggle notificaciones dropdown
+    document.addEventListener('DOMContentLoaded', function(){
+        const btn = document.getElementById('btnNotifs');
+        const dd = document.getElementById('notifsDropdown');
+        if (btn && dd) {
+            btn.addEventListener('click', function(e){
+                e.preventDefault();
+                dd.style.display = dd.style.display === 'block' ? 'none' : 'block';
+            });
+            document.addEventListener('click', function(e){
+                if (!btn.contains(e.target) && !dd.contains(e.target)) dd.style.display = 'none';
+            });
+        }
+    });
+</script>
+<script>
+    // Marcar notificación como leída cuando se hace clic
+    document.addEventListener('DOMContentLoaded', function(){
+        const items = document.querySelectorAll('.notif-item');
+        const badge = document.querySelector('#btnNotifs span');
+        function updateBadge(count){
+            const el = document.querySelector('#btnNotifs span');
+            if (!el) return;
+            if (count > 0) el.textContent = count; else el.remove();
+        }
+
+        items.forEach(it => {
+            it.addEventListener('click', function(e){
+                const id = this.dataset.id;
+                fetch(`/notificaciones/marcar-leida/${id}`, { method: 'POST' })
+                    .then(r => r.json())
+                    .then(d => {
+                        if (d.success) {
+                            this.style.background = 'white';
+                            this.style.opacity = '0.7';
+                            this.style.transition = 'opacity 0.25s';
+                            updateBadge(d.unread || 0);
+                        }
+                    }).catch(()=>{});
+            });
+        });
+
+        const marcarTodasBtn = document.getElementById('marcarTodasBtn');
+        if (marcarTodasBtn){
+            marcarTodasBtn.addEventListener('click', function(e){
+                e.preventDefault();
+                fetch('/notificaciones/marcar-todas', { method: 'POST' })
+                    .then(r => r.json())
+                    .then(d => {
+                        if (d.success){
+                            document.querySelectorAll('.notif-item').forEach(el=> el.style.background='white');
+                            updateBadge(0);
+                        }
+                    }).catch(()=>{});
+            });
+        }
+    });
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

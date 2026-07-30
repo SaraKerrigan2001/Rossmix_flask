@@ -1,0 +1,563 @@
+{% extends 'base.html' %}
+
+{% block title %}Seleccionar Fecha y Hora - Rossmix{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Hero Section */
+    .citas-hero {
+        background: linear-gradient(135deg, #8b008b 0%, #c71585 50%, #ff1493 100%);
+        border-radius: 30px;
+        padding: 3rem 2rem;
+        text-align: center;
+        margin: 2rem 0 3rem 0;
+        box-shadow: 0 20px 60px rgba(139, 0, 139, 0.4);
+        border: 3px solid rgba(255, 215, 0, 0.5);
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .citas-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255, 215, 0, 0.15) 0%, transparent 70%);
+        animation: pulse 4s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); opacity: 0.5; }
+        50% { transform: scale(1.1); opacity: 0.8; }
+    }
+
+    .citas-hero h1 {
+        font-size: 3rem;
+        font-family: 'Playfair Display', serif;
+        font-weight: 700;
+        margin-bottom: 0.8rem;
+        text-shadow: 3px 3px 10px rgba(0, 0, 0, 0.3);
+        position: relative;
+        z-index: 1;
+    }
+
+    .citas-hero p {
+        font-size: 1.2rem;
+        opacity: 0.95;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* Steps Indicator */
+    .steps-indicator {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 1rem;
+        margin: 2rem 0 3rem 0;
+        flex-wrap: wrap;
+    }
+
+    .step-item {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+    }
+
+    .step-circle {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1.3rem;
+        transition: all 0.3s;
+    }
+
+    .step-completed .step-circle {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+        box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+    }
+
+    .step-active .step-circle {
+        background: linear-gradient(135deg, #ff69b4, #ff1493);
+        color: white;
+        box-shadow: 0 8px 25px rgba(255, 105, 180, 0.5);
+        transform: scale(1.15);
+        animation: bounce 0.6s ease;
+    }
+
+    @keyframes bounce {
+        0%, 100% { transform: scale(1.15); }
+        50% { transform: scale(1.25); }
+    }
+
+    .step-inactive .step-circle {
+        background: white;
+        color: #c71585;
+        border: 3px solid #ffb6c1;
+    }
+
+    .step-label {
+        font-weight: 600;
+        font-size: 1.05rem;
+    }
+
+    .step-active .step-label {
+        color: #ff1493;
+    }
+
+    .step-completed .step-label {
+        color: #28a745;
+    }
+
+    .step-inactive .step-label {
+        color: #999;
+    }
+
+    .step-arrow {
+        color: #ffb6c1;
+        font-size: 2rem;
+    }
+
+    /* Resumen Selección */
+    .selection-summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin: 2rem 0 3rem 0;
+    }
+
+    .summary-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 10px 30px rgba(255, 105, 180, 0.2);
+        border: 3px solid rgba(255, 215, 0, 0.3);
+        text-align: center;
+        transition: all 0.3s;
+    }
+
+    .summary-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(255, 105, 180, 0.3);
+    }
+
+    .summary-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        filter: drop-shadow(2px 2px 8px rgba(255, 105, 180, 0.3));
+    }
+
+    .summary-label {
+        color: #999;
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .summary-value {
+        color: #ff1493;
+        font-size: 1.5rem;
+        font-weight: 700;
+        font-family: 'Playfair Display', serif;
+    }
+
+    /* Contenedor Principal */
+    .datetime-container {
+        background: white;
+        border-radius: 30px;
+        padding: 3rem;
+        box-shadow: 0 15px 50px rgba(255, 105, 180, 0.3);
+        border: 3px solid rgba(255, 215, 0, 0.4);
+        max-width: 900px;
+        margin: 2rem auto;
+    }
+
+    /* Selector de Fecha */
+    .date-selector {
+        margin-bottom: 3rem;
+    }
+
+    .date-selector h3 {
+        font-size: 2rem;
+        color: #ff1493;
+        margin-bottom: 1.5rem;
+        font-family: 'Playfair Display', serif;
+        text-align: center;
+    }
+
+    .date-input-wrapper {
+        max-width: 400px;
+        margin: 0 auto;
+    }
+
+    .date-selector input {
+        width: 100%;
+        padding: 1.2rem;
+        border: 3px solid #ffb6c1;
+        border-radius: 20px;
+        font-size: 1.2rem;
+        font-family: 'Poppins', sans-serif;
+        text-align: center;
+        font-weight: 600;
+        color: #c71585;
+        transition: all 0.3s;
+        background: linear-gradient(135deg, #ffffff, #fffbfc);
+    }
+
+    .date-selector input:focus {
+        outline: none;
+        border-color: #ff69b4;
+        box-shadow: 0 0 20px rgba(255, 105, 180, 0.3);
+        transform: translateY(-2px);
+    }
+
+    /* Selector de Hora */
+    .time-selector {
+        margin-top: 3rem;
+    }
+
+    .time-selector h3 {
+        font-size: 2rem;
+        color: #ff1493;
+        margin-bottom: 1.5rem;
+        font-family: 'Playfair Display', serif;
+        text-align: center;
+    }
+
+    .horarios-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+
+    .horario-slot {
+        background: linear-gradient(135deg, #ffffff, #fff5fa);
+        border: 3px solid #ffb6c1;
+        border-radius: 20px;
+        padding: 1.2rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-weight: 600;
+        font-size: 1.1rem;
+        color: #c71585;
+    }
+
+    .horario-slot:hover {
+        transform: translateY(-5px);
+        border-color: #ff69b4;
+        box-shadow: 0 8px 20px rgba(255, 105, 180, 0.3);
+    }
+
+    .horario-slot.selected {
+        background: linear-gradient(135deg, #ff69b4, #ff1493);
+        color: white;
+        border-color: #ffd700;
+        box-shadow: 0 10px 30px rgba(255, 105, 180, 0.5);
+        transform: scale(1.05);
+    }
+
+    .horario-slot.ocupado {
+        background: #f5f5f5;
+        color: #ccc;
+        border-color: #e0e0e0;
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+
+    .horario-slot.ocupado:hover {
+        transform: none;
+        box-shadow: none;
+    }
+
+    /* Loading */
+    .loading {
+        text-align: center;
+        padding: 3rem;
+        color: #ff1493;
+        font-size: 1.2rem;
+        font-weight: 600;
+    }
+
+    .loading-spinner {
+        display: inline-block;
+        width: 50px;
+        height: 50px;
+        border: 5px solid #ffe5f3;
+        border-top-color: #ff1493;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 1rem;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* No hay horarios */
+    .no-horarios {
+        text-align: center;
+        padding: 3rem;
+        background: linear-gradient(135deg, #ffe5e5, #fff5f5);
+        border-radius: 20px;
+        border: 3px solid #ff69b4;
+        color: #c71585;
+    }
+
+    .no-horarios-icon {
+        font-size: 5rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    /* Botón Continuar */
+    .btn-continue {
+        width: 100%;
+        padding: 1.5rem;
+        background: linear-gradient(135deg, #ff69b4, #ff1493);
+        color: white;
+        border: none;
+        border-radius: 25px;
+        font-weight: 700;
+        font-size: 1.3rem;
+        cursor: pointer;
+        transition: all 0.4s;
+        margin-top: 3rem;
+        box-shadow: 0 10px 30px rgba(255, 105, 180, 0.4);
+    }
+
+    .btn-continue:hover:not(:disabled) {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 40px rgba(255, 105, 180, 0.6);
+    }
+
+    .btn-continue:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
+    /* Volver */
+    .back-link {
+        text-align: center;
+        margin: 2rem 0;
+    }
+
+    .back-link a {
+        color: #ff1493;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 1.1rem;
+        border-bottom: 2px solid transparent;
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .back-link a:hover {
+        border-bottom-color: #ff1493;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="citas-hero">
+    <h1>Selecciona Fecha y Hora</h1>
+    <p>Elige el momento perfecto para tu cita</p>
+</div>
+
+<!-- Steps Indicator -->
+<div class="steps-indicator">
+    <div class="step-item step-completed">
+        <div class="step-circle">✓</div>
+        <div class="step-label">Servicio</div>
+    </div>
+    <div class="step-arrow">→</div>
+    <div class="step-item step-completed">
+        <div class="step-circle">✓</div>
+        <div class="step-label">Empleado</div>
+    </div>
+    <div class="step-arrow">→</div>
+    <div class="step-item step-active">
+        <div class="step-circle">3</div>
+        <div class="step-label">Fecha y Hora</div>
+    </div>
+    <div class="step-arrow">→</div>
+    <div class="step-item step-inactive">
+        <div class="step-circle">4</div>
+        <div class="step-label">Confirmación</div>
+    </div>
+</div>
+
+<!-- Resumen de Selección -->
+<div class="selection-summary">
+    <div class="summary-card">
+        <div class="summary-icon">S</div>
+        <div class="summary-label">Servicio</div>
+        <div class="summary-value">{{ servicio.nombre_servicio }}</div>
+    </div>
+    <div class="summary-card">
+        <div class="summary-icon">E</div>
+        <div class="summary-label">Especialista</div>
+        <div class="summary-value">{{ empleado.nombre if empleado else 'Asignación Automática' }}</div>
+    </div>
+    <div class="summary-card">
+        <div class="summary-icon">T</div>
+        <div class="summary-label">Duración</div>
+        <div class="summary-value">{{ servicio.duracion_minutos }} min</div>
+    </div>
+</div>
+
+<!-- Contenedor Principal -->
+<div class="datetime-container">
+    <!-- Selector de Fecha -->
+    <div class="date-selector">
+        <h3>Selecciona la Fecha</h3>
+        <div class="date-input-wrapper">
+            <input type="date" 
+                   id="fecha-cita" 
+                   min="{{ hoy }}"
+                   max="{{ max_fecha }}"
+                   required>
+        </div>
+    </div>
+
+    <!-- Selector de Hora -->
+    <div class="time-selector">
+        <h3>Selecciona la Hora</h3>
+        <div id="horarios-container">
+            <div class="loading">
+                <div class="loading-spinner"></div>
+                <p>Selecciona una fecha para ver los horarios disponibles</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulario -->
+    <form method="POST" action="{{ url_for('agendar_paso4') }}" id="form-fecha-hora">
+        <input type="hidden" name="id_servicio" value="{{ servicio.id_servicio }}">
+        <input type="hidden" name="id_empleado" value="{{ empleado.id_empleado if empleado else 0 }}">
+        <input type="hidden" name="fecha" id="fecha-hidden">
+        <input type="hidden" name="hora" id="hora-hidden">
+        
+        <button type="submit" class="btn-continue" id="btn-continuar" disabled>
+            Continuar a Confirmación →
+        </button>
+    </form>
+</div>
+
+<!-- Volver -->
+<div class="back-link">
+    <a href="{{ url_for('agendar_paso2', id_servicio=servicio.id_servicio) }}">← Cambiar Especialista</a>
+</div>
+
+<script>
+    const fechaInput = document.getElementById('fecha-cita');
+    const horariosContainer = document.getElementById('horarios-container');
+    const btnContinuar = document.getElementById('btn-continuar');
+    const fechaHidden = document.getElementById('fecha-hidden');
+    const horaHidden = document.getElementById('hora-hidden');
+    let horaSeleccionada = null;
+
+    // Cargar horarios cuando cambia la fecha
+    fechaInput.addEventListener('change', cargarHorarios);
+
+    async function cargarHorarios() {
+        const fecha = fechaInput.value;
+        if (!fecha) return;
+
+        fechaHidden.value = fecha;
+        horaSeleccionada = null;
+        horaHidden.value = '';
+        btnContinuar.disabled = true;
+
+        // Mostrar loading
+        horariosContainer.innerHTML = `
+            <div class="loading">
+                <div class="loading-spinner"></div>
+                <p>Cargando horarios disponibles...</p>
+            </div>
+        `;
+
+        try {
+            const response = await fetch(`/citas/horarios-disponibles?fecha=${fecha}&id_empleado={{ empleado.id_empleado if empleado else 0 }}&id_servicio={{ servicio.id_servicio }}`);
+            const data = await response.json();
+
+            if (data.horarios && data.horarios.length > 0) {
+                mostrarHorarios(data.horarios);
+            } else {
+                horariosContainer.innerHTML = `
+                    <div class="no-horarios">
+                        <div class="no-horarios-icon">X</div>
+                        <h3>No hay horarios disponibles</h3>
+                        <p>Por favor, selecciona otra fecha</p>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            horariosContainer.innerHTML = `
+                <div class="no-horarios">
+                    <div class="no-horarios-icon">⚠️</div>
+                    <h3>Error al cargar horarios</h3>
+                    <p>Por favor, intenta de nuevo</p>
+                </div>
+            `;
+        }
+    }
+
+    function mostrarHorarios(horarios) {
+        const grid = document.createElement('div');
+        grid.className = 'horarios-grid';
+
+        horarios.forEach(horario => {
+            const slot = document.createElement('div');
+            slot.className = 'horario-slot';
+            slot.textContent = horario.hora;
+            
+            if (horario.disponible) {
+                slot.addEventListener('click', () => seleccionarHorario(slot, horario.hora));
+            } else {
+                slot.classList.add('ocupado');
+                slot.title = 'No disponible';
+            }
+
+            grid.appendChild(slot);
+        });
+
+        horariosContainer.innerHTML = '';
+        horariosContainer.appendChild(grid);
+    }
+
+    function seleccionarHorario(element, hora) {
+        // Remover selección anterior
+        document.querySelectorAll('.horario-slot.selected').forEach(slot => {
+            slot.classList.remove('selected');
+        });
+
+        // Seleccionar nuevo
+        element.classList.add('selected');
+        horaSeleccionada = hora;
+        horaHidden.value = hora;
+        btnContinuar.disabled = false;
+    }
+
+    // Prevenir envío sin selección
+    document.getElementById('form-fecha-hora').addEventListener('submit', function(e) {
+        if (!horaSeleccionada) {
+            e.preventDefault();
+            alert('Por favor, selecciona una hora');
+        }
+    });
+</script>
+{% endblock %}

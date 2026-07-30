@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+{% block title %}Gestión de Empleados - Rossmix{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Gestión de Empleados</h1>
+        <div class="breadcrumb-r">
+            <a href="{{ url_for('dashboard_admin') }}">Panel Admin</a>
+            <i class="bi bi-chevron-right"></i> <span>Empleados</span>
+        </div>
+    </div>
+    <a href="{{ url_for('admin_empleados_crear') }}" class="btn-rossmix">
+        <i class="bi bi-plus-lg"></i> Nuevo Empleado
+    </a>
+</div>
+
+<div class="r-card">
+    <div class="r-card-header d-flex justify-content-between align-items-center">
+        <div>
+            <h2><i class="bi bi-person-lines-fill" style="color:#7c3aed;"></i> Empleados</h2>
+            <span style="font-size:0.85rem; color:#888;">{{ empleados|length }} empleado(s)</span>
+        </div>
+        <div class="dropdown">
+            <button class="btn-rossmix dropdown-toggle" type="button" id="exportEmpleadosDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="background:#059669;">
+                <i class="bi bi-file-earmark-excel"></i> Exportar a Excel
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="exportEmpleadosDropdown">
+                <li><a class="dropdown-item" href="{{ url_for('admin_exportar_excel', tipo='empleados', periodo='diario') }}">Diario (Hoy)</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('admin_exportar_excel', tipo='empleados', periodo='semana') }}">Semanal</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('admin_exportar_excel', tipo='empleados', periodo='mes') }}">Mensual</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('admin_exportar_excel', tipo='empleados', periodo='ano') }}">Anual</a></li>
+            </ul>
+        </div>
+    </div>
+    {% if empleados %}
+    <div style="overflow-x:auto;">
+        <table class="r-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Especialidad</th>
+                    <th>Servicios</th>
+                    <th>Estado</th>
+                    <th>Registro</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for emp in empleados %}
+                <tr id="empleado-{{ emp.id_empleado }}">
+                    <td style="color:#9ca3af; font-size:0.82rem;">#{{ emp.id_empleado }}</td>
+                    <td>
+                        <div style="display:flex; align-items:center; gap:0.7rem;">
+                            <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#ede9ff,#d4caff);
+                                        display:flex;align-items:center;justify-content:center;font-weight:700;color:#7c3aed;font-size:0.9rem;flex-shrink:0;">
+                                {{ emp.nombre[0].upper() }}
+                            </div>
+                            <strong>{{ emp.nombre }}</strong>
+                        </div>
+                    </td>
+                    <td style="color:#6b7280;">{{ emp.especialidad or '—' }}</td>
+                    <td>
+                        <span style="background:#f0f4ff;color:#2563eb;padding:0.2rem 0.7rem;border-radius:20px;font-size:0.8rem;font-weight:600;">
+                            {{ emp.servicios|length }} servicio(s)
+                        </span>
+                    </td>
+                    <td>
+                        {% if emp.activo %}
+                            <span class="badge-active">Activo</span>
+                        {% else %}
+                            <span class="badge-inactive">Inactivo</span>
+                        {% endif %}
+                    </td>
+                    <td style="color:#9ca3af; font-size:0.82rem;">
+                        {{ emp.fecha_registro.strftime('%d/%m/%Y') if emp.fecha_registro else '—' }}
+                    </td>
+                    <td>
+                        <div style="display:flex; gap:0.4rem; flex-wrap:wrap;">
+                            <a href="{{ url_for('admin_empleados_editar', id_empleado=emp.id_empleado) }}"
+                               style="background:#fef3c7;color:#d97706;padding:0.4rem 0.7rem;border-radius:8px;font-size:0.82rem;font-weight:600;text-decoration:none;" title="Editar">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="{{ url_for('admin_horarios_crear', id_empleado=emp.id_empleado) }}"
+                               style="background:#eff6ff;color:#2563eb;padding:0.4rem 0.7rem;border-radius:8px;font-size:0.82rem;font-weight:600;text-decoration:none;" title="Horarios">
+                                <i class="bi bi-clock"></i>
+                            </a>
+                            <button onclick="confirmarEliminar({{ emp.id_empleado }}, '{{ emp.nombre }}')"
+                                    style="background:#fee2e2;color:#dc2626;border:none;padding:0.4rem 0.7rem;border-radius:8px;font-size:0.82rem;font-weight:600;cursor:pointer;" title="Eliminar">
+                                <i class="bi bi-trash3"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="r-card-body" style="text-align:center; padding:3rem; color:#9ca3af;">
+        <i class="bi bi-people" style="font-size:2.5rem; display:block; margin-bottom:0.8rem;"></i>
+        No hay empleados registrados.
+        <a href="{{ url_for('admin_empleados_crear') }}" style="color:#c41e3a; font-weight:600;">Crear el primero</a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Modal -->
+<div id="modalEliminar" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:3000; align-items:center; justify-content:center;">
+    <div style="background:white; border-radius:16px; padding:2rem; max-width:420px; width:90%; box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+        <h3 style="font-family:'Playfair Display',serif; margin-bottom:0.8rem;">Confirmar Eliminación</h3>
+        <p id="modalMsg" style="color:#6b7280; margin-bottom:1.5rem; font-size:0.95rem;"></p>
+        <div style="display:flex; gap:1rem; justify-content:flex-end;">
+            <button onclick="cerrarModal()" class="btn-secondary-r">Cancelar</button>
+            <button id="btnConfirmar" class="btn-rossmix" style="background:linear-gradient(135deg,#dc2626,#ef4444);">
+                <i class="bi bi-trash3"></i> Eliminar
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+let empId = null;
+function confirmarEliminar(id, nombre) {
+    empId = id;
+    document.getElementById('modalMsg').textContent = `¿Eliminar al empleado "${nombre}"? Esta acción no se puede deshacer.`;
+    document.getElementById('modalEliminar').style.display = 'flex';
+}
+function cerrarModal() { document.getElementById('modalEliminar').style.display = 'none'; }
+document.getElementById('btnConfirmar').addEventListener('click', function() {
+    if (!empId) return;
+    fetch(`/admin/empleados/eliminar/${empId}`, { method:'POST' })
+        .then(r => r.json())
+        .then(d => {
+            cerrarModal();
+            if (d.success) {
+                document.getElementById(`empleado-${empId}`)?.remove();
+            } else { alert(d.message); }
+        });
+});
+</script>
+{% endblock %}

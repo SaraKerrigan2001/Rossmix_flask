@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestión de Horarios - Admin Rossmix{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 style="color: #c41e3a; font-family: 'Playfair Display', serif;">Gestión de Horarios</h2>
+        <div class="dropdown">
+            <button class="btn-rossmix dropdown-toggle" type="button" id="exportHorariosDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="background:#059669;">
+                <i class="bi bi-file-earmark-excel"></i> Exportar a Excel
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="exportHorariosDropdown">
+                <li><a class="dropdown-item" href="{{ url_for('admin_exportar_excel', tipo='horarios', periodo='diario') }}">Diario (Hoy)</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('admin_exportar_excel', tipo='horarios', periodo='semana') }}">Semanal</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('admin_exportar_excel', tipo='horarios', periodo='mes') }}">Mensual</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('admin_exportar_excel', tipo='horarios', periodo='ano') }}">Anual</a></li>
+            </ul>
+        </div>
+    </div>
+
+    {% if empleados %}
+        {% for empleado in empleados %}
+        <div class="card shadow-sm mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center" 
+                 style="background: linear-gradient(135deg, #c41e3a, #ff1493); color: white;">
+                <h5 class="mb-0">{{ empleado.nombre }} - {{ empleado.especialidad or 'Sin especialidad' }}</h5>
+                <a href="{{ url_for('admin_horarios_crear', id_empleado=empleado.id_empleado) }}" 
+                   class="btn btn-light btn-sm">
+                    <i class="bi bi-plus-circle"></i> Agregar Horario
+                </a>
+            </div>
+            <div class="card-body">
+                {% if empleado.horarios %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead>
+                            <tr>
+                                <th>Día</th>
+                                <th>Hora Inicio</th>
+                                <th>Hora Fin</th>
+                                <th>Duración</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for horario in empleado.horarios|sort(attribute='dia_semana') %}
+                            <tr id="horario-{{ horario.id_horario }}">
+                                <td><strong>{{ dias_semana[horario.dia_semana] }}</strong></td>
+                                <td>{{ horario.hora_inicio.strftime('%H:%M') }}</td>
+                                <td>{{ horario.hora_fin.strftime('%H:%M') }}</td>
+                                <td class="text-muted">
+                                    {% set horas = ((horario.hora_fin.hour * 60 + horario.hora_fin.minute) - (horario.hora_inicio.hour * 60 + horario.hora_inicio.minute)) // 60 %}
+                                    {% set minutos = ((horario.hora_fin.hour * 60 + horario.hora_fin.minute) - (horario.hora_inicio.hour * 60 + horario.hora_inicio.minute)) % 60 %}
+                                    {{ horas }}h {{ minutos }}min
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('admin_horarios_editar', id_horario=horario.id_horario) }}" 
+                                       class="btn btn-sm btn-warning" title="Editar">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <button onclick="eliminarHorario({{ horario.id_horario }})" 
+                                            class="btn btn-sm btn-danger" title="Eliminar">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">Sin horarios configurados. 
+                   <a href="{{ url_for('admin_horarios_crear', id_empleado=empleado.id_empleado) }}">Agregar el primero</a>
+                </p>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle"></i> No hay empleados activos. 
+        <a href="{{ url_for('admin_empleados_crear') }}">Crear empleado</a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Modal de confirmación -->
+<div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar Eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de eliminar este horario?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Eliminar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let horarioAEliminar = null;
+
+function eliminarHorario(id) {
+    horarioAEliminar = id;
+    const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+    modal.show();
+}
+
+document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+    if (horarioAEliminar) {
+        fetch(`/admin/horarios/eliminar/${horarioAEliminar}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const row = document.getElementById(`horario-${horarioAEliminar}`);
+                if (row) row.remove();
+                
+                const modal = bootstrap.Modal.getInstance(document.getElementById('confirmModal'));
+                modal.hide();
+                
+                mostrarAlerta('success', data.message);
+            } else {
+                mostrarAlerta('danger', data.message);
+            }
+        })
+        .catch(error => {
+            mostrarAlerta('danger', 'Error al eliminar horario');
+        });
+    }
+});
+
+function mostrarAlerta(tipo, mensaje) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${tipo} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${mensaje}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    document.querySelector('.container').insertBefore(alertDiv, document.querySelector('.d-flex'));
+    
+    setTimeout(() => alertDiv.remove(), 5000);
+}
+</script>
+{% endblock %}

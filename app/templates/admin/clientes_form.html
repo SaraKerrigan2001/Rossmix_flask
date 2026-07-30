@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block title %}Editar Cliente - Admin Rossmix{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header" style="background: linear-gradient(135deg, #c41e3a, #ff1493); color: white;">
+                    <h4 class="mb-0">Editar Cliente</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label for="nombre" class="form-label">Nombre Completo *</label>
+                            <input type="text" class="form-control" id="nombre" name="nombre" 
+                                   value="{{ cliente.nombre }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email *</label>
+                            <input type="email" class="form-control" id="email" name="email" 
+                                   value="{{ cliente.email }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="telefono" class="form-label">Teléfono *</label>
+                            <input type="tel" class="form-control" id="telefono" name="telefono" 
+                                   value="{{ cliente.telefono }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="nueva_password" class="form-label">Nueva Contraseña</label>
+                            <input type="password" class="form-control" id="nueva_password" name="nueva_password" 
+                                   placeholder="Dejar en blanco para mantener la actual">
+                            <small class="text-muted">Solo ingresar si deseas cambiar la contraseña</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="activo" name="activo"
+                                       {% if cliente.activo %}checked{% endif %}>
+                                <label class="form-check-label" for="activo">
+                                    Cliente Activo
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <strong>Información:</strong> Cliente registrado el {{ cliente.fecha_registro.strftime('%d/%m/%Y a las %H:%M') if cliente.fecha_registro else 'N/A' }}
+                            <br>Total de citas: <strong>{{ cliente.citas|length }}</strong>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle"></i> Guardar
+                            </button>
+                            <a href="{{ url_for('admin_clientes') }}" class="btn btn-secondary">
+                                <i class="bi bi-x-circle"></i> Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

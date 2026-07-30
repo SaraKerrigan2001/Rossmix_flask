@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+{% block title %}Registrar Pago - Rossmix{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Registrar Pago</h1>
+        <div class="breadcrumb-r">
+            <a href="{{ url_for('dashboard_admin') }}">Panel Admin</a>
+            <i class="bi bi-chevron-right"></i>
+            <a href="{{ url_for('admin_pagos') }}">Pagos</a>
+            <i class="bi bi-chevron-right"></i>
+            <span>Registrar</span>
+        </div>
+    </div>
+    <a href="{{ url_for('admin_pagos') }}" class="btn-secondary-r">
+        <i class="bi bi-arrow-left"></i> Volver
+    </a>
+</div>
+
+<div style="display:grid; grid-template-columns:1fr 380px; gap:1.5rem; align-items:start;">
+
+    <!-- Formulario -->
+    <div class="r-card">
+        <div class="r-card-header">
+            <h2><i class="bi bi-cash-coin" style="color:#059669;"></i> Datos del Pago</h2>
+        </div>
+        <div class="r-card-body">
+            <form method="POST">
+                <div class="mb-4">
+                    <label class="r-form-label">Monto a Pagar *</label>
+                    <div style="display:flex; align-items:center; gap:0.5rem;">
+                        <span style="font-weight:700; color:#888; font-size:1.1rem;">$</span>
+                        <input type="number" class="r-form-control" name="monto"
+                               value="{{ cita.saldo_pendiente or cita.monto_total }}"
+                               min="1" step="1000" required>
+                    </div>
+                    <p class="r-form-hint">
+                        Monto total: <strong>${{ "{:,.0f}".format(cita.monto_total) }}</strong>
+                        | Abono registrado: <strong>${{ "{:,.0f}".format(cita.monto_abono or 0) }}</strong>
+                        | Saldo pendiente: <strong style="color:#c41e3a;">${{ "{:,.0f}".format(cita.saldo_pendiente or cita.monto_total) }}</strong>
+                    </p>
+                </div>
+
+                <div class="mb-4">
+                    <label class="r-form-label">Método de Pago *</label>
+                    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:0.7rem;">
+                        {% for metodo in metodos %}
+                        <label style="display:flex; align-items:center; gap:0.6rem; padding:0.8rem 1rem;
+                                      border:1.5px solid #e5e7eb; border-radius:10px; cursor:pointer;
+                                      transition:all 0.15s;" class="metodo-label">
+                            <input type="radio" name="metodo_pago" value="{{ metodo }}"
+                                   style="accent-color:#c41e3a;"
+                                   {% if loop.first %}checked{% endif %}>
+                            <div>
+                                <div style="font-size:0.88rem; font-weight:600; text-transform:capitalize;">
+                                    {% if metodo == 'efectivo' %}<i class="bi bi-cash"></i>
+                                    {% elif metodo == 'tarjeta' %}<i class="bi bi-credit-card"></i>
+                                    {% elif metodo == 'transferencia' %}<i class="bi bi-bank"></i>
+                                    {% elif metodo == 'nequi' %}<i class="bi bi-phone"></i>
+                                    {% elif metodo == 'daviplata' %}<i class="bi bi-phone-fill"></i>
+                                    {% endif %}
+                                    {{ metodo }}
+                                </div>
+                            </div>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="r-form-label">Referencia / Comprobante</label>
+                    <input type="text" class="r-form-control" name="referencia"
+                           placeholder="Número de transacción (opcional)">
+                </div>
+
+                <div class="mb-4">
+                    <label class="r-form-label">Notas</label>
+                    <textarea class="r-form-control" name="notas" rows="2"
+                              placeholder="Observaciones adicionales..."></textarea>
+                </div>
+
+                <div style="display:flex; gap:1rem; flex-wrap:wrap; padding-top:1.5rem;
+                            border-top:2px solid #f5f5f5; margin-top:0.5rem;">
+                    <button type="submit" class="btn-rossmix">
+                        <i class="bi bi-check-lg"></i> Confirmar Pago
+                    </button>
+                    <a href="{{ url_for('admin_pagos') }}" class="btn-secondary-r">
+                        <i class="bi bi-x-lg"></i> Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Resumen de cita -->
+    <div class="r-card">
+        <div class="r-card-header">
+            <h2><i class="bi bi-calendar3" style="color:#c41e3a;"></i> Detalle Cita</h2>
+        </div>
+        <div class="r-card-body">
+            <div style="display:flex; flex-direction:column; gap:1rem;">
+                <div style="display:flex; align-items:center; gap:0.8rem;">
+                    <div style="width:44px;height:44px;border-radius:50%;
+                                background:linear-gradient(135deg,#ffe0ef,#ffc0d8);
+                                display:flex;align-items:center;justify-content:center;
+                                font-weight:700;color:#c41e3a;font-size:1.1rem;flex-shrink:0;">
+                        {{ cliente.nombre[0].upper() }}
+                    </div>
+                    <div>
+                        <div style="font-weight:700;color:#1a1a1a;">{{ cliente.nombre }}</div>
+                        <div style="font-size:0.82rem;color:#888;">{{ cliente.telefono }}</div>
+                    </div>
+                </div>
+
+                <hr style="border:none;border-top:1px solid #f0f0f0;">
+
+                <div style="display:flex; flex-direction:column; gap:0.6rem; font-size:0.88rem;">
+                    <div style="display:flex; justify-content:space-between;">
+                        <span style="color:#888;">Servicio</span>
+                        <strong>{{ servicio.nombre_servicio }}</strong>
+                    </div>
+                    <div style="display:flex; justify-content:space-between;">
+                        <span style="color:#888;">Código</span>
+                        <code style="background:#f8f8f8;padding:0.15rem 0.5rem;border-radius:5px;">
+                            {{ cita.codigo_reserva or '—' }}
+                        </code>
+                    </div>
+                    <div style="display:flex; justify-content:space-between;">
+                        <span style="color:#888;">Fecha</span>
+                        <strong>{{ cita.fecha_hora_inicio.strftime('%d/%m/%Y') }}</strong>
+                    </div>
+                    <div style="display:flex; justify-content:space-between;">
+                        <span style="color:#888;">Hora</span>
+                        <strong>{{ cita.fecha_hora_inicio.strftime('%H:%M') }}</strong>
+                    </div>
+                    <hr style="border:none;border-top:1px solid #f0f0f0;">
+                    <div style="display:flex; justify-content:space-between;">
+                        <span style="color:#888;">Monto Total</span>
+                        <strong style="color:#1a1a1a;">${{ "{:,.0f}".format(cita.monto_total) }}</strong>
+                    </div>
+                    <div style="display:flex; justify-content:space-between;">
+                        <span style="color:#888;">Abono</span>
+                        <span style="color:#888;">${{ "{:,.0f}".format(cita.monto_abono or 0) }}</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between;
+                                padding-top:0.5rem; border-top:2px solid #f0f0f0;">
+                        <strong style="color:#c41e3a;">Saldo Pendiente</strong>
+                        <strong style="color:#c41e3a; font-size:1.1rem;">
+                            ${{ "{:,.0f}".format(cita.saldo_pendiente or cita.monto_total) }}
+                        </strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<style>
+.metodo-label:hover { border-color:#ffb3d1; background:#fff8fc; }
+.metodo-label:has(input:checked) { border-color:#c41e3a; background:#fff0f6; }
+</style>
+{% endblock %}

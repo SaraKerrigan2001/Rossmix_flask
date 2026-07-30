@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+
+{% block title %}Iniciar Sesión - Rossmix{% endblock %}
+
+{% block extra_css %}
+<style>
+    .login-container {
+        max-width: 500px;
+        margin: 3rem auto;
+        background: linear-gradient(135deg, #ffffff 0%, #fff5fa 100%);
+        padding: 3.5rem;
+        border-radius: 30px;
+        box-shadow: 0 15px 50px rgba(255, 105, 180, 0.3);
+        border: 3px solid rgba(255, 215, 0, 0.4);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .login-container::before {
+        content: '';
+        position: absolute;
+        top: -50px;
+        right: -50px;
+        width: 150px;
+        height: 150px;
+        background: radial-gradient(circle, rgba(255, 215, 0, 0.2) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+
+    .login-container::after {
+        content: '';
+        position: absolute;
+        bottom: -50px;
+        left: -50px;
+        width: 150px;
+        height: 150px;
+        background: radial-gradient(circle, rgba(255, 105, 180, 0.15) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+
+    .login-container h2 {
+        font-family: 'Playfair Display', serif;
+        background: linear-gradient(135deg, #ff69b4 0%, #ff1493 50%, #c71585 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        text-align: center;
+        margin-bottom: 2rem;
+        font-size: 2.5rem;
+        font-weight: 700;
+        position: relative;
+        z-index: 1;
+    }
+
+    .form-group {
+        margin-bottom: 1.8rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.6rem;
+        color: #c71585;
+        font-weight: 600;
+        font-size: 1.05rem;
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 1rem 1.2rem;
+        border: 2.5px solid #ffb6c1;
+        border-radius: 15px;
+        font-size: 1.05rem;
+        transition: all 0.3s;
+        background: linear-gradient(135deg, #ffffff, #fffbfc);
+        font-family: 'Poppins', sans-serif;
+    }
+
+    .form-group input:focus {
+        outline: none;
+        border-color: #ff69b4;
+        box-shadow: 0 0 20px rgba(255, 105, 180, 0.3);
+        transform: translateY(-2px);
+    }
+
+    .btn-submit {
+        width: 100%;
+        padding: 1.2rem;
+        background: linear-gradient(135deg, #ff69b4 0%, #ff1493 50%, #c71585 100%);
+        color: white;
+        border: none;
+        border-radius: 25px;
+        font-size: 1.2rem;
+        cursor: pointer;
+        transition: all 0.4s;
+        font-weight: 700;
+        font-family: 'Poppins', sans-serif;
+        box-shadow: 0 8px 25px rgba(255, 105, 180, 0.4);
+        position: relative;
+        overflow: hidden;
+        z-index: 1;
+        letter-spacing: 1px;
+    }
+
+    .btn-submit::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+    }
+
+    .btn-submit:hover::before {
+        width: 400px;
+        height: 400px;
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 35px rgba(255, 105, 180, 0.6);
+    }
+
+    .form-footer {
+        text-align: center;
+        margin-top: 2rem;
+        color: #c71585;
+        font-weight: 500;
+        position: relative;
+        z-index: 1;
+    }
+
+    .form-footer a {
+        color: #ff1493;
+        text-decoration: none;
+        font-weight: 700;
+        border-bottom: 2px solid transparent;
+        transition: all 0.3s;
+    }
+
+    .form-footer a:hover {
+        border-bottom: 2px solid #ff1493;
+    }
+
+    .info-box {
+        background: linear-gradient(135deg, #e3f2fd, #f0f8ff);
+        border-left: 5px solid #ff69b4;
+        border-right: 5px solid #ffd700;
+        padding: 1.3rem;
+        margin-bottom: 2rem;
+        border-radius: 15px;
+        font-size: 0.95rem;
+        box-shadow: 0 5px 15px rgba(255, 105, 180, 0.15);
+        position: relative;
+        z-index: 1;
+        color: #c71585;
+        font-weight: 500;
+    }
+
+    .info-box strong {
+        color: #ff1493;
+        display: block;
+        margin-bottom: 0.5rem;
+        font-size: 1.05rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <h2>🔐 Iniciar Sesión</h2>
+    
+    <div class="info-box">
+        <strong>👨‍💼 Usuario admin de prueba:</strong><br>
+        Email: admin@rossmix.com<br>
+        Contraseña: admin123
+    </div>
+
+    <form method="POST" action="{{ url_for('login') }}">
+        <div class="form-group">
+            <label for="email">Correo Electrónico</label>
+            <input type="email" id="email" name="email" required placeholder="tu@email.com">
+        </div>
+
+        <div class="form-group">
+            <label for="password">Contraseña</label>
+            <input type="password" id="password" name="password" required placeholder="Tu contraseña">
+        </div>
+
+        <button type="submit" class="btn-submit">Iniciar Sesión</button>
+    </form>
+
+    <div class="form-footer">
+        ¿No tienes cuenta? <a href="{{ url_for('registro') }}">Regístrate aquí</a>
+    </div>
+</div>
+{% endblock %}

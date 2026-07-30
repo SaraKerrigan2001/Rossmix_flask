@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Imagen</title>
+    <style>
+        .test-background {
+            width: 100%;
+            height: 400px;
+            background-image: url('/static/images/SalóndeBelleza.jpeg');
+            background-size: cover;
+            background-position: center;
+            border: 5px solid red;
+        }
+        
+        .test-img {
+            max-width: 500px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test de Imagen</h1>
+    
+    <h2>Prueba 1: Como imagen IMG</h2>
+    <img src="/static/images/SalóndeBelleza.jpeg" alt="Salón" class="test-img">
+    
+    <h2>Prueba 2: Como background CSS</h2>
+    <div class="test-background"></div>
+    
+    <p><a href="/">Volver al inicio</a></p>
+</body>
+</html>

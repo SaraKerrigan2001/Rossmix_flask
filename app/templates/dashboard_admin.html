@@ -1,0 +1,346 @@
+{% extends 'base.html' %}
+{% block title %}Panel de Administración - Rossmix{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── Layout general ─────────────────────────────────── */
+.admin-wrapper {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem 2rem 4rem;
+}
+
+/* ── Top bar de bienvenida ──────────────────────────── */
+.admin-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+}
+.admin-topbar-left h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin: 0 0 0.2rem;
+}
+.admin-topbar-left p {
+    color: #888;
+    font-size: 0.95rem;
+    margin: 0;
+}
+.admin-topbar-right {
+    display: flex;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+}
+.topbar-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.65rem 1.4rem;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s;
+    border: none;
+    cursor: pointer;
+}
+.topbar-btn-primary {
+    background: linear-gradient(135deg, #c41e3a, #ff1493);
+    color: white;
+}
+.topbar-btn-primary:hover { opacity: 0.88; color: white; transform: translateY(-2px); }
+.topbar-btn-outline {
+    background: white;
+    color: #c41e3a;
+    border: 1.5px solid #e0e0e0;
+}
+.topbar-btn-outline:hover { border-color: #c41e3a; transform: translateY(-2px); }
+
+/* ── Tarjetas de estadísticas ───────────────────────── */
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+}
+@media (max-width: 1100px) { .stats-row { grid-template-columns: repeat(2,1fr); } }
+@media (max-width: 576px)  { .stats-row { grid-template-columns: 1fr; } }
+
+.stat-card {
+    background: white;
+    border-radius: 18px;
+    padding: 1.8rem 1.5rem;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    border-left: 5px solid transparent;
+    transition: transform 0.25s, box-shadow 0.25s;
+}
+.stat-card:hover { transform: translateY(-4px); box-shadow: 0 8px 28px rgba(0,0,0,0.1); }
+.stat-card.pink   { border-color: #ff1493; }
+.stat-card.purple { border-color: #8b5cf6; }
+.stat-card.gold   { border-color: #f59e0b; }
+.stat-card.green  { border-color: #10b981; }
+
+.stat-icon {
+    width: 54px; height: 54px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; flex-shrink: 0;
+}
+.stat-icon.pink   { background: #fff0f6; color: #ff1493; }
+.stat-icon.purple { background: #f5f0ff; color: #8b5cf6; }
+.stat-icon.gold   { background: #fffbeb; color: #f59e0b; }
+.stat-icon.green  { background: #ecfdf5; color: #10b981; }
+
+.stat-info .stat-num {
+    font-size: 1.9rem;
+    font-weight: 800;
+    color: #1a1a1a;
+    line-height: 1;
+    margin-bottom: 0.25rem;
+}
+.stat-info .stat-lbl { font-size: 0.85rem; color: #888; font-weight: 500; }
+
+/* ── Grid principal de módulos ──────────────────────── */
+.modules-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+}
+@media (max-width: 1100px) { .modules-grid { grid-template-columns: repeat(2,1fr); } }
+@media (max-width: 576px)  { .modules-grid { grid-template-columns: 1fr; } }
+
+.module-card {
+    background: white;
+    border-radius: 18px;
+    padding: 2rem;
+    text-decoration: none;
+    color: inherit;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+    display: flex;
+    align-items: flex-start;
+    gap: 1.2rem;
+    transition: all 0.25s;
+    border: 1.5px solid #f0f0f0;
+    position: relative;
+    overflow: hidden;
+}
+.module-card::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, transparent 70%, rgba(196,30,58,0.04) 100%);
+    opacity: 0; transition: opacity 0.3s;
+}
+.module-card:hover { transform: translateY(-5px); box-shadow: 0 12px 35px rgba(0,0,0,0.1); border-color: #ffb3d1; color: inherit; }
+.module-card:hover::after { opacity: 1; }
+
+.module-icon-wrap {
+    width: 56px; height: 56px; border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; flex-shrink: 0;
+}
+.mi-pink   { background: linear-gradient(135deg, #ffe0ef, #ffc0d8); color: #c41e3a; }
+.mi-purple { background: linear-gradient(135deg, #ede9ff, #d4caff); color: #7c3aed; }
+.mi-teal   { background: linear-gradient(135deg, #d1fae5, #a7f3d0); color: #059669; }
+.mi-gold   { background: linear-gradient(135deg, #fef3c7, #fde68a); color: #d97706; }
+.mi-blue   { background: linear-gradient(135deg, #dbeafe, #bfdbfe); color: #2563eb; }
+.mi-gray   { background: linear-gradient(135deg, #f3f4f6, #e5e7eb); color: #6b7280; }
+
+.module-body h3 {
+    font-size: 1.05rem; font-weight: 700;
+    color: #1a1a1a; margin: 0 0 0.3rem;
+}
+.module-body p { font-size: 0.85rem; color: #888; margin: 0 0 0.8rem; }
+.module-tag {
+    display: inline-block;
+    background: #f8f8f8; border-radius: 20px;
+    padding: 0.2rem 0.7rem; font-size: 0.75rem;
+    color: #666; border: 1px solid #e8e8e8;
+}
+
+/* ── Sección inferior: accesos rápidos ─────────────── */
+.quick-section {
+    background: white;
+    border-radius: 18px;
+    padding: 2rem;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+}
+.quick-section h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem; font-weight: 700;
+    color: #1a1a1a; margin-bottom: 1.5rem;
+    padding-bottom: 0.8rem;
+    border-bottom: 2px solid #f5f5f5;
+}
+.quick-links {
+    display: flex; gap: 1rem; flex-wrap: wrap;
+}
+.quick-link {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.7rem 1.4rem; border-radius: 10px;
+    text-decoration: none; font-size: 0.9rem; font-weight: 600;
+    transition: all 0.2s;
+}
+.ql-pink   { background: #fff0f6; color: #c41e3a; }
+.ql-purple { background: #f5f0ff; color: #7c3aed; }
+.ql-teal   { background: #ecfdf5; color: #059669; }
+.ql-gold   { background: #fffbeb; color: #d97706; }
+.ql-blue   { background: #eff6ff; color: #2563eb; }
+.quick-link:hover { filter: brightness(0.93); transform: translateY(-2px); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-wrapper">
+
+    <!-- TOP BAR -->
+    <div class="admin-topbar">
+        <div class="admin-topbar-left">
+            <h1>Panel de Administración</h1>
+            <p>Bienvenido, <strong>{{ session.nombre }}</strong> — Rossmix Beauty Salon</p>
+        </div>
+        <div class="admin-topbar-right">
+            <a href="{{ url_for('admin_empleados_crear') }}" class="topbar-btn topbar-btn-primary">
+                <i class="bi bi-plus-lg"></i> Nuevo Empleado
+            </a>
+            <a href="{{ url_for('admin_servicios_crear') }}" class="topbar-btn topbar-btn-outline">
+                <i class="bi bi-scissors"></i> Nuevo Servicio
+            </a>
+        </div>
+    </div>
+
+    <!-- ESTADÍSTICAS -->
+    <div class="stats-row">
+        <div class="stat-card pink">
+            <div class="stat-icon pink"><i class="bi bi-calendar-check"></i></div>
+            <div class="stat-info">
+                <div class="stat-num">{{ stats.citas_hoy }}</div>
+                <div class="stat-lbl">Citas Hoy</div>
+            </div>
+        </div>
+        <div class="stat-card purple">
+            <div class="stat-icon purple"><i class="bi bi-people"></i></div>
+            <div class="stat-info">
+                <div class="stat-num">{{ stats.total_clientes }}</div>
+                <div class="stat-lbl">Clientes Registrados</div>
+            </div>
+        </div>
+        <div class="stat-card gold">
+            <div class="stat-icon gold"><i class="bi bi-person-badge"></i></div>
+            <div class="stat-info">
+                <div class="stat-num">{{ stats.empleados_activos }}</div>
+                <div class="stat-lbl">Empleados Activos</div>
+            </div>
+        </div>
+        <div class="stat-card green">
+            <div class="stat-icon green"><i class="bi bi-currency-dollar"></i></div>
+            <div class="stat-info">
+                <div class="stat-num">${{ "{:,.0f}".format(stats.ingresos_mes) }}</div>
+                <div class="stat-lbl">Ingresos del Mes</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MÓDULOS PRINCIPALES -->
+    <div class="modules-grid">
+        <a href="{{ url_for('admin_citas') }}" class="module-card">
+            <div class="module-icon-wrap mi-pink">
+                <i class="bi bi-calendar3"></i>
+            </div>
+            <div class="module-body">
+                <h3>Gestión de Citas</h3>
+                <p>Ver, filtrar y actualizar el estado de todas las citas</p>
+                <span class="module-tag">Ver citas</span>
+            </div>
+        </a>
+
+        <a href="{{ url_for('admin_empleados') }}" class="module-card">
+            <div class="module-icon-wrap mi-purple">
+                <i class="bi bi-person-lines-fill"></i>
+            </div>
+            <div class="module-body">
+                <h3>Empleados</h3>
+                <p>Agregar, editar o desactivar el personal del salón</p>
+                <span class="module-tag">CRUD completo</span>
+            </div>
+        </a>
+
+        <a href="{{ url_for('admin_servicios') }}" class="module-card">
+            <div class="module-icon-wrap mi-teal">
+                <i class="bi bi-scissors"></i>
+            </div>
+            <div class="module-body">
+                <h3>Servicios</h3>
+                <p>Gestionar precios, duración y disponibilidad de servicios</p>
+                <span class="module-tag">CRUD completo</span>
+            </div>
+        </a>
+
+        <a href="{{ url_for('admin_clientes') }}" class="module-card">
+            <div class="module-icon-wrap mi-gold">
+                <i class="bi bi-people-fill"></i>
+            </div>
+            <div class="module-body">
+                <h3>Clientes</h3>
+                <p>Ver y editar información de clientes registrados</p>
+                <span class="module-tag">Ver clientes</span>
+            </div>
+        </a>
+
+        <a href="{{ url_for('admin_horarios') }}" class="module-card">
+            <div class="module-icon-wrap mi-blue">
+                <i class="bi bi-clock"></i>
+            </div>
+            <div class="module-body">
+                <h3>Horarios</h3>
+                <p>Configurar días y horas de atención por empleado</p>
+                <span class="module-tag">Por empleado</span>
+            </div>
+        </a>
+
+        <a href="{{ url_for('admin_pagos') }}" class="module-card">
+            <div class="module-icon-wrap mi-teal" style="background:linear-gradient(135deg,#d1fae5,#a7f3d0);color:#059669;">
+                <i class="bi bi-credit-card"></i>
+            </div>
+            <div class="module-body">
+                <h3>Pagos</h3>
+                <p>Registrar y consultar pagos vinculados a citas</p>
+                <span class="module-tag">Citas → Pagos</span>
+            </div>
+        </a>
+    </div>
+
+    <!-- ACCESOS RÁPIDOS -->
+    <div class="quick-section">
+        <h2><i class="bi bi-lightning-charge"></i> Accesos Rápidos</h2>
+        <div class="quick-links">
+            <a href="{{ url_for('admin_empleados_crear') }}" class="quick-link ql-pink">
+                <i class="bi bi-person-plus"></i> Agregar Empleado
+            </a>
+            <a href="{{ url_for('admin_servicios_crear') }}" class="quick-link ql-teal">
+                <i class="bi bi-plus-circle"></i> Crear Servicio
+            </a>
+            <a href="{{ url_for('admin_citas') }}?estado=pendiente_pago" class="quick-link ql-gold">
+                <i class="bi bi-hourglass-split"></i> Citas Pendientes
+            </a>
+            <a href="{{ url_for('admin_citas') }}?estado=confirmada" class="quick-link ql-purple">
+                <i class="bi bi-check-circle"></i> Citas Confirmadas
+            </a>
+            <a href="{{ url_for('admin_clientes') }}" class="quick-link ql-blue">
+                <i class="bi bi-people"></i> Ver Clientes
+            </a>
+            <a href="{{ url_for('admin_pagos') }}" class="quick-link ql-teal">
+                <i class="bi bi-cash-stack"></i> Ver Pagos
+            </a>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

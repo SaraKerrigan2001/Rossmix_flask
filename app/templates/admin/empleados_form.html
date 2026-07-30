@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Editar' if empleado else 'Crear' }} Empleado - Rossmix{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>{{ 'Editar' if empleado else 'Crear Nuevo' }} Empleado</h1>
+        <div class="breadcrumb-r">
+            <a href="{{ url_for('dashboard_admin') }}">Panel Admin</a>
+            <i class="bi bi-chevron-right"></i>
+            <a href="{{ url_for('admin_empleados') }}">Empleados</a>
+            <i class="bi bi-chevron-right"></i>
+            <span>{{ 'Editar' if empleado else 'Crear' }}</span>
+        </div>
+    </div>
+    <a href="{{ url_for('admin_empleados') }}" class="btn-secondary-r">
+        <i class="bi bi-arrow-left"></i> Volver
+    </a>
+</div>
+
+<div class="r-card" style="max-width: 720px;">
+    <div class="r-card-header">
+        <h2><i class="bi bi-person-lines-fill" style="color:#7c3aed;"></i>
+            {{ 'Editar' if empleado else 'Nuevo' }} Empleado
+        </h2>
+    </div>
+    <div class="r-card-body">
+        <form method="POST">
+            <div class="row g-4 mb-4">
+                <div class="col-md-6">
+                    <label class="r-form-label">Nombre Completo *</label>
+                    <input type="text" class="r-form-control" name="nombre"
+                           value="{{ empleado.nombre if empleado else '' }}" required
+                           placeholder="Nombre del empleado">
+                </div>
+                <div class="col-md-6">
+                    <label class="r-form-label">Especialidad</label>
+                    <input type="text" class="r-form-control" name="especialidad"
+                           value="{{ empleado.especialidad if empleado else '' }}"
+                           placeholder="Ej: Manicurista, Estilista...">
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="r-form-label">Servicios que Realiza *</label>
+                <p class="r-form-hint" style="margin-bottom:0.8rem;">Selecciona al menos un servicio</p>
+                {% if servicios %}
+                    <div style="border:1.5px solid #e5e7eb; border-radius:12px; padding:1rem;
+                                max-height:300px; overflow-y:auto; display:grid;
+                                grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap:0.5rem;">
+                        {% for servicio in servicios %}
+                        <label style="display:flex; align-items:center; gap:0.7rem; padding:0.6rem 0.8rem;
+                                      border-radius:8px; cursor:pointer; border:1.5px solid #f0f0f0;
+                                      transition:all 0.15s;" class="svc-check-label">
+                            <input type="checkbox" name="servicios" value="{{ servicio.id_servicio }}"
+                                   style="width:16px;height:16px;accent-color:#c41e3a;"
+                                   {% if empleado and servicio.id_servicio in servicios_empleado %}checked{% endif %}>
+                            <div>
+                                <div style="font-size:0.88rem; font-weight:600; color:#1a1a1a;">{{ servicio.nombre_servicio }}</div>
+                                <div style="font-size:0.75rem; color:#9ca3af;">${{ "{:,.0f}".format(servicio.precio_total) }} · {{ servicio.duracion_minutos }} min</div>
+                            </div>
+                        </label>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div style="background:#fff8fc; border:1.5px solid #ffb3d1; border-radius:10px; padding:1.2rem; color:#888; font-size:0.9rem;">
+                        No hay servicios disponibles.
+                        <a href="{{ url_for('admin_servicios_crear') }}" style="color:#c41e3a; font-weight:600;">Crear un servicio primero</a>
+                    </div>
+                {% endif %}
+            </div>
+
+            {% if empleado %}
+            <div class="mb-4">
+                <label style="display:flex; align-items:center; gap:0.7rem; cursor:pointer;">
+                    <input type="checkbox" name="activo" style="width:18px;height:18px;accent-color:#c41e3a;"
+                           {% if empleado.activo %}checked{% endif %}>
+                    <span class="r-form-label" style="margin:0;">Empleado activo</span>
+                </label>
+            </div>
+            {% endif %}
+
+            <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-top:1.5rem; padding-top:1.5rem; border-top:2px solid #f5f5f5;">
+                <button type="submit" class="btn-rossmix">
+                    <i class="bi bi-check-lg"></i> Guardar Empleado
+                </button>
+                <a href="{{ url_for('admin_empleados') }}" class="btn-secondary-r">
+                    <i class="bi bi-x-lg"></i> Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.svc-check-label:hover { border-color:#ffb3d1; background:#fff8fc; }
+.svc-check-label:has(input:checked) { border-color:#c41e3a; background:#fff0f6; }
+</style>
+
+<script>
+document.querySelector('form').addEventListener('submit', function(e) {
+    const checked = document.querySelectorAll('input[name="servicios"]:checked');
+    if (checked.length === 0 && document.querySelectorAll('input[name="servicios"]').length > 0) {
+        e.preventDefault();
+        alert('Debes seleccionar al menos un servicio');
+    }
+});
+</script>
+{% endblock %}
