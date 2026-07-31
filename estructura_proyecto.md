@@ -1,84 +1,148 @@
-# Estructura del Proyecto Rossmix Flask (MVT)
+# Estructura del Proyecto Rossmix Flask
 
-Esta es la estructura de directorios y archivos implementada tras la refactorización a MVT (Model-View-Template) utilizando Blueprints en Flask.
+El proyecto tiene **dos formas de ejecutarse**, ambas funcionales y conectadas a la misma base de datos PostgreSQL:
+
+| Modo | Archivo de entrada | Arquitectura |
+|------|--------------------|--------------|
+| **Activo actualmente** | `python app.py` | Monolítico (todo en un archivo) |
+| Alternativo | `python run.py` | MVT con Blueprints en `app/` |
+
+---
+
+## Estructura de Directorios
 
 ```
 Rossmix_flask/
 │
-├── app/                         # Carpeta principal de la aplicación
-│   ├── __init__.py              # Factory de la aplicación Flask: create_app()
-│   ├── config.py                # Configuración de variables (PostgreSQL URI, SECRET_KEY)
+├── app.py                       # ★ PUNTO DE ENTRADA ACTIVO (monolítico)
+│                                #   Contiene modelos, rutas y lógica en un solo archivo.
+│                                #   Usa template_folder y static_folder apuntando a app/
+│
+├── run.py                       # Punto de entrada alternativo (Blueprints)
+│                                #   Llama a create_app() definido en app/__init__.py
+│
+├── requirements.txt             # Dependencias del proyecto:
+│                                #   Flask, Flask-SQLAlchemy, Werkzeug, psycopg, openpyxl
+│
+├── crear_usuarios.py            # Script para poblar usuarios de prueba en PostgreSQL
+├── estructura_proyecto.md       # Este archivo
+│
+├── app/                         # Carpeta de la aplicación (usada por ambos modos)
+│   │
+│   ├── __init__.py              # Factory create_app() — usado solo por run.py
+│   ├── config.py                # Configuración: PostgreSQL URI, SECRET_KEY
 │   ├── extensions.py            # Instancia compartida de SQLAlchemy (db)
 │   │
-│   ├── models/                  # [M] MODELOS (Estructura de Base de Datos con SQLAlchemy)
-│   │   ├── __init__.py          # Exportación unificada de todos los modelos
-│   │   ├── cita.py              # Modelo de Citas
-│   │   ├── empleado.py          # Modelo de Empleados
-│   │   ├── horario.py           # Modelo de Horarios de Trabajo de Empleados
-│   │   ├── notificacion.py      # Modelo de Notificaciones para Usuarios
-│   │   ├── pago.py              # Modelo de Pagos registrados
-│   │   ├── servicio.py          # Modelo de Servicios y relación de servicios por empleado
-│   │   └── usuario.py           # Modelo de Usuarios (Clientes y Administradores)
+│   ├── models/                  # Modelos SQLAlchemy (usados por run.py)
+│   │   ├── __init__.py
+│   │   ├── usuario.py           # Modelo Usuario (clientes y administradores)
+│   │   ├── servicio.py          # Modelo Servicio + tabla intermedia EmpleadoServicio
+│   │   ├── empleado.py          # Modelo Empleado
+│   │   ├── horario.py           # Modelo HorarioEmpleado
+│   │   ├── cita.py              # Modelo Cita
+│   │   ├── pago.py              # Modelo Pago
+│   │   └── notificacion.py      # Modelo Notificacion
 │   │
-│   ├── views/                   # [V] VISTAS (Lógica de Rutas / Controladores mediante Blueprints)
-│   │   ├── __init__.py          # Inicialización y exportación de Blueprints
-│   │   ├── auth.py              # Autenticación: Login, Registro y Logout
-│   │   ├── citas.py             # Lógica de reserva, cancelación e historial de citas
-│   │   ├── cliente.py           # Vistas del dashboard de clientes
-│   │   ├── main.py              # Vistas principales de landing y pruebas generales
-│   │   ├── notificaciones.py    # Gestión de lectura de notificaciones (API)
-│   │   │
-│   │   └── admin/               # Panel de Administración (Sub-rutas con prefix '/admin')
-│   │       ├── __init__.py      # Registro del Blueprint de Admin y decorador @admin_required
-│   │       ├── citas.py         # Listado, filtros y estados de citas para admin
-│   │       ├── clientes.py      # CRUD de clientes y estadísticas
-│   │       ├── dashboard.py     # Estadísticas principales del administrador
-│   │       ├── empleados.py     # CRUD de empleados y asignación de servicios
-│   │       ├── exportar.py      # Exportación de datos (Citas/Pagos) a Excel (.xlsx)
+│   ├── views/                   # Blueprints de rutas (usados solo por run.py)
+│   │   ├── __init__.py          # Registro y exportación de todos los Blueprints
+│   │   ├── auth.py              # Login, Registro, Logout
+│   │   ├── citas.py             # Flujo de agendamiento (pasos 1–4), cancelación
+│   │   ├── cliente.py           # Dashboard del cliente
+│   │   ├── main.py              # Index, test_image
+│   │   ├── notificaciones.py    # Lectura y marcado de notificaciones
+│   │   └── admin/               # Sub-blueprints del panel administrador
+│   │       ├── __init__.py
+│   │       ├── dashboard.py     # Estadísticas del admin
+│   │       ├── citas.py         # Listado y cambio de estado de citas
+│   │       ├── clientes.py      # CRUD de clientes
+│   │       ├── empleados.py     # CRUD de empleados + asignación de servicios
 │   │       ├── horarios.py      # Configuración de horarios por empleado
-│   │       ├── pagos.py         # Registro y devolución de pagos de clientes
-│   │       └── servicios.py     # CRUD de servicios de salón
+│   │       ├── servicios.py     # CRUD de servicios
+│   │       ├── pagos.py         # Registro y reembolso de pagos
+│   │       └── exportar.py      # Exportación a Excel (.xlsx)
 │   │
-│   ├── utils/                   # Herramientas Auxiliares / Utilidades
-│   │   ├── __init__.py          # Exportación de decoradores y ayudantes
-│   │   ├── decorators.py        # Decoradores personalizados (@admin_required)
-│   │   └── helpers.py           # Ayudantes (add_notificacion, context_processors)
+│   ├── utils/
+│   │   ├── __init__.py
+│   │   ├── decorators.py        # @admin_required
+│   │   └── helpers.py           # add_notificacion(), inject_notificaciones()
 │   │
-│   ├── templates/               # [T] TEMPLATES (HTML estructurado con Jinja2)
-│   │   ├── base.html            # Layout maestro común a todas las páginas
-│   │   ├── index.html           # Página de inicio
-│   │   ├── login.html           # Página de inicio de sesión
-│   │   ├── registro.html        # Formulario de registro de clientes
-│   │   ├── dashboard_admin.html # Interfaz del dashboard admin
-│   │   ├── dashboard_cliente.html# Interfaz del dashboard cliente
-│   │   ├── notificaciones.html  # Bandeja de notificaciones del usuario
-│   │   ├── test_image.html      # Página de pruebas de imágenes
-│   │   ├── admin/               # Plantillas exclusivas del administrador (CRUDs)
-│   │   └── citas/               # Plantillas del flujo de reserva del cliente
+│   ├── templates/               # ★ Templates HTML compartidos por ambos modos
+│   │   ├── base.html            # Layout maestro (navbar, flash messages, footer)
+│   │   ├── index.html           # Página de inicio (landing del salón)
+│   │   ├── login.html           # Inicio de sesión
+│   │   ├── registro.html        # Registro de clientes
+│   │   ├── dashboard_admin.html # Panel del administrador
+│   │   ├── dashboard_cliente.html
+│   │   ├── notificaciones.html
+│   │   ├── test_image.html
+│   │   ├── citas/               # Flujo de agendamiento (4 pasos)
+│   │   │   ├── paso1_servicio.html
+│   │   │   ├── paso2_empleado.html
+│   │   │   ├── paso3_fecha_hora.html
+│   │   │   ├── paso4_confirmacion.html
+│   │   │   ├── confirmada.html
+│   │   │   ├── mis_citas.html
+│   │   │   └── cliente_pagos_form.html
+│   │   └── admin/               # Plantillas del panel admin
+│   │       ├── citas.html
+│   │       ├── clientes.html
+│   │       ├── clientes_form.html
+│   │       ├── empleados.html
+│   │       ├── empleados_form.html
+│   │       ├── horarios.html
+│   │       ├── horarios_form.html
+│   │       ├── pagos.html
+│   │       ├── pagos_form.html
+│   │       ├── servicios.html
+│   │       └── servicios_form.html
 │   │
-│   └── static/                  # Recurso Estáticos (Frontend)
-│       ├── style.css            # Estilos CSS generales
-│       └── images/              # Logo, fotos y recursos visuales
+│   └── static/                  # ★ Archivos estáticos compartidos por ambos modos
+│       ├── style.css
+│       └── images/
+│           └── salon.jpeg
 │
-├── scripts/                     # Scripts complementarios de base de datos
-│   ├── database/
-│   │   └── Rossmix.sql          # Esquema original de la base de datos SQL
-│   └── fix_price.py             # Script de corrección rápida de precios
-│
-├── crear_usuarios.py            # Script independiente para poblar usuarios de prueba en PostgreSQL
-├── requirements.txt             # Librerías de Python requeridas para el entorno
-├── app.py.bak                   # Respaldo del archivo app.py original (monolítico)
-└── run.py                       # Punto de inicio para arrancar el servidor web
+└── docs/                        # Documentación adicional del proyecto
 ```
 
 ---
 
 ## Cómo Arrancar la Aplicación
-1. Asegúrate de tener las dependencias instaladas:
-   ```bash
-   pip install -r requirements.txt
-   ```
-2. Ejecuta la aplicación usando el nuevo punto de entrada:
-   ```bash
-   python run.py
-   ```
+
+### Modo activo (monolítico)
+```bash
+python app.py
+```
+Levanta el servidor en `http://127.0.0.1:5000`
+
+### Modo alternativo (Blueprints)
+```bash
+python run.py
+```
+
+---
+
+## Credenciales de Prueba
+
+| Rol | Email | Contraseña |
+|-----|-------|------------|
+| Administrador | admin@rossmix.com | admin123 |
+
+---
+
+## Rutas Principales
+
+| Ruta | Descripción |
+|------|-------------|
+| `/` | Página de inicio |
+| `/login` | Iniciar sesión |
+| `/registro` | Crear cuenta |
+| `/dashboard/cliente` | Panel del cliente |
+| `/dashboard/admin` | Panel del administrador |
+| `/citas/agendar/paso1` | Iniciar agendamiento |
+| `/citas/mis-citas` | Ver citas del cliente |
+| `/admin/citas` | Gestión de citas (admin) |
+| `/admin/empleados` | Gestión de empleados |
+| `/admin/servicios` | Gestión de servicios |
+| `/admin/horarios` | Configuración de horarios |
+| `/admin/pagos` | Gestión de pagos |
+| `/admin/exportar/<tipo>/<periodo>` | Exportar a Excel |
