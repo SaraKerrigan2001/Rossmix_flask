@@ -205,7 +205,9 @@
 .saved-scroll::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 6px; }
 .saved-scroll::-webkit-scrollbar-thumb { background: #ff69b4; border-radius: 6px; }
 .saved-card {
-    min-width: 175px; background: white;
+    min-width: 160px;
+    max-width: 160px;
+    background: white;
     border-radius: 16px; overflow: hidden;
     box-shadow: 0 4px 15px rgba(0,0,0,0.08);
     position: relative; flex-shrink: 0;
@@ -214,16 +216,16 @@
 .saved-card:hover { transform: translateY(-5px); box-shadow: 0 10px 28px rgba(0,0,0,0.13); }
 .saved-rank {
     position: absolute; top: 8px; left: 8px; z-index: 1;
-    width: 28px; height: 28px; border-radius: 50%;
+    width: 24px; height: 24px; border-radius: 50%;
     background: linear-gradient(135deg, #ffd700, #ffb300);
     display: flex; align-items: center; justify-content: center;
-    font-size: 0.78rem; font-weight: 700; color: #333;
+    font-size: 0.72rem; font-weight: 700; color: #333;
     box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
 .saved-img {
-    width: 100%; aspect-ratio: 3/4;
+    width: 100%;
+    height: 200px;
     display: flex; align-items: center; justify-content: center;
-    font-size: 2.5rem;
     overflow: hidden;
 }
 .si1 { background: linear-gradient(135deg, #ffe5f3, #ffc0d8); }
@@ -404,8 +406,8 @@
         <div class="hero-gallery">
             <div class="hero-img-box bg1"><img src="{{ url_for('static', filename='images/nails/hero1.jpg') }}" alt="Manicure rosa" style="width:100%;height:100%;object-fit:cover;border-radius:18px;"></div>
             <div class="hero-img-box bg2"><img src="{{ url_for('static', filename='images/nails/hero2.jpg') }}" alt="Uñas gel" style="width:100%;height:100%;object-fit:cover;border-radius:18px;"></div>
-            <div class="hero-img-box bg3"><img src="{{ url_for('static', filename='images/nails/hero3.jpg') }}" alt="Nail art" style="width:100%;height:100%;object-fit:cover;border-radius:18px;"></div>
-            <div class="hero-img-box bg4"><img src="{{ url_for('static', filename='images/nails/hero4.jpg') }}" alt="Diseño uñas" style="width:100%;height:100%;object-fit:cover;border-radius:18px;"></div>
+            <div class="hero-img-box bg3"><img src="{{ url_for('static', filename='images/nails/Hero3.jpg') }}" alt="Nail art" style="width:100%;height:100%;object-fit:cover;border-radius:18px;"></div>
+            <div class="hero-img-box bg4"><img src="{{ url_for('static', filename='images/nails/Hero4.jpg') }}" alt="Diseño uñas" style="width:100%;height:100%;object-fit:cover;border-radius:18px;"></div>
         </div>
     </div>
 </section>
@@ -425,7 +427,7 @@
             </div>
         </div>
         <div class="cat-card">
-            <div class="cat-bg c2"><img src="{{ url_for('static', filename='images/nails/unas_gel.jpg') }}" alt="Uñas en Gel" style="width:100%;height:100%;object-fit:cover;"></div>
+            <div class="cat-bg c2"><img src="{{ url_for('static', filename='images/nails/Uñas en Gel.jpg') }}" alt="Uñas en Gel" style="width:100%;height:100%;object-fit:cover;"></div>
             <div class="cat-info">
                 <h3>Uñas en Gel</h3>
                 <p>Duración y brillo sin igual</p>
@@ -433,7 +435,7 @@
             </div>
         </div>
         <div class="cat-card">
-            <div class="cat-bg c3"><img src="{{ url_for('static', filename='images/nails/disenos_artisticos.jpg') }}" alt="Diseños Artísticos" style="width:100%;height:100%;object-fit:cover;"></div>
+            <div class="cat-bg c3"><img src="{{ url_for('static', filename='images/nails/Diseños Artísticos.jpg') }}" alt="Diseños Artísticos" style="width:100%;height:100%;object-fit:cover;"></div>
             <div class="cat-info">
                 <h3>Diseños Artísticos</h3>
                 <p>Arte en cada uña, estilo único</p>
@@ -441,7 +443,7 @@
             </div>
         </div>
         <div class="cat-card">
-            <div class="cat-bg c4"><img src="{{ url_for('static', filename='images/nails/semipermanente.jpg') }}" alt="Semipermanente" style="width:100%;height:100%;object-fit:cover;"></div>
+            <div class="cat-bg c4"><img src="{{ url_for('static', filename='images/nails/Semipermanente.jpg') }}" alt="Semipermanente" style="width:100%;height:100%;object-fit:cover;"></div>
             <div class="cat-info">
                 <h3>Semipermanente</h3>
                 <p>Color que dura semanas</p>
