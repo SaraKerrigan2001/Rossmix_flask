@@ -356,10 +356,8 @@
                     <li><a href="{{ url_for('agendar_paso1') }}"><i class="bi bi-plus-circle"></i> Agendar</a></li>
                 {% endif %}
                 <li><a href="{{ url_for('logout') }}" class="nav-btn-logout"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
-                <li><a href="https://wa.me/573000000000" target="_blank" class="nav-ig-btn"><i class="bi bi-whatsapp"></i></a></li>
             {% else %}
                 <li><a href="{{ url_for('index') }}">Inicio</a></li>
-                <li><a href="https://wa.me/573000000000" target="_blank" class="nav-ig-btn"><i class="bi bi-whatsapp"></i> WhatsApp</a></li>
                 <li><a href="{{ url_for('login') }}">Iniciar Sesión</a></li>
                 <li><a href="{{ url_for('registro') }}" style="background:linear-gradient(135deg,#c41e3a,#ff1493);color:white;padding:0.5rem 1.2rem;border-radius:8px;font-weight:600;">Registrarse</a></li>
             {% endif %}
@@ -391,19 +389,61 @@
 <footer>
     <div class="footer-inner">
         <p>&copy; 2026 <strong>Rossmix</strong> — Salón de Belleza. Todos los derechos reservados.</p>
-        <a href="https://wa.me/573000000000" target="_blank" class="ig-link">
-            <i class="bi bi-whatsapp"></i> Contáctanos
+        <a href="https://www.instagram.com/rossmiix/" target="_blank" class="ig-link">
+            <i class="bi bi-instagram"></i> @rossmiix
+        </a>
+        <a href="https://wa.me/573000000000" target="_blank" class="ig-link" style="background:#25D366;box-shadow:0 3px 12px rgba(37,211,102,0.3);">
+            <i class="bi bi-whatsapp"></i> WhatsApp
         </a>
     </div>
 </footer>
 
-<!-- BURBUJA FLOTANTE WHATSAPP -->
+<!-- BURBUJA FLOTANTE ALTERNANTE Instagram / WhatsApp -->
 <div class="wa-bubble">
-    <span class="wa-tooltip">💬 ¡Escríbenos por WhatsApp!</span>
-    <a href="https://wa.me/573000000000?text=Hola%20Rossmix%2C%20quiero%20información%20sobre%20sus%20servicios%20de%20uñas%20🌸" target="_blank" class="wa-btn" title="Contactar por WhatsApp">
-        <i class="bi bi-whatsapp"></i>
+    <span class="wa-tooltip" id="bubbleTooltip">💬 ¡Escríbenos!</span>
+    <a href="https://wa.me/573000000000?text=Hola%20Rossmix%2C%20quiero%20información%20sobre%20sus%20servicios%20🌸" target="_blank" class="wa-btn" id="bubbleBtn" title="Contáctanos">
+        <i class="bi bi-whatsapp" id="bubbleIcon"></i>
     </a>
 </div>
+
+<script>
+// Burbuja alternante Instagram / WhatsApp
+(function(){
+    const btn       = document.getElementById('bubbleBtn');
+    const icon      = document.getElementById('bubbleIcon');
+    const tooltip   = document.getElementById('bubbleTooltip');
+    const waUrl     = 'https://wa.me/573000000000?text=Hola%20Rossmix%2C%20quiero%20información%20sobre%20sus%20servicios%20🌸';
+    const igUrl     = 'https://www.instagram.com/rossmiix/';
+    let showingWa   = true;
+
+    function switchBubble() {
+        btn.style.transform = 'scale(0)';
+        btn.style.transition = 'transform 0.3s ease';
+        setTimeout(() => {
+            if (showingWa) {
+                // Cambiar a Instagram
+                btn.style.background = 'linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)';
+                btn.style.boxShadow  = '0 6px 24px rgba(188,24,136,0.45)';
+                icon.className       = 'bi bi-instagram';
+                tooltip.textContent  = '📸 Síguenos en Instagram';
+                btn.href             = igUrl;
+                showingWa = false;
+            } else {
+                // Cambiar a WhatsApp
+                btn.style.background = '#25D366';
+                btn.style.boxShadow  = '0 6px 24px rgba(37,211,102,0.45)';
+                icon.className       = 'bi bi-whatsapp';
+                tooltip.textContent  = '💬 ¡Escríbenos por WhatsApp!';
+                btn.href             = waUrl;
+                showingWa = true;
+            }
+            btn.style.transform = 'scale(1)';
+        }, 300);
+    }
+
+    setInterval(switchBubble, 3000);
+})();
+</script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
