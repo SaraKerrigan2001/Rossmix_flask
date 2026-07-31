@@ -1532,12 +1532,43 @@ def admin_exportar_excel(tipo, periodo):
 
     if tipo == 'citas':
         ws.title = "Citas"
-        ws.append(["ID", "Código", "Cliente", "Servicio", "Monto", "Estado", "Fecha"])
+        ws.append(["ID", "Código", "Cliente", "Servicio", "Empleado", "Fecha/Hora", "Estado",
+                   "Total ($)", "Abono ($)", "Saldo Pendiente ($)", "¿Abonado?", "Fecha Creación"])
+        for cell in ws[1]:
+            cell.fill = __import__('openpyxl').styles.PatternFill(start_color="F2B5D4", end_color="F2B5D4", fill_type="solid")
+            cell.font  = __import__('openpyxl').styles.Font(bold=True)
+
         query = Cita.query.filter(Cita.fecha_creacion >= fecha_inicio).all()
         for c in query:
             cli = Usuario.query.get(c.id_cliente)
             srv = Servicio.query.get(c.id_servicio)
-            ws.append([c.id_cita, c.codigo_reserva, cli.nombre if cli else '', srv.nombre_servicio if srv else '', float(c.monto_total), c.estado, c.fecha_creacion.strftime('%Y-%m-%d %H:%M')])
+            emp = Empleado.query.get(c.id_empleado) if c.id_empleado else None
+            abono     = float(c.monto_abono or 0)
+            total     = float(c.monto_total or 0)
+            saldo     = float(c.saldo_pendiente or 0)
+            abonado   = 'Sí ✓' if abono > 0 else 'No ✗'
+            ws.append([
+                c.id_cita,
+                c.codigo_reserva,
+                cli.nombre if cli else 'N/A',
+                srv.nombre_servicio if srv else 'N/A',
+                emp.nombre if emp else 'Sin asignar',
+                c.fecha_hora_inicio.strftime('%d/%m/%Y %H:%M'),
+                c.estado.replace('_', ' ').upper(),
+                total,
+                abono,
+                saldo,
+                abonado,
+                c.fecha_creacion.strftime('%d/%m/%Y %H:%M')
+            ])
+            # Colorear fila según si abonó
+            fila = ws.max_row
+            fill_si  = __import__('openpyxl').styles.PatternFill(start_color="D4EDDA", end_color="D4EDDA", fill_type="solid")
+            fill_no  = __import__('openpyxl').styles.PatternFill(start_color="F8D7DA", end_color="F8D7DA", fill_type="solid")
+            ws.cell(row=fila, column=11).fill = fill_si if abono > 0 else fill_no
+            ws.cell(row=fila, column=11).font = __import__('openpyxl').styles.Font(
+                bold=True, color="155724" if abono > 0 else "721C24"
+            )
             
     elif tipo == 'pagos':
         ws.title = "Pagos"
@@ -1576,10 +1607,22 @@ def admin_exportar_excel(tipo, periodo):
             emp = Empleado.query.get(h.id_empleado)
             ws.append([h.id_horario, emp.nombre if emp else '', h.dia_semana, h.hora_inicio.strftime('%H:%M'), h.hora_fin.strftime('%H:%M')])
 
+    # Ajuste automático de ancho de columnas
+    for col in ws.columns:
+        max_len = 0
+        col_letter = col[0].column_letter
+        for cell in col:
+            try:
+                if cell.value and len(str(cell.value)) > max_len:
+                    max_len = len(str(cell.value))
+            except Exception:
+                pass
+        ws.column_dimensions[col_letter].width = min(max_len + 4, 40)
+
     output = io.BytesIO()
     wb.save(output)
     output.seek(0)
-    
+
     return send_file(
         output,
         as_attachment=True,
