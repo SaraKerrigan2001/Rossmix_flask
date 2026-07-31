@@ -315,6 +315,21 @@
                 <span class="module-tag">Citas → Pagos</span>
             </div>
         </a>
+
+        <a href="{{ url_for('admin_pagos_confirmar') }}" class="module-card" style="border-color:#fde68a;">
+            <div class="module-icon-wrap mi-gold" style="background:linear-gradient(135deg,#fef3c7,#fde68a);color:#d97706;">
+                <i class="bi bi-clock-history"></i>
+            </div>
+            <div class="module-body">
+                <h3>Pagos por Confirmar
+                    {% if stats.pagos_pendientes > 0 %}
+                    <span style="background:#d97706;color:white;border-radius:12px;padding:0.1rem 0.55rem;font-size:0.78rem;font-weight:700;margin-left:0.4rem;">{{ stats.pagos_pendientes }}</span>
+                    {% endif %}
+                </h3>
+                <p>Verifica abonos recibidos y confirma citas de clientes</p>
+                <span class="module-tag" style="background:#fef3c7;color:#d97706;border-color:#fde68a;">Requiere revisión</span>
+            </div>
+        </a>
     </div>
 
     <!-- ACCESOS RÁPIDOS -->
@@ -338,6 +353,9 @@
             </a>
             <a href="{{ url_for('admin_pagos') }}" class="quick-link ql-teal">
                 <i class="bi bi-cash-stack"></i> Ver Pagos
+            </a>
+            <a href="{{ url_for('admin_pagos_confirmar') }}" class="quick-link" style="background:#fef3c7;color:#d97706;">
+                <i class="bi bi-clock-history"></i> Pagos por Confirmar
             </a>
         </div>
     </div>

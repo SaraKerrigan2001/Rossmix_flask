@@ -7,12 +7,12 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,700&family=Poppins:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
 
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Inter', sans-serif;
             background: #f4f5f7;
             min-height: 100vh;
             display: flex;
@@ -40,7 +40,7 @@
         .logo {
             font-size: 1.8rem;
             font-weight: 700;
-            font-family: 'Playfair Display', serif;
+            font-family: 'Cormorant Garamond', serif;
             background: linear-gradient(135deg, #c41e3a 0%, #ff1493 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -156,7 +156,7 @@
             flex-wrap: wrap; gap: 0.8rem;
         }
         .r-card-header h2 {
-            font-family: 'Playfair Display', serif;
+            font-family: 'Cormorant Garamond', serif;
             font-size: 1.3rem; font-weight: 700;
             color: #1a1a1a; margin: 0;
         }
@@ -201,7 +201,7 @@
         .r-form-control {
             width: 100%; padding: 0.7rem 1rem;
             border: 1.5px solid #e5e7eb; border-radius: 10px;
-            font-size: 0.92rem; font-family: 'Poppins', sans-serif;
+            font-family: 'Inter', sans-serif;
             transition: border-color 0.2s, box-shadow 0.2s;
             background: white; color: #333;
         }
@@ -218,7 +218,7 @@
             flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;
         }
         .page-header h1 {
-            font-family: 'Playfair Display', serif;
+            font-family: 'Cormorant Garamond', serif;
             font-size: 1.8rem; font-weight: 700; color: #1a1a1a; margin: 0;
         }
         .page-header .breadcrumb-r {
@@ -350,6 +350,11 @@
                 </li>
                 {% if session.tipo_usuario == 'admin' %}
                     <li><a href="{{ url_for('dashboard_admin') }}"><i class="bi bi-grid"></i> Panel Admin</a></li>
+                    <li>
+                        <a href="{{ url_for('admin_pagos_confirmar') }}" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.45rem 1rem;border-radius:8px;background:#fef3c7;color:#d97706;font-weight:600;font-size:0.9rem;text-decoration:none;">
+                            <i class="bi bi-clock-history"></i> Pagos por Confirmar
+                        </a>
+                    </li>
                 {% else %}
                     <li><a href="{{ url_for('dashboard_cliente') }}"><i class="bi bi-house"></i> Mi Panel</a></li>
                     <li><a href="{{ url_for('mis_citas') }}"><i class="bi bi-calendar3"></i> Mis Citas</a></li>
@@ -389,10 +394,10 @@
 <footer>
     <div class="footer-inner">
         <p>&copy; 2026 <strong>Rossmix</strong> — Salón de Belleza. Todos los derechos reservados.</p>
-        <a href="https://www.instagram.com/rossmiix/" target="_blank" class="ig-link" style="background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);box-shadow:0 3px 12px rgba(188,24,136,0.3);">
+        <a href="https://www.instagram.com/rossmiix/" target="_blank" class="ig-link">
             <i class="bi bi-instagram"></i> @rossmiix
         </a>
-        <a href="https://wa.me/573173824030?text=Hola%20Rossmix%2C%20quiero%20información%20sobre%20sus%20servicios%20🌸" target="_blank" class="ig-link" style="background:#25D366;box-shadow:0 3px 12px rgba(37,211,102,0.3);">
+        <a href="https://wa.me/573000000000" target="_blank" class="ig-link" style="background:#25D366;box-shadow:0 3px 12px rgba(37,211,102,0.3);">
             <i class="bi bi-whatsapp"></i> WhatsApp
         </a>
     </div>
@@ -401,7 +406,7 @@
 <!-- BURBUJA FLOTANTE ALTERNANTE Instagram / WhatsApp -->
 <div class="wa-bubble">
     <span class="wa-tooltip" id="bubbleTooltip">💬 ¡Escríbenos!</span>
-    <a href="https://wa.me/573173824030?text=Hola%20Rossmix%2C%20quiero%20información%20sobre%20sus%20servicios%20🌸" target="_blank" class="wa-btn" id="bubbleBtn" title="Contáctanos">
+    <a href="https://wa.me/573000000000?text=Hola%20Rossmix%2C%20quiero%20información%20sobre%20sus%20servicios%20🌸" target="_blank" class="wa-btn" id="bubbleBtn" title="Contáctanos">
         <i class="bi bi-whatsapp" id="bubbleIcon"></i>
     </a>
 </div>
@@ -412,7 +417,7 @@
     const btn       = document.getElementById('bubbleBtn');
     const icon      = document.getElementById('bubbleIcon');
     const tooltip   = document.getElementById('bubbleTooltip');
-    const waUrl     = 'https://wa.me/573173824030?text=Hola%20Rossmix%2C%20quiero%20información%20sobre%20sus%20servicios%20🌸';
+    const waUrl     = 'https://wa.me/573000000000?text=Hola%20Rossmix%2C%20quiero%20información%20sobre%20sus%20servicios%20🌸';
     const igUrl     = 'https://www.instagram.com/rossmiix/';
     let showingWa   = true;
 

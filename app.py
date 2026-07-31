@@ -391,7 +391,8 @@ def dashboard_admin():
         'citas_hoy': citas_hoy,
         'total_clientes': total_clientes,
         'empleados_activos': empleados_activos,
-        'ingresos_mes': ingresos_mes
+        'ingresos_mes': ingresos_mes,
+        'pagos_pendientes': Cita.query.filter_by(estado='pendiente_pago').count()
     }
 
     return render_template('dashboard_admin.html', stats=stats)
@@ -1577,6 +1578,50 @@ def admin_exportar_excel(tipo, periodo):
         download_name=f"export_{tipo}_{periodo}.xlsx",
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
+
+# ============================================================================
+# RUTAS PANEL ADMIN - PAGOS POR CONFIRMAR
+# ============================================================================
+
+@app.route('/admin/pagos-por-confirmar')
+@admin_required
+def admin_pagos_confirmar():
+    """Listar citas en estado pendiente_pago para que el admin confirme el abono"""
+    citas = db.session.query(Cita, Usuario, Servicio, Empleado)\
+        .join(Usuario, Cita.id_cliente == Usuario.id)\
+        .join(Servicio, Cita.id_servicio == Servicio.id_servicio)\
+        .outerjoin(Empleado, Cita.id_empleado == Empleado.id_empleado)\
+        .filter(Cita.estado == 'pendiente_pago')\
+        .order_by(Cita.fecha_hora_inicio.asc()).all()
+
+    return render_template('admin/pagos_confirmar.html', citas=citas)
+
+
+@app.route('/admin/pagos-por-confirmar/aceptar/<int:id_cita>', methods=['POST'])
+@admin_required
+def admin_aceptar_pago(id_cita):
+    """Confirmar el pago de una cita: cambia estado a 'confirmada' y notifica a la clienta"""
+    cita = Cita.query.get_or_404(id_cita)
+
+    if cita.estado != 'pendiente_pago':
+        return jsonify({'success': False, 'message': 'Esta cita ya fue procesada'}), 400
+
+    cita.estado = 'confirmada'
+    db.session.commit()
+
+    # Notificar a la clienta
+    try:
+        add_notificacion(
+            cita.id_cliente,
+            '¡Cita Confirmada! 🎉',
+            f'Tu pago fue verificado. Tu cita del {cita.fecha_hora_inicio.strftime("%d/%m/%Y a las %H:%M")} está confirmada. ¡Te esperamos!',
+            target=url_for('mis_citas')
+        )
+    except Exception:
+        pass
+
+    return jsonify({'success': True, 'message': 'Pago aceptado y cita confirmada'})
+
 
 if __name__ == '__main__':
     app.run(debug=True)

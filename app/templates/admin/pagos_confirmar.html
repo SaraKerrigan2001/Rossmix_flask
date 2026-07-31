@@ -1,0 +1,289 @@
+{% extends 'base.html' %}
+
+{% block title %}Pagos por Confirmar - Rossmix Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-header {
+        display: flex; align-items: center; justify-content: space-between;
+        flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;
+    }
+    .page-header h1 {
+        font-size: 1.8rem; font-weight: 700; color: #1a1a1a; margin: 0;
+    }
+    .badge-count {
+        background: linear-gradient(135deg, #c41e3a, #ff1493);
+        color: white; border-radius: 20px;
+        padding: 0.3rem 0.9rem; font-size: 0.85rem; font-weight: 700;
+    }
+
+    /* ── TARJETAS ──────────────────────────────────────── */
+    .pagos-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+        gap: 1.5rem;
+    }
+    .pago-card {
+        background: white;
+        border-radius: 18px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+        border: 1.5px solid #f0e8ff;
+        overflow: hidden;
+        transition: transform 0.25s, box-shadow 0.25s;
+    }
+    .pago-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 30px rgba(196,30,58,0.12);
+    }
+    .pago-card-header {
+        background: linear-gradient(135deg, #fff0f6, #ffe5f3);
+        padding: 1rem 1.4rem;
+        display: flex; align-items: center; justify-content: space-between;
+        border-bottom: 1.5px solid #ffd6e8;
+    }
+    .pago-card-header .cliente-nombre {
+        font-weight: 700; font-size: 1rem; color: #c41e3a;
+        display: flex; align-items: center; gap: 0.5rem;
+    }
+    .pago-card-header .codigo {
+        font-size: 0.78rem; font-weight: 600;
+        background: white; color: #c41e3a;
+        border: 1px solid #ffb3d1; border-radius: 10px;
+        padding: 0.2rem 0.6rem;
+    }
+    .pago-card-body { padding: 1.2rem 1.4rem; }
+    .info-row {
+        display: flex; justify-content: space-between;
+        align-items: center; padding: 0.45rem 0;
+        border-bottom: 1px solid #f9f0f9;
+        font-size: 0.9rem;
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-row .label { color: #888; font-weight: 500; }
+    .info-row .value { font-weight: 600; color: #1a1a1a; }
+    .info-row .value.pink { color: #c41e3a; }
+    .info-row .value.green { color: #16a34a; }
+
+    /* Abono destacado */
+    .abono-box {
+        background: linear-gradient(135deg, #f0fff4, #dcfce7);
+        border: 1.5px solid #86efac;
+        border-radius: 12px;
+        padding: 0.9rem 1.2rem;
+        margin: 1rem 0;
+        display: flex; align-items: center; justify-content: space-between;
+    }
+    .abono-box .abono-label { font-size: 0.88rem; color: #166534; font-weight: 600; }
+    .abono-box .abono-monto { font-size: 1.4rem; font-weight: 800; color: #16a34a; }
+
+    /* Botón aceptar */
+    .pago-card-footer {
+        padding: 1rem 1.4rem;
+        border-top: 1.5px solid #f0e8ff;
+        display: flex; gap: 0.8rem;
+    }
+    .btn-aceptar {
+        flex: 1;
+        background: linear-gradient(135deg, #16a34a, #15803d);
+        color: white; border: none;
+        padding: 0.75rem 1.2rem; border-radius: 10px;
+        font-weight: 700; font-size: 0.95rem;
+        cursor: pointer; transition: all 0.25s;
+        display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+    }
+    .btn-aceptar:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(22,163,74,0.35);
+    }
+    .btn-aceptar:disabled {
+        background: #d1fae5; color: #6ee7b7;
+        cursor: not-allowed; transform: none; box-shadow: none;
+    }
+    .btn-rechazar {
+        background: #fff1f2; color: #c41e3a;
+        border: 1.5px solid #fecdd3;
+        padding: 0.75rem 1rem; border-radius: 10px;
+        font-weight: 600; font-size: 0.9rem;
+        cursor: pointer; transition: all 0.25s;
+    }
+    .btn-rechazar:hover { background: #ffe4e6; }
+
+    /* Estado confirmado (card ya procesada) */
+    .pago-card.confirmada {
+        opacity: 0.55;
+        pointer-events: none;
+    }
+    .confirmed-badge {
+        display: none;
+        background: #dcfce7; color: #166534;
+        border-radius: 8px; padding: 0.4rem 0.8rem;
+        font-size: 0.85rem; font-weight: 700;
+        align-items: center; gap: 0.4rem;
+    }
+
+    /* Vacío */
+    .empty-state {
+        text-align: center; padding: 5rem 2rem;
+        background: white; border-radius: 18px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    }
+    .empty-state i { font-size: 4rem; color: #e9d5ff; }
+    .empty-state h3 { font-size: 1.4rem; color: #555; margin: 1rem 0 0.5rem; }
+    .empty-state p { color: #aaa; font-size: 0.95rem; }
+
+    /* Toast */
+    #toast {
+        position: fixed; bottom: 28px; left: 50%;
+        transform: translateX(-50%) translateY(80px);
+        background: #1a1a1a; color: white;
+        padding: 0.8rem 2rem; border-radius: 30px;
+        font-weight: 600; font-size: 0.95rem;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+        transition: transform 0.4s ease;
+        z-index: 9999;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+    #toast.success { background: #16a34a; }
+    #toast.error   { background: #dc2626; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1><i class="bi bi-clock-history" style="color:#c41e3a;"></i> Pagos por Confirmar</h1>
+        <p style="color:#888;font-size:0.9rem;margin-top:0.3rem;">
+            Citas en estado <strong>Pendiente de Pago</strong> — verifica el abono y acepta para confirmar la cita.
+        </p>
+    </div>
+    <div style="display:flex;align-items:center;gap:1rem;">
+        <span class="badge-count">{{ citas|length }} pendiente{{ 's' if citas|length != 1 }}</span>
+        <a href="{{ url_for('dashboard_admin') }}" class="btn-secondary-r">
+            <i class="bi bi-arrow-left"></i> Volver
+        </a>
+    </div>
+</div>
+
+{% if citas %}
+<div class="pagos-grid">
+    {% for cita, cliente, servicio, empleado in citas %}
+    <div class="pago-card" id="card-{{ cita.id_cita }}">
+
+        <div class="pago-card-header">
+            <span class="cliente-nombre">
+                <i class="bi bi-person-circle"></i>
+                {{ cliente.nombre }}
+            </span>
+            <span class="codigo">{{ cita.codigo_reserva }}</span>
+        </div>
+
+        <div class="pago-card-body">
+            <div class="info-row">
+                <span class="label"><i class="bi bi-scissors"></i> Servicio</span>
+                <span class="value">{{ servicio.nombre_servicio }}</span>
+            </div>
+            <div class="info-row">
+                <span class="label"><i class="bi bi-calendar3"></i> Fecha</span>
+                <span class="value pink">{{ cita.fecha_hora_inicio.strftime('%d/%m/%Y') }}</span>
+            </div>
+            <div class="info-row">
+                <span class="label"><i class="bi bi-clock"></i> Hora</span>
+                <span class="value">{{ cita.fecha_hora_inicio.strftime('%H:%M') }} — {{ cita.fecha_hora_fin.strftime('%H:%M') }}</span>
+            </div>
+            <div class="info-row">
+                <span class="label"><i class="bi bi-person-badge"></i> Especialista</span>
+                <span class="value">{{ empleado.nombre if empleado else 'Por asignar' }}</span>
+            </div>
+            <div class="info-row">
+                <span class="label"><i class="bi bi-phone"></i> Teléfono</span>
+                <span class="value">{{ cliente.telefono }}</span>
+            </div>
+            <div class="info-row">
+                <span class="label"><i class="bi bi-envelope"></i> Email</span>
+                <span class="value" style="font-size:0.85rem;">{{ cliente.email }}</span>
+            </div>
+
+            <div class="abono-box">
+                <span class="abono-label"><i class="bi bi-cash-coin"></i> Abono registrado</span>
+                <span class="abono-monto">${{ '{:,.0f}'.format(cita.monto_abono or 0) }}</span>
+            </div>
+
+            <div class="info-row">
+                <span class="label">Total servicio</span>
+                <span class="value">${{ '{:,.0f}'.format(cita.monto_total or 0) }}</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Saldo pendiente</span>
+                <span class="value pink">${{ '{:,.0f}'.format(cita.saldo_pendiente or 0) }}</span>
+            </div>
+        </div>
+
+        <div class="pago-card-footer">
+            <button class="btn-aceptar" onclick="aceptarPago({{ cita.id_cita }}, this)">
+                <i class="bi bi-check-circle-fill"></i> Aceptar Pago
+            </button>
+            <div class="confirmed-badge" id="badge-{{ cita.id_cita }}">
+                <i class="bi bi-check2-all"></i> Confirmada
+            </div>
+        </div>
+
+    </div>
+    {% endfor %}
+</div>
+
+{% else %}
+<div class="empty-state">
+    <i class="bi bi-check2-circle"></i>
+    <h3>Todo al día</h3>
+    <p>No hay citas pendientes de confirmación de pago en este momento.</p>
+</div>
+{% endif %}
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script>
+async function aceptarPago(idCita, btn) {
+    if (!confirm('¿Confirmar que el pago fue recibido y activar la cita?')) return;
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Procesando...';
+
+    try {
+        const res = await fetch(`/admin/pagos-por-confirmar/aceptar/${idCita}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            // Marcar tarjeta como confirmada
+            const card = document.getElementById(`card-${idCita}`);
+            const footer = card.querySelector('.pago-card-footer');
+            const badge = document.getElementById(`badge-${idCita}`);
+
+            btn.style.display = 'none';
+            badge.style.display = 'flex';
+            card.classList.add('confirmada');
+
+            showToast('✅ Cita confirmada — la clienta fue notificada', 'success');
+        } else {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Aceptar Pago';
+            showToast('❌ ' + data.message, 'error');
+        }
+    } catch (e) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Aceptar Pago';
+        showToast('❌ Error de conexión. Intenta de nuevo.', 'error');
+    }
+}
+
+function showToast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `show ${type}`;
+    setTimeout(() => t.className = '', 3500);
+}
+</script>
+{% endblock %}
