@@ -4,400 +4,329 @@
 
 {% block extra_css %}
 <style>
-    /* Contenedor Principal con Animación */
     .success-container {
         max-width: 800px;
         margin: 3rem auto;
         background: white;
-        border-radius: 30px;
-        padding: 4rem 3rem;
-        box-shadow: 0 20px 60px rgba(255, 105, 180, 0.4);
-        border: 3px solid rgba(255, 215, 0, 0.5);
+        border-radius: 24px;
+        padding: 3rem 2.5rem;
+        box-shadow: 0 20px 60px rgba(196, 30, 58, 0.12);
+        border: 1.5px solid #ffd6e8;
         text-align: center;
-        position: relative;
-        overflow: hidden;
-        animation: fadeInUp 0.8s ease-out;
+        animation: fadeInUp 0.6s ease-out;
     }
-
     @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(50px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+        from { opacity: 0; transform: translateY(40px); }
+        to   { opacity: 1; transform: translateY(0); }
     }
 
-    .success-container::before {
-        content: '✨';
-        position: absolute;
-        top: 30px;
-        left: 30px;
-        font-size: 3rem;
-        opacity: 0.3;
-        animation: sparkle 2s infinite;
+    /* ── Ícono animado ── */
+    .success-icon { font-size: 5rem; margin-bottom: 1rem; display: block; }
+
+    /* ── Título ── */
+    .success-title {
+        font-size: 2rem; font-weight: 800;
+        color: #1a1a1a; margin-bottom: 0.4rem;
+    }
+    .success-sub {
+        font-size: 1rem; color: #888;
+        margin-bottom: 2rem;
     }
 
-    .success-container::after {
-        content: '💖';
-        position: absolute;
-        bottom: 30px;
-        right: 30px;
-        font-size: 3rem;
-        opacity: 0.3;
-        animation: sparkle 2s infinite 1s;
+    /* ── Badge de estado ── */
+    .estado-badge {
+        display: inline-flex; align-items: center; gap: 0.5rem;
+        padding: 0.6rem 1.4rem; border-radius: 30px;
+        font-weight: 700; font-size: 1rem;
+        margin-bottom: 2rem;
+        transition: all 0.4s;
+    }
+    .estado-pendiente {
+        background: #fef3c7; color: #d97706;
+        border: 1.5px solid #fde68a;
+    }
+    .estado-confirmada {
+        background: #dcfce7; color: #16a34a;
+        border: 1.5px solid #86efac;
+        animation: popIn 0.5s ease;
+    }
+    @keyframes popIn {
+        0%   { transform: scale(0.8); opacity: 0; }
+        70%  { transform: scale(1.05); }
+        100% { transform: scale(1); opacity: 1; }
     }
 
-    @keyframes sparkle {
-        0%, 100% { opacity: 0.3; transform: scale(1) rotate(0deg); }
-        50% { opacity: 0.6; transform: scale(1.1) rotate(10deg); }
-    }
-
-    /* Icono de Éxito */
-    .success-icon {
-        font-size: 8rem;
+    /* ── Panel de confirmación (oculto hasta que admin confirme) ── */
+    .confirmed-panel {
+        display: none;
+        background: linear-gradient(135deg, #f0fff4, #dcfce7);
+        border: 2px solid #86efac;
+        border-radius: 16px;
+        padding: 1.5rem 2rem;
         margin-bottom: 1.5rem;
-        animation: bounce 1s ease-in-out;
-        filter: drop-shadow(3px 3px 10px rgba(255, 105, 180, 0.4));
+        animation: popIn 0.5s ease;
     }
-
-    @keyframes bounce {
-        0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-        40% { transform: translateY(-40px); }
-        60% { transform: translateY(-20px); }
+    .confirmed-panel h3 {
+        color: #16a34a; font-size: 1.3rem;
+        font-weight: 700; margin-bottom: 0.4rem;
     }
+    .confirmed-panel p { color: #166534; font-size: 0.95rem; margin: 0; }
 
-    /* Título Principal */
-    h1 {
-        font-size: 3.5rem;
-        font-family: 'Playfair Display', serif;
-        background: linear-gradient(135deg, #8b008b 0%, #ff1493 50%, #c71585 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        margin-bottom: 1rem;
-        font-weight: 700;
-    }
-
-    .success-message {
-        font-size: 1.3rem;
-        color: #666;
-        margin-bottom: 3rem;
-        font-weight: 500;
-    }
-
-    /* Código de Reserva */
-    .reservation-code {
-        background: linear-gradient(135deg, #ffd700, #ffed4e);
-        border-radius: 25px;
-        padding: 3rem 2rem;
-        margin: 3rem 0;
-        border: 4px solid #ff69b4;
-        box-shadow: 0 15px 50px rgba(255, 215, 0, 0.4);
-        position: relative;
-    }
-
-    .reservation-code::before {
-        content: '';
-        position: absolute;
-        top: -10px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: white;
-        padding: 0.5rem 1.5rem;
-        border-radius: 20px;
-        font-weight: 700;
-        color: #ff1493;
-        border: 2px solid #ff69b4;
-    }
-
-    .reservation-code h2 {
-        color: #8b008b;
-        font-size: 2rem;
-        margin-bottom: 1rem;
-        font-family: 'Playfair Display', serif;
-    }
-
-    .code-display {
-        font-size: 3rem;
-        font-weight: 700;
-        color: #c71585;
-        font-family: 'Courier New', monospace;
-        letter-spacing: 8px;
-        background: white;
-        padding: 1.5rem;
-        border-radius: 15px;
+    /* ── Código de reserva ── */
+    .code-box {
+        background: linear-gradient(135deg, #fff0f6, #ffe5f3);
+        border: 1.5px solid #ffd6e8;
+        border-radius: 16px;
+        padding: 1.5rem 2rem;
         margin: 1.5rem 0;
-        box-shadow: inset 0 4px 15px rgba(139, 0, 139, 0.1);
+    }
+    .code-box .code-label {
+        font-size: 0.85rem; color: #888;
+        font-weight: 600; margin-bottom: 0.4rem;
+    }
+    .code-value {
+        font-size: 2.2rem; font-weight: 800;
+        color: #c41e3a; letter-spacing: 6px;
+        font-family: 'Courier New', monospace;
     }
 
-    .code-note {
-        color: #8b008b;
-        font-weight: 600;
-        font-size: 1.1rem;
-    }
-
-    /* Detalles de la Cita */
-    .appointment-details {
-        background: linear-gradient(135deg, #ffe5f3 0%, #fff5fa 100%);
-        border-radius: 25px;
-        padding: 2.5rem;
-        margin: 3rem 0;
-        border: 3px solid rgba(255, 105, 180, 0.3);
+    /* ── Detalles ── */
+    .details-box {
+        background: #fafafa;
+        border: 1.5px solid #f0e8ff;
+        border-radius: 16px;
+        overflow: hidden;
+        margin: 1.5rem 0;
         text-align: left;
     }
-
     .detail-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 1.2rem 0;
-        border-bottom: 2px solid rgba(255, 182, 193, 0.3);
+        display: flex; justify-content: space-between;
+        align-items: center; padding: 0.9rem 1.4rem;
+        border-bottom: 1px solid #f5f5f5;
+        font-size: 0.95rem;
     }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-row .lbl { color: #888; font-weight: 500;
+                       display: flex; align-items: center; gap: 0.5rem; }
+    .detail-row .val { font-weight: 700; color: #1a1a1a; }
+    .detail-row .val.pink { color: #c41e3a; }
 
-    .detail-row:last-child {
-        border-bottom: none;
-    }
-
-    .detail-label {
-        font-weight: 600;
-        color: #666;
-        font-size: 1.1rem;
-        display: flex;
-        align-items: center;
-        gap: 0.8rem;
-    }
-
-    .detail-value {
-        font-weight: 700;
-        color: #ff1493;
-        font-size: 1.2rem;
-        text-align: right;
-    }
-
-    /* Badge de Estado */
-    .status-badge {
-        display: inline-block;
-        padding: 0.8rem 1.5rem;
-        background: linear-gradient(135deg, #ffd700, #ffed4e);
-        color: #8b008b;
-        border-radius: 25px;
-        font-weight: 700;
-        border: 3px solid #ff69b4;
-        font-size: 1.1rem;
-    }
-
-    /* Próximos Pasos */
-    .next-steps {
-        background: linear-gradient(135deg, #e8f5e9, #f1f8f6);
-        border-radius: 25px;
-        padding: 2.5rem;
-        margin: 3rem 0;
-        border: 3px solid #28a745;
-        box-shadow: 0 10px 30px rgba(40, 167, 69, 0.2);
-        text-align: left;
-    }
-
-    .next-steps h3 {
-        color: #28a745;
-        font-size: 2rem;
-        margin-bottom: 1.5rem;
-        font-family: 'Playfair Display', serif;
-        text-align: center;
-    }
-
-    .next-steps ul {
-        list-style: none;
-        padding: 0;
-    }
-
-    .next-steps li {
-        padding: 1rem 0;
-        font-size: 1.1rem;
-        color: #666;
-        display: flex;
-        align-items: start;
-        gap: 1rem;
-        line-height: 1.7;
-    }
-
-    .next-steps li::before {
-        content: '✓';
-        color: #28a745;
-        font-weight: 700;
-        font-size: 1.5rem;
-        flex-shrink: 0;
-    }
-
-    /* Recordatorio */
-    .reminder-box {
-        background: linear-gradient(135deg, #fff9e6, #fffbf0);
-        border: 3px solid #ffd700;
-        border-radius: 25px;
-        padding: 2rem;
-        margin: 3rem 0;
-        color: #c71585;
-        font-weight: 600;
-        font-size: 1.1rem;
-        text-align: center;
-    }
-
-    /* Botones de Acción */
+    /* ── Botones ── */
     .action-buttons {
-        display: flex;
-        gap: 1.5rem;
-        justify-content: center;
-        flex-wrap: wrap;
-        margin: 3rem 0;
+        display: flex; gap: 1rem;
+        justify-content: center; flex-wrap: wrap;
+        margin-top: 2rem;
+    }
+    .btn-download {
+        background: linear-gradient(135deg, #c41e3a, #ff1493);
+        color: white; border: none;
+        padding: 0.85rem 2rem; border-radius: 12px;
+        font-weight: 700; font-size: 0.95rem;
+        text-decoration: none; display: inline-flex;
+        align-items: center; gap: 0.5rem;
+        transition: all 0.25s;
+    }
+    .btn-download:hover {
+        color: white; transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(196,30,58,0.35);
+    }
+    .btn-outline {
+        background: white; color: #555;
+        border: 1.5px solid #e0e0e0;
+        padding: 0.85rem 2rem; border-radius: 12px;
+        font-weight: 600; font-size: 0.95rem;
+        text-decoration: none; display: inline-flex;
+        align-items: center; gap: 0.5rem;
+        transition: all 0.25s;
+    }
+    .btn-outline:hover {
+        border-color: #c41e3a; color: #c41e3a;
+        transform: translateY(-2px);
     }
 
-    .btn {
-        padding: 1.2rem 2.5rem;
-        border-radius: 25px;
-        font-weight: 700;
-        font-size: 1.2rem;
-        text-decoration: none;
-        transition: all 0.3s;
-        border: none;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.8rem;
+    /* ── Nota ── */
+    .note-box {
+        background: #fff9e6; border: 1.5px solid #fde68a;
+        border-radius: 12px; padding: 1rem 1.4rem;
+        font-size: 0.88rem; color: #92400e;
+        text-align: left; margin-top: 1.5rem;
     }
 
-    .btn-primary {
-        background: linear-gradient(135deg, #ff69b4, #ff1493);
-        color: white;
-        box-shadow: 0 8px 25px rgba(255, 105, 180, 0.4);
+    /* ── Spinner de espera ── */
+    .waiting-msg {
+        display: none;
+        font-size: 0.9rem; color: #888;
+        margin-top: 0.5rem;
     }
-
-    .btn-primary:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 12px 35px rgba(255, 105, 180, 0.6);
+    .dot-flashing {
+        display: inline-block; width: 8px; height: 8px;
+        border-radius: 50%; background: #c41e3a;
+        animation: dotFlash 1.2s infinite;
+        margin: 0 2px; vertical-align: middle;
     }
-
-    .btn-secondary {
-        background: linear-gradient(135deg, #ffd700, #ffed4e);
-        color: #8b008b;
-        border: 2px solid #ff69b4;
-        box-shadow: 0 8px 25px rgba(255, 215, 0, 0.3);
-    }
-
-    .btn-secondary:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 12px 35px rgba(255, 215, 0, 0.5);
+    .dot-flashing:nth-child(2) { animation-delay: 0.3s; }
+    .dot-flashing:nth-child(3) { animation-delay: 0.6s; }
+    @keyframes dotFlash {
+        0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
+        40%            { opacity: 1;   transform: scale(1.2); }
     }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="success-container">
-    <div class="success-icon">🎉</div>
-    
-    <h1>¡Cita Agendada Exitosamente!</h1>
-    
-    <p class="success-message">
-        Tu cita ha sido registrada en nuestro sistema. A continuación encontrarás todos los detalles.
+
+    <span class="success-icon" id="mainIcon">
+        {% if cita.estado == 'confirmada' %}🎉{% else %}✅{% endif %}
+    </span>
+
+    <h1 class="success-title" id="mainTitle">
+        {% if cita.estado == 'confirmada' %}
+            ¡Cita Confirmada!
+        {% else %}
+            ¡Cita Agendada!
+        {% endif %}
+    </h1>
+    <p class="success-sub" id="mainSub">
+        {% if cita.estado == 'confirmada' %}
+            Tu pago fue verificado por el salón. ¡Todo listo para tu cita!
+        {% else %}
+            Tu solicitud fue registrada. Queda pendiente la verificación del pago.
+        {% endif %}
     </p>
 
-    <!-- Código de Reserva -->
-    <div class="reservation-code">
-        <h2>📋 Tu Código de Reserva</h2>
-        <div class="code-display">{{ cita.codigo_reserva }}</div>
-        <p class="code-note">
-            <strong>¡Guarda este código!</strong> Lo necesitarás para cualquier consulta
+    <!-- Badge de estado dinámico -->
+    <div class="estado-badge {% if cita.estado == 'confirmada' %}estado-confirmada{% else %}estado-pendiente{% endif %}"
+         id="estadoBadge">
+        {% if cita.estado == 'confirmada' %}
+            <i class="bi bi-check-circle-fill"></i> CONFIRMADA
+        {% else %}
+            <i class="bi bi-hourglass-split"></i> PENDIENTE DE PAGO
+        {% endif %}
+    </div>
+
+    <!-- Panel de confirmación (aparece cuando el admin acepta) -->
+    <div class="confirmed-panel" id="confirmedPanel"
+         {% if cita.estado == 'confirmada' %}style="display:block;"{% endif %}>
+        <h3><i class="bi bi-shield-check"></i> ¡Tu cita está oficialmente confirmada!</h3>
+        <p>El salón verificó tu abono. Te esperamos el
+           <strong>{{ cita.fecha_hora_inicio.strftime('%d/%m/%Y a las %H:%M') }}</strong>.
         </p>
     </div>
 
-    <!-- Detalles de la Cita -->
-    <div class="appointment-details">
+    <!-- Mensaje de espera (visible si está pendiente) -->
+    {% if cita.estado != 'confirmada' %}
+    <p class="waiting-msg" id="waitingMsg" style="display:block;">
+        Esperando confirmación del salón
+        <span class="dot-flashing"></span>
+        <span class="dot-flashing"></span>
+        <span class="dot-flashing"></span>
+    </p>
+    {% endif %}
+
+    <!-- Código de reserva -->
+    <div class="code-box">
+        <div class="code-label">Código de Reserva</div>
+        <div class="code-value">{{ cita.codigo_reserva }}</div>
+    </div>
+
+    <!-- Detalles de la cita -->
+    <div class="details-box">
         <div class="detail-row">
-            <div class="detail-label">
-                <span>💅</span>
-                Servicio
-            </div>
-            <div class="detail-value">{{ servicio.nombre_servicio }}</div>
+            <span class="lbl"><i class="bi bi-scissors"></i> Servicio</span>
+            <span class="val">{{ servicio.nombre_servicio }}</span>
         </div>
-        
         <div class="detail-row">
-            <div class="detail-label">
-                <span>👤</span>
-                Especialista
-            </div>
-            <div class="detail-value">{{ empleado.nombre }}</div>
+            <span class="lbl"><i class="bi bi-person-badge"></i> Especialista</span>
+            <span class="val">{{ empleado.nombre if empleado else 'Por asignar' }}</span>
         </div>
-        
         <div class="detail-row">
-            <div class="detail-label">
-                <span>📅</span>
-                Fecha
-            </div>
-            <div class="detail-value">{{ cita.fecha_hora_inicio.strftime('%d de %B, %Y') }}</div>
+            <span class="lbl"><i class="bi bi-calendar3"></i> Fecha</span>
+            <span class="val pink">{{ cita.fecha_hora_inicio.strftime('%d de %B de %Y') }}</span>
         </div>
-        
         <div class="detail-row">
-            <div class="detail-label">
-                <span>🕐</span>
-                Hora
-            </div>
-            <div class="detail-value">{{ cita.fecha_hora_inicio.strftime('%I:%M %p') }}</div>
+            <span class="lbl"><i class="bi bi-clock"></i> Hora</span>
+            <span class="val">{{ cita.fecha_hora_inicio.strftime('%H:%M') }} — {{ cita.fecha_hora_fin.strftime('%H:%M') }}</span>
         </div>
-        
         <div class="detail-row">
-            <div class="detail-label">
-                <span>💰</span>
-                Estado
-            </div>
-            <div class="detail-value">
-                <span class="status-badge">⏳ Pendiente de Pago</span>
-            </div>
+            <span class="lbl"><i class="bi bi-cash-coin"></i> Abono</span>
+            <span class="val">${{ '{:,.0f}'.format(cita.monto_abono or 0) }}</span>
         </div>
-        
         <div class="detail-row">
-            <div class="detail-label">
-                <span>💵</span>
-                Abono
-            </div>
-            <div class="detail-value">${{ '{:,.0f}'.format(cita.monto_abono) }}</div>
-        </div>
-        
-        <div class="detail-row">
-            <div class="detail-label">
-                <span>💳</span>
-                Saldo Pendiente
-            </div>
-            <div class="detail-value">${{ '{:,.0f}'.format(cita.saldo_pendiente) }}</div>
+            <span class="lbl"><i class="bi bi-wallet2"></i> Saldo pendiente</span>
+            <span class="val pink">${{ '{:,.0f}'.format(cita.saldo_pendiente or 0) }}</span>
         </div>
     </div>
 
-    <!-- Próximos Pasos -->
-    <div class="next-steps">
-        <h3>📝 Próximos Pasos</h3>
-        <ul>
-            <li>Realiza la transferencia de $5,000 a nuestra cuenta bancaria</li>
-            <li>Envía el comprobante de pago al WhatsApp: <strong>300-000-0000</strong></li>
-            <li>Tu cita será confirmada una vez recibamos el comprobante</li>
-            <li>Llega 10 minutos antes de tu cita</li>
-            <li>El saldo restante lo pagas al llegar al salón</li>
-        </ul>
-    </div>
-
-    <!-- Recordatorio -->
-    <div class="reminder-box">
-        ⚠️ <strong>Política de Cancelación:</strong><br>
-        Para cancelar tu cita, debes hacerlo con mínimo 2 horas de anticipación desde tu panel de "Mis Citas"
-    </div>
-
-    <!-- Botones de Acción -->
+    <!-- Botones de acción -->
     <div class="action-buttons">
-        <a href="{{ url_for('mis_citas') }}" class="btn btn-primary">
-            <span>📋</span> Ver Mis Citas
+        <a href="{{ url_for('descargar_cita_pdf', id_cita=cita.id_cita) }}"
+           class="btn-download" id="btnDescargar">
+            <i class="bi bi-file-earmark-pdf-fill"></i> Descargar Comprobante PDF
         </a>
-        <a href="{{ url_for('dashboard_cliente') }}" class="btn btn-secondary">
-            <span>🏠</span> Ir al Dashboard
+        <a href="{{ url_for('mis_citas') }}" class="btn-outline">
+            <i class="bi bi-calendar3"></i> Ver Mis Citas
         </a>
+        <a href="{{ url_for('dashboard_cliente') }}" class="btn-outline">
+            <i class="bi bi-house"></i> Mi Panel
+        </a>
+    </div>
+
+    <div class="note-box">
+        <strong>⚠️ Política de cancelación:</strong>
+        Para cancelar tu cita, debes hacerlo con mínimo 2 horas de anticipación
+        desde la sección <em>Mis Citas</em>.
     </div>
 </div>
+
+<script>
+// Polling: consulta el estado de la cita cada 5 segundos
+// Si cambia a 'confirmada', actualiza la vista automáticamente sin recargar
+(function () {
+    const citaId   = {{ cita.id_cita }};
+    const estadoActual = "{{ cita.estado }}";
+
+    // Si ya está confirmada no hace falta hacer polling
+    if (estadoActual === 'confirmada') return;
+
+    const badge       = document.getElementById('estadoBadge');
+    const panel       = document.getElementById('confirmedPanel');
+    const waitingMsg  = document.getElementById('waitingMsg');
+    const mainTitle   = document.getElementById('mainTitle');
+    const mainSub     = document.getElementById('mainSub');
+    const mainIcon    = document.getElementById('mainIcon');
+
+    let intentos = 0;
+    const MAX_INTENTOS = 120; // 10 minutos máximo
+
+    const intervalo = setInterval(async () => {
+        intentos++;
+        if (intentos > MAX_INTENTOS) { clearInterval(intervalo); return; }
+
+        try {
+            const res  = await fetch(`/citas/estado/${citaId}`);
+            const data = await res.json();
+
+            if (data.estado === 'confirmada') {
+                clearInterval(intervalo);
+
+                // Actualizar ícono y títulos
+                mainIcon.textContent  = '🎉';
+                mainTitle.textContent = '¡Cita Confirmada!';
+                mainSub.textContent   = 'Tu pago fue verificado por el salón. ¡Todo listo para tu cita!';
+
+                // Actualizar badge
+                badge.className = 'estado-badge estado-confirmada';
+                badge.innerHTML = '<i class="bi bi-check-circle-fill"></i> CONFIRMADA';
+
+                // Mostrar panel de confirmación
+                panel.style.display = 'block';
+
+                // Ocultar mensaje de espera
+                if (waitingMsg) waitingMsg.style.display = 'none';
+            }
+        } catch (e) { /* silencioso */ }
+    }, 5000); // cada 5 segundos
+})();
+</script>
 {% endblock %}

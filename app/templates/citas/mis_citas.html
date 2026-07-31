@@ -295,6 +295,19 @@
         color: #c71585;
         font-size: 0.9rem;
     }
+
+    /* Badge confirmada animado */
+    .estado-confirmada-anim {
+        background: linear-gradient(135deg, #dcfce7, #bbf7d0) !important;
+        color: #166534 !important;
+        border: 2px solid #86efac !important;
+        animation: popConfirm 0.5s ease;
+    }
+    @keyframes popConfirm {
+        0%  { transform: scale(0.85); opacity: 0; }
+        70% { transform: scale(1.05); }
+        100%{ transform: scale(1);    opacity: 1; }
+    }
 </style>
 {% endblock %}
 
@@ -327,7 +340,7 @@
                 <div class="cita-card">
                     <div class="cita-header">
                         <div class="cita-titulo">{{ servicio.nombre_servicio }}</div>
-                        <div class="estado-badge estado-{{ cita.estado }}">
+                        <div class="estado-badge estado-{{ cita.estado }}" id="badge-{{ cita.id_cita }}">
                             {% if cita.estado == 'pendiente_pago' %}
                                 ⏳ Pendiente de Pago
                             {% elif cita.estado == 'confirmada' %}
@@ -405,6 +418,9 @@
                     <div class="cita-acciones">
                         <a href="{{ url_for('cita_confirmada', codigo=cita.codigo_reserva) }}" class="btn btn-ver">
                             👁️ Ver Detalles
+                        </a>
+                        <a href="{{ url_for('descargar_cita_pdf', id_cita=cita.id_cita) }}" class="btn" style="background:linear-gradient(135deg,#c41e3a,#ff1493);color:white;">
+                            📄 Descargar PDF
                         </a>
                         {% if cita.estado == 'pendiente_pago' %}
                         <a href="{{ url_for('cliente_pagos_registrar', id_cita=cita.id_cita) }}" class="btn" style="background: linear-gradient(135deg, #ffd700, #ffed4e); color: #c71585;">
@@ -485,6 +501,11 @@
                             <span class="codigo-reserva">{{ cita.codigo_reserva }}</span>
                         </div>
                     </div>
+                    <div class="cita-acciones">
+                        <a href="{{ url_for('descargar_cita_pdf', id_cita=cita.id_cita) }}" class="btn" style="background:linear-gradient(135deg,#c41e3a,#ff1493);color:white;">
+                            📄 Descargar PDF
+                        </a>
+                    </div>
                 </div>
                 {% endfor %}
             </div>
@@ -544,5 +565,64 @@
             console.error('Error:', error);
         }
     }
+
+    // ── Polling: actualiza badges de citas pendientes en tiempo real ──
+    (function() {
+        // Recolectar IDs de citas pendientes de pago
+        const pendientes = [
+            {% for cita, servicio, empleado in citas_futuras %}
+                {% if cita.estado == 'pendiente_pago' %}
+                    {{ cita.id_cita }},
+                {% endif %}
+            {% endfor %}
+        ].filter(Boolean);
+
+        if (!pendientes.length) return;
+
+        let confirmadas = new Set();
+
+        const intervalo = setInterval(async () => {
+            for (const id of pendientes) {
+                if (confirmadas.has(id)) continue;
+                try {
+                    const res  = await fetch(`/citas/estado/${id}`);
+                    const data = await res.json();
+                    if (data.estado === 'confirmada') {
+                        confirmadas.add(id);
+                        const badge = document.getElementById(`badge-${id}`);
+                        if (badge) {
+                            badge.className = 'estado-badge estado-confirmada estado-confirmada-anim';
+                            badge.innerHTML = '✅ Confirmada';
+                        }
+                        // Mostrar notificación visual en la página
+                        mostrarToast(`🎉 ¡Tu cita #${id} fue confirmada por el salón!`);
+                    }
+                } catch(e) { /* silencioso */ }
+            }
+            // Si todas confirmadas, detener polling
+            if (confirmadas.size === pendientes.length) clearInterval(intervalo);
+        }, 5000);
+
+        function mostrarToast(msg) {
+            let toast = document.getElementById('toastMisCitas');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'toastMisCitas';
+                toast.style.cssText = `
+                    position:fixed;bottom:28px;left:50%;
+                    transform:translateX(-50%) translateY(80px);
+                    background:#16a34a;color:white;
+                    padding:0.9rem 2rem;border-radius:30px;
+                    font-weight:700;font-size:0.95rem;
+                    box-shadow:0 8px 30px rgba(0,0,0,0.2);
+                    transition:transform 0.4s ease;z-index:9999;
+                `;
+                document.body.appendChild(toast);
+            }
+            toast.textContent = msg;
+            setTimeout(() => toast.style.transform = 'translateX(-50%) translateY(0)', 100);
+            setTimeout(() => toast.style.transform = 'translateX(-50%) translateY(80px)', 4500);
+        }
+    })();
 </script>
 {% endblock %}
