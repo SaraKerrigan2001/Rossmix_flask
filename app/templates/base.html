@@ -238,6 +238,30 @@
             font-size: 0.88rem;
         }
         footer strong { color: #c41e3a; }
+        .footer-inner {
+            display: flex; align-items: center; justify-content: center;
+            gap: 1.2rem; flex-wrap: wrap;
+        }
+        .ig-link {
+            display: inline-flex; align-items: center; gap: 0.45rem;
+            background: linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+            color: white; text-decoration: none;
+            padding: 0.45rem 1.1rem; border-radius: 25px;
+            font-size: 0.88rem; font-weight: 600;
+            transition: all 0.25s;
+            box-shadow: 0 3px 12px rgba(220,39,67,0.3);
+        }
+        .ig-link:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(220,39,67,0.45); color: white; }
+        .ig-link i { font-size: 1rem; }
+        .nav-ig-btn {
+            display: inline-flex; align-items: center; gap: 0.35rem;
+            background: linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+            color: white !important; text-decoration: none;
+            padding: 0.4rem 0.9rem; border-radius: 20px;
+            font-size: 0.85rem; font-weight: 600;
+            transition: all 0.25s;
+        }
+        .nav-ig-btn:hover { transform: translateY(-2px); opacity: 0.9; color: white !important; }
     </style>
     {% block extra_css %}{% endblock %}
 </head>
@@ -289,8 +313,10 @@
                     <li><a href="{{ url_for('agendar_paso1') }}"><i class="bi bi-plus-circle"></i> Agendar</a></li>
                 {% endif %}
                 <li><a href="{{ url_for('logout') }}" class="nav-btn-logout"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
+                <li><a href="https://www.instagram.com/rossmiix/" target="_blank" class="nav-ig-btn"><i class="bi bi-instagram"></i></a></li>
             {% else %}
                 <li><a href="{{ url_for('index') }}">Inicio</a></li>
+                <li><a href="https://www.instagram.com/rossmiix/" target="_blank" class="nav-ig-btn"><i class="bi bi-instagram"></i> @rossmiix</a></li>
                 <li><a href="{{ url_for('login') }}">Iniciar Sesión</a></li>
                 <li><a href="{{ url_for('registro') }}" style="background:linear-gradient(135deg,#c41e3a,#ff1493);color:white;padding:0.5rem 1.2rem;border-radius:8px;font-weight:600;">Registrarse</a></li>
             {% endif %}
@@ -320,7 +346,12 @@
 
 <!-- FOOTER -->
 <footer>
-    <p>&copy; 2026 <strong>Rossmix</strong> — Salón de Belleza. Todos los derechos reservados.</p>
+    <div class="footer-inner">
+        <p>&copy; 2026 <strong>Rossmix</strong> — Salón de Belleza. Todos los derechos reservados.</p>
+        <a href="https://www.instagram.com/rossmiix/" target="_blank" class="ig-link">
+            <i class="bi bi-instagram"></i> @rossmiix
+        </a>
+    </div>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
