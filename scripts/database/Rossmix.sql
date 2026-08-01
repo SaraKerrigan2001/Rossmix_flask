@@ -365,3 +365,76 @@ SELECT 'empleado_servicios', COUNT(*) FROM empleado_servicios UNION ALL
 SELECT 'horarios_empleados', COUNT(*) FROM horarios_empleados UNION ALL
 SELECT 'citas',              COUNT(*) FROM citas              UNION ALL
 SELECT 'pagos',              COUNT(*) FROM pagos;
+
+
+-- ============================================================================
+-- AUDITORÍA DE NUEVOS USUARIOS — Registro en tiempo real
+-- Cada INSERT en la tabla 'usuario' queda registrado automáticamente
+-- ============================================================================
+
+-- Tabla de auditoría
+CREATE TABLE IF NOT EXISTS auditoria_usuarios (
+    id              SERIAL PRIMARY KEY,
+    id_usuario      INTEGER NOT NULL,
+    nombre          VARCHAR(100),
+    email           VARCHAR(120),
+    telefono        VARCHAR(20),
+    tipo_usuario    VARCHAR(20),
+    fecha_registro  TIMESTAMP DEFAULT NOW(),
+    accion          VARCHAR(10) DEFAULT 'INSERT',
+    ip_address      VARCHAR(45)  -- opcional: se puede pasar desde la app
+);
+
+-- Función del trigger
+CREATE OR REPLACE FUNCTION fn_auditoria_nuevo_usuario()
+RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO auditoria_usuarios (
+        id_usuario, nombre, email, telefono, tipo_usuario, fecha_registro, accion
+    ) VALUES (
+        NEW.id, NEW.nombre, NEW.email, NEW.telefono,
+        NEW.tipo_usuario, NEW.fecha_registro, 'INSERT'
+    );
+
+    -- Notificar canal PostgreSQL en tiempo real (útil para listeners externos)
+    PERFORM pg_notify(
+        'nuevo_usuario',
+        json_build_object(
+            'id',            NEW.id,
+            'nombre',        NEW.nombre,
+            'email',         NEW.email,
+            'tipo_usuario',  NEW.tipo_usuario,
+            'fecha',         to_char(NEW.fecha_registro, 'DD/MM/YYYY HH24:MI:SS')
+        )::text
+    );
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Crear el trigger sobre la tabla usuario
+DROP TRIGGER IF EXISTS trg_auditoria_nuevo_usuario ON usuario;
+CREATE TRIGGER trg_auditoria_nuevo_usuario
+    AFTER INSERT ON usuario
+    FOR EACH ROW
+    EXECUTE FUNCTION fn_auditoria_nuevo_usuario();
+
+-- Vista para consultar fácilmente los nuevos registros
+CREATE OR REPLACE VIEW vista_nuevos_usuarios AS
+    SELECT
+        au.id,
+        au.id_usuario,
+        au.nombre,
+        au.email,
+        au.telefono,
+        au.tipo_usuario,
+        au.fecha_registro,
+        au.accion
+    FROM auditoria_usuarios au
+    ORDER BY au.fecha_registro DESC;
+
+-- ============================================================================
+-- Para verificar nuevos registros en pgAdmin ejecuta:
+--   SELECT * FROM vista_nuevos_usuarios;
+--   SELECT * FROM vista_nuevos_usuarios WHERE fecha_registro >= NOW() - INTERVAL '1 hour';
+-- ============================================================================

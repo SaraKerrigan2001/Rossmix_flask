@@ -396,6 +396,30 @@ def registro():
         db.session.add(nuevo_usuario)
         db.session.commit()
 
+        # ── Log en consola confirmando escritura en PostgreSQL ──────────────
+        logging.info(
+            f"[NUEVO USUARIO] ID: {nuevo_usuario.id} | "
+            f"Nombre: {nuevo_usuario.nombre} | "
+            f"Email: {nuevo_usuario.email} | "
+            f"Teléfono: {nuevo_usuario.telefono} | "
+            f"Fecha: {nuevo_usuario.fecha_registro.strftime('%d/%m/%Y %H:%M:%S')} | "
+            f"BD: PostgreSQL — INSERT exitoso ✓"
+        )
+
+        # ── Notificar a todos los administradores en tiempo real ────────────
+        try:
+            admins = Usuario.query.filter_by(tipo_usuario='admin').all()
+            for admin in admins:
+                add_notificacion(
+                    admin.id,
+                    f'🆕 Nueva clienta registrada',
+                    f'{nuevo_usuario.nombre} ({nuevo_usuario.email} | {nuevo_usuario.telefono}) '
+                    f'se registró el {nuevo_usuario.fecha_registro.strftime("%d/%m/%Y a las %H:%M")}.',
+                    target=url_for('admin_clientes')
+                )
+        except Exception as e:
+            logging.error(f"[NUEVO USUARIO] Error al notificar admins: {e}")
+
         flash('¡Registro exitoso! Ya puedes iniciar sesión', 'success')
         return redirect(url_for('login'))
 
