@@ -300,18 +300,28 @@
             display: flex; align-items: center; justify-content: center;
             box-shadow: 0 6px 24px rgba(37,211,102,0.45);
             text-decoration: none;
-            transition: all 0.3s;
-            animation: waPulse 2s infinite;
+            transition: background 0.3s, box-shadow 0.3s, transform 0.3s;
         }
-        .wa-btn:hover {
-            transform: scale(1.1);
-            box-shadow: 0 10px 32px rgba(37,211,102,0.55);
+        .wa-btn:hover { transform: scale(1.1); }
+        .wa-btn.mode-wa {
+            background: #25D366;
+            box-shadow: 0 6px 24px rgba(37,211,102,0.45);
+            animation: pulseWa 2s infinite;
         }
-        .wa-btn i { font-size: 1.85rem; color: white; }
-        @keyframes waPulse {
-            0%   { box-shadow: 0 0 0 0 rgba(37,211,102,0.5); }
+        .wa-btn.mode-ig {
+            background: linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);
+            box-shadow: 0 6px 24px rgba(188,24,136,0.45);
+            animation: pulseIg 2s infinite;
+        }
+        @keyframes pulseWa {
+            0%   { box-shadow: 0 0 0 0   rgba(37,211,102,0.5); }
             70%  { box-shadow: 0 0 0 14px rgba(37,211,102,0); }
-            100% { box-shadow: 0 0 0 0 rgba(37,211,102,0); }
+            100% { box-shadow: 0 0 0 0   rgba(37,211,102,0); }
+        }
+        @keyframes pulseIg {
+            0%   { box-shadow: 0 0 0 0   rgba(188,24,136,0.5); }
+            70%  { box-shadow: 0 0 0 14px rgba(188,24,136,0); }
+            100% { box-shadow: 0 0 0 0   rgba(188,24,136,0); }
         }
     </style>
     {% block extra_css %}{% endblock %}
@@ -423,7 +433,7 @@
 <div class="wa-bubble">
     <span class="wa-tooltip" id="bubbleTooltip">💬 ¡Escríbenos!</span>
     <a href="https://wa.me/573000000000?text=Hola%20Rossmix%2C%20quiero%20información%20sobre%20sus%20servicios%20🌸"
-       target="_blank" class="wa-btn" id="bubbleBtn" title="Contáctanos">
+       target="_blank" class="wa-btn mode-wa" id="bubbleBtn" title="Contáctanos">
         <!-- SVG WhatsApp (inicial) -->
         <svg id="bubbleSvg" viewBox="0 0 24 24" fill="white"
              xmlns="http://www.w3.org/2000/svg"
@@ -451,15 +461,17 @@ const IG_SVG = `<path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.6
         btn.style.transition = 'transform 0.3s ease';
         setTimeout(() => {
             if (showingWa) {
-                btn.style.background = 'linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)';
-                btn.style.boxShadow  = '0 6px 24px rgba(188,24,136,0.45)';
+                btn.className        = 'wa-btn mode-ig';
+                btn.style.background = '';
+                btn.style.boxShadow  = '';
                 svg.innerHTML        = IG_SVG;
                 tooltip.textContent  = '📸 Síguenos en Instagram';
                 btn.href             = igUrl;
                 showingWa = false;
             } else {
-                btn.style.background = '#25D366';
-                btn.style.boxShadow  = '0 6px 24px rgba(37,211,102,0.45)';
+                btn.className        = 'wa-btn mode-wa';
+                btn.style.background = '';
+                btn.style.boxShadow  = '';
                 svg.innerHTML        = WA_SVG;
                 tooltip.textContent  = '💬 ¡Escríbenos por WhatsApp!';
                 btn.href             = waUrl;
