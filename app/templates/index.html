@@ -49,7 +49,7 @@
 }
 .hero-text h1 {
     font-size: 3.8rem;
-    font-family: 'Playfair Display', serif;
+    font-family: 'Cormorant Garamond', serif;
     font-weight: 700;
     line-height: 1.15;
     margin-bottom: 1.5rem;
@@ -60,7 +60,6 @@
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    font-style: italic;
 }
 .hero-text p {
     font-size: 1.05rem;
@@ -126,8 +125,8 @@
 }
 .section-title {
     font-size: 1.8rem;
-    font-family: 'Playfair Display', serif;
-    font-weight: 600;
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 700;
     color: #1a1a1a;
     margin-bottom: 2rem;
     display: flex; align-items: center; gap: 0.5rem;
@@ -292,7 +291,7 @@
 .coll-img {
     width: 100%; aspect-ratio: 1;
     display: flex; align-items: center; justify-content: center;
-    font-family: 'Playfair Display', serif;
+    font-family: 'Cormorant Garamond', serif;
     font-weight: 700; font-size: 2rem; color: white;
     overflow: hidden;
 }
@@ -427,7 +426,7 @@
             </div>
         </div>
         <div class="cat-card">
-            <div class="cat-bg c2"><img src="{{ url_for('static', filename='images/nails/Uñas en Gel.jpg') }}" alt="Uñas en Gel" style="width:100%;height:100%;object-fit:cover;"></div>
+            <div class="cat-bg c2"><img src="{{ url_for('static', filename='images/nails/Uñas en Gel.jpg') }}" alt="Uñas en Gel" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none';this.parentElement.style.background='linear-gradient(135deg,#ff69b4,#da70d6)';"></div>
             <div class="cat-info">
                 <h3>Uñas en Gel</h3>
                 <p>Duración y brillo sin igual</p>
