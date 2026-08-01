@@ -412,6 +412,7 @@
 <footer>
     <div class="footer-inner">
         <p>&copy; 2026 <strong>Rossmix</strong> — Salón de Belleza. Todos los derechos reservados.</p>
+        {% if not session.usuario_id %}
         <!-- Instagram logo SVG oficial -->
         <a href="https://www.instagram.com/rossmiix/" target="_blank" class="ig-link ig">
             <svg viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
@@ -426,10 +427,12 @@
             </svg>
             WhatsApp
         </a>
+        {% endif %}
     </div>
 </footer>
 
-<!-- BURBUJA FLOTANTE ALTERNANTE Instagram / WhatsApp -->
+<!-- BURBUJA FLOTANTE ALTERNANTE Instagram / WhatsApp — solo visible sin sesión -->
+{% if not session.usuario_id %}
 <div class="wa-bubble">
     <span class="wa-tooltip" id="bubbleTooltip">💬 ¡Escríbenos!</span>
     <a href="https://api.whatsapp.com/send?phone=573173824030&text=Hola%20qu%C3%A9%20tal%3F%20Estoy%20interesada%20en%20uno%20de%20sus%20servicios%E2%9C%A8"
@@ -484,6 +487,7 @@ const IG_SVG = `<path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.6
     setInterval(switchBubble, 3000);
 })();
 </script>
+{% endif %}
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
