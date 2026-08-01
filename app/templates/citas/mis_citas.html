@@ -540,28 +540,31 @@
     }
 
     async function cancelarCita(idCita, nombreServicio) {
-        if (!confirm(`¿Estás seguro de cancelar tu cita de ${nombreServicio}?`)) {
+        if (!confirm(`¿Estás seguro de cancelar tu cita de ${nombreServicio}?\n\nSe procesará el reembolso de $5.000 COP de tu abono.`)) {
             return;
         }
 
         try {
             const response = await fetch(`{{ url_for('cancelar_cita', id_cita=0) }}`.replace('0', idCita), {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
+                headers: { 'Content-Type': 'application/json' }
             });
 
             const data = await response.json();
 
-            if (response.ok) {
-                alert('✅ ' + data.message);
+            if (response.ok && data.success) {
+                // Mostrar mensaje con estado del reembolso
+                const icono    = data.reembolso ? '✅' : '⚠️';
+                const reembolsoMsg = data.reembolso
+                    ? 'El reembolso de $5.000 COP fue procesado exitosamente.'
+                    : 'El reembolso está pendiente — el administrador te contactará.';
+                alert(`${icono} Cita cancelada\n\n${reembolsoMsg}`);
                 location.reload();
             } else {
-                alert('❌ ' + data.error);
+                alert('❌ ' + (data.error || 'No se pudo cancelar la cita.'));
             }
         } catch (error) {
-            alert('❌ Error al cancelar la cita. Intenta de nuevo.');
+            alert('❌ Error de conexión. Intenta de nuevo.');
             console.error('Error:', error);
         }
     }

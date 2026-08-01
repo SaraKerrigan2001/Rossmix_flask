@@ -8,6 +8,10 @@ import random
 import string
 import io
 import openpyxl
+import logging
+
+# Configuración de logs
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 # PDF generation
 from reportlab.lib.pagesizes import A4
@@ -30,6 +34,35 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg://postgres:1234@loca
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
+
+# ============================================================================
+# SERVICIO DE PASARELA DE PAGOS — Reembolsos automáticos
+# ============================================================================
+
+class PasarelaPagoService:
+    """
+    Servicio encargado de gestionar reembolsos.
+    En producción conecta con MercadoPago, Wompi, Stripe, etc.
+    """
+    REEMBOLSO_MONTO = 5000.0   # COP — abono inicial que se devuelve
+    MONEDA          = "COP"
+
+    @staticmethod
+    def procesar_reembolso(id_transaccion: str,
+                           monto: float = 5000.0,
+                           moneda: str = "COP") -> bool:
+        """
+        Simula/ejecuta la devolución del abono al cliente.
+        Retorna True si el reembolso fue exitoso, False si falló.
+        """
+        logging.info(
+            f"[PASARELA DE PAGO] Procesando reembolso de ${monto:,.0f} {moneda} "
+            f"para TRX: {id_transaccion}..."
+        )
+        # TODO: Reemplazar por integración real con la API de la pasarela
+        # Ejemplo Wompi: wompi.procesar_reembolso(id_transaccion, monto)
+        return True   # Simulación: siempre exitoso
+
 
 # ============================================================================
 # MODELOS DE LA BASE DE DATOS CON RELACIONES
@@ -771,53 +804,133 @@ def mis_citas():
 
 @app.route('/citas/cancelar/<int:id_cita>', methods=['POST'])
 def cancelar_cita(id_cita):
-    """Cancelar una cita"""
+    """
+    Flujo completo de cancelación (basado en arquitectura PasarelaPagoService):
+    1. Valida sesión y pertenencia de la cita.
+    2. Verifica que la cita no esté ya cancelada.
+    3. Evalúa tiempo restante >= 2 horas.
+    4. Cancela la cita en la agenda.
+    5. Procesa reembolso automático de $5.000 COP.
+    6. Notifica al cliente por sistema (+ log tipo WhatsApp).
+    7. Notifica a administradores.
+    """
     if 'usuario_id' not in session:
         return jsonify({'error': 'No autorizado'}), 401
 
-    cita = Cita.query.filter_by(id_cita=id_cita, id_cliente=session['usuario_id']).first()
+    cita = Cita.query.filter_by(
+        id_cita=id_cita,
+        id_cliente=session['usuario_id']
+    ).first()
 
     if not cita:
         return jsonify({'error': 'Cita no encontrada'}), 404
 
-    # Validar que falten al menos 2 horas
-    tiempo_restante = cita.fecha_hora_inicio - datetime.now()
-    if tiempo_restante < timedelta(hours=2):
-        return jsonify({'error': 'Debes cancelar con mínimo 2 horas de anticipación'}), 400
+    # ── Paso 2: Verificar que no esté ya cancelada ──────────────────────────
+    if cita.estado == 'cancelada':
+        logging.warning(f"[CANCELACIÓN] Cita {cita.id_cita} ya fue cancelada anteriormente.")
+        return jsonify({'error': 'Esta cita ya fue cancelada anteriormente'}), 400
 
-    # Cancelar cita
-    cita.estado = 'cancelada'
+    # ── Paso 3: Evaluar tiempo restante (Hora Cita - Hora Actual >= 2 horas) ─
+    hora_actual      = datetime.now()
+    tiempo_restante  = cita.fecha_hora_inicio - hora_actual
+    horas_restantes  = tiempo_restante.total_seconds() / 3600
+
+    if horas_restantes < Cita.HORAS_MINIMAS_CANCELACION if hasattr(Cita, 'HORAS_MINIMAS_CANCELACION') else 2:
+        logging.warning(
+            f"[CANCELACIÓN] Cita {cita.id_cita} — tiempo insuficiente: "
+            f"{horas_restantes:.2f} hrs restantes."
+        )
+        return jsonify({
+            'error': f'Debes cancelar con mínimo 2 horas de anticipación. '
+                     f'Tiempo restante: {horas_restantes:.1f} hrs.'
+        }), 400
+
+    # ── Paso 4: Cancelar en la agenda ────────────────────────────────────────
+    cita.estado      = 'cancelada'
+    cita.reembolsado = False
     db.session.commit()
+    logging.info(f"[CANCELACIÓN] Cita {cita.id_cita} cancelada exitosamente en la agenda.")
 
-    # Notificar al cliente
+    # ── Paso 5: Procesar reembolso automático del abono ($5.000 COP) ─────────
+    id_transaccion    = f"TRX-CITA-{cita.id_cita}-{cita.codigo_reserva}"
+    reembolso_exitoso = PasarelaPagoService.procesar_reembolso(
+        id_transaccion=id_transaccion,
+        monto=PasarelaPagoService.REEMBOLSO_MONTO,
+        moneda=PasarelaPagoService.MONEDA
+    )
+
+    if reembolso_exitoso:
+        cita.reembolsado = True
+        db.session.commit()
+        mensaje_cliente = (
+            f"Hola {cita.cliente.nombre if cita.cliente else 'clienta'}, "
+            f"tu cita del {cita.fecha_hora_inicio.strftime('%d/%m/%Y a las %H:%M')} "
+            f"ha sido cancelada con éxito. "
+            f"Se ha procesado el reembolso de $5.000 COP a tu método de pago."
+        )
+        logging.info(
+            f"[PASARELA DE PAGO] Reembolso exitoso — TRX: {id_transaccion} — "
+            f"Monto: ${PasarelaPagoService.REEMBOLSO_MONTO:,.0f} COP"
+        )
+    else:
+        mensaje_cliente = (
+            f"Hola {cita.cliente.nombre if cita.cliente else 'clienta'}, "
+            f"tu cita del {cita.fecha_hora_inicio.strftime('%d/%m/%Y a las %H:%M')} "
+            f"fue cancelada. Se generó una orden de devolución manual de $5.000 COP "
+            f"con administración. Te contactaremos pronto."
+        )
+        logging.error(
+            f"[PASARELA DE PAGO] Reembolso fallido — TRX: {id_transaccion}. "
+            f"Se requiere gestión manual."
+        )
+
+    # ── Paso 6: Notificar al cliente (sistema + log WhatsApp) ─────────────────
     try:
+        # Notificación interna del sistema
         add_notificacion(
             cita.id_cliente,
-            'Cita cancelada',
-            f'Tu cita programada para {cita.fecha_hora_inicio.strftime("%d/%m/%Y %H:%M")} ha sido cancelada.',
+            '🔔 Cita cancelada' + (' — Reembolso procesado ✓' if reembolso_exitoso else ' — Reembolso pendiente'),
+            mensaje_cliente,
             target=url_for('mis_citas')
         )
-    except Exception:
-        pass
+        # Log simulando envío por WhatsApp (integrar con API de WhatsApp en producción)
+        logging.info(
+            f"[NOTIFICACIÓN - EMAIL]    Enviando a "
+            f"{cita.cliente.nombre if cita.cliente else cita.id_cliente}: '{mensaje_cliente}'"
+        )
+        logging.info(
+            f"[NOTIFICACIÓN - WHATSAPP] Enviando a "
+            f"{cita.cliente.telefono if cita.cliente else 'N/A'}: '{mensaje_cliente}'"
+        )
+    except Exception as e:
+        logging.error(f"[NOTIFICACIÓN] Error al notificar cliente: {e}")
 
-    # Notificar a administradores
+    # ── Paso 7: Notificar a administradores ───────────────────────────────────
     try:
+        estado_reembolso = "✓ Reembolso procesado" if reembolso_exitoso else "⚠ Reembolso pendiente — requiere gestión manual"
         admins = Usuario.query.filter_by(tipo_usuario='admin').all()
         for a in admins:
             add_notificacion(
                 a.id,
-                'Cita cancelada',
-                f'El cliente {
-                    cita.cliente.nombre if cita.cliente else cita.id_cliente} canceló la cita #{
-                    cita.id_cita} programada para {
-                    cita.fecha_hora_inicio.strftime("%d/%m/%Y %H:%M")}',
-                target=url_for('admin_citas') +
-                f'?estado=cancelada&cliente_id={
-                    cita.id_cliente}')
-    except Exception:
-        pass
+                f'Cita #{cita.id_cita} cancelada — {estado_reembolso}',
+                (
+                    f"Cliente: {cita.cliente.nombre if cita.cliente else cita.id_cliente} | "
+                    f"Cita: {cita.fecha_hora_inicio.strftime('%d/%m/%Y %H:%M')} | "
+                    f"Servicio: {cita.servicio.nombre_servicio if cita.servicio else 'N/A'} | "
+                    f"TRX: {id_transaccion} | "
+                    f"Reembolso $5.000 COP: {'procesado' if reembolso_exitoso else 'PENDIENTE MANUAL'}"
+                ),
+                target=url_for('admin_citas') + f'?estado=cancelada&cliente_id={cita.id_cliente}'
+            )
+    except Exception as e:
+        logging.error(f"[NOTIFICACIÓN] Error al notificar admins: {e}")
 
-    return jsonify({'success': True, 'message': 'Cita cancelada exitosamente'})
+    return jsonify({
+        'success':   True,
+        'message':   'Cita cancelada exitosamente',
+        'reembolso': reembolso_exitoso,
+        'detalle':   mensaje_cliente
+    })
 
 @app.route('/citas/pagar/<int:id_cita>', methods=['GET', 'POST'])
 def cliente_pagos_registrar(id_cita):
