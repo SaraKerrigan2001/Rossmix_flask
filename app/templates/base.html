@@ -432,6 +432,9 @@
                                 <a href="{{ url_for('admin_pagos_confirmar') }}" class="pm-item">
                                     <i class="bi bi-clock-history"></i> Pagos por Confirmar
                                 </a>
+                                <a href="{{ url_for('admin_agenda_diaria') }}" class="pm-item">
+                                    <i class="bi bi-calendar-week"></i> Agenda Diaria
+                                </a>
                             {% else %}
                                 <a href="{{ url_for('dashboard_cliente') }}" class="pm-item">
                                     <i class="bi bi-house"></i> Mi Panel
@@ -491,6 +494,11 @@
                     <li>
                         <a href="{{ url_for('admin_pagos_confirmar') }}" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.45rem 1rem;border-radius:8px;background:#fef3c7;color:#d97706;font-weight:600;font-size:0.9rem;text-decoration:none;">
                             <i class="bi bi-clock-history"></i> Pagos por Confirmar
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('admin_agenda_diaria') }}" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.45rem 1rem;border-radius:8px;background:#eff6ff;color:#2563eb;font-weight:600;font-size:0.9rem;text-decoration:none;">
+                            <i class="bi bi-calendar-week"></i> Agenda Diaria
                         </a>
                     </li>
                 {% else %}

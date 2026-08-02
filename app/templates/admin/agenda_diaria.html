@@ -1,0 +1,457 @@
+{% extends 'base.html' %}
+{% block title %}Agenda Diaria - Rossmix Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── Layout ── */
+.agenda-wrap { max-width:1400px; margin:0 auto; padding:0 0 4rem; }
+.agenda-header {
+    display:flex; align-items:center; justify-content:space-between;
+    flex-wrap:wrap; gap:1rem; margin-bottom:2rem;
+}
+.agenda-header h1 { font-size:1.8rem; font-weight:700; color:#1a1a1a; margin:0; }
+
+/* ── Navegación de fecha ── */
+.date-nav {
+    display:flex; align-items:center; gap:0.8rem;
+    background:white; padding:0.5rem 1rem;
+    border-radius:12px; border:1.5px solid #f0e8ff;
+    box-shadow:0 2px 10px rgba(0,0,0,0.06);
+}
+.date-nav a {
+    color:#c41e3a; text-decoration:none; font-size:1.2rem;
+    padding:0.2rem 0.5rem; border-radius:6px; transition:all 0.2s;
+}
+.date-nav a:hover { background:#fff0f6; }
+.date-nav .fecha-actual {
+    font-weight:700; font-size:1rem; color:#1a1a1a; min-width:160px; text-align:center;
+}
+
+/* ── Stats del día ── */
+.stats-dia {
+    display:grid; grid-template-columns:repeat(5,1fr); gap:1rem; margin-bottom:2rem;
+}
+@media(max-width:900px){ .stats-dia{ grid-template-columns:repeat(2,1fr); } }
+.stat-dia {
+    background:white; border-radius:14px; padding:1.2rem 1rem;
+    text-align:center; box-shadow:0 2px 12px rgba(0,0,0,0.06);
+    border-top:3px solid transparent;
+}
+.stat-dia.s1{ border-color:#6366f1; }
+.stat-dia.s2{ border-color:#f59e0b; }
+.stat-dia.s3{ border-color:#c41e3a; }
+.stat-dia.s4{ border-color:#10b981; }
+.stat-dia.s5{ border-color:#8b5cf6; }
+.stat-dia .num{ font-size:1.8rem; font-weight:800; color:#1a1a1a; line-height:1; }
+.stat-dia .lbl{ font-size:0.78rem; color:#888; margin-top:0.3rem; font-weight:500; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="agenda-wrap">
+
+<style>
+/* ── Cuadrícula por profesional ── */
+.profesional-section { margin-bottom:2.5rem; }
+.profesional-header {
+    display:flex; align-items:center; gap:0.8rem;
+    padding:1rem 1.4rem; background:white;
+    border-radius:14px 14px 0 0;
+    border-bottom:2px solid #f0e8ff;
+    box-shadow:0 2px 8px rgba(0,0,0,0.05);
+}
+.prof-avatar {
+    width:40px; height:40px; border-radius:50%;
+    background:linear-gradient(135deg,#c41e3a,#ff1493);
+    color:white; display:flex; align-items:center;
+    justify-content:center; font-weight:700; font-size:1rem; flex-shrink:0;
+}
+.prof-nombre { font-weight:700; font-size:1.05rem; color:#1a1a1a; }
+.prof-count  { font-size:0.82rem; color:#888; }
+
+/* ── Tarjetas de cita ── */
+.citas-grid {
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+    gap:1rem; padding:1rem;
+    background:white; border-radius:0 0 14px 14px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.05);
+}
+.cita-card {
+    border-radius:12px; overflow:hidden;
+    border:1.5px solid #f0e8ff;
+    transition:transform 0.25s, box-shadow 0.25s;
+    background:#fafafa;
+}
+.cita-card:hover { transform:translateY(-3px); box-shadow:0 8px 24px rgba(0,0,0,0.1); }
+.cita-card-header {
+    padding:0.8rem 1rem;
+    display:flex; align-items:center; justify-content:space-between;
+}
+.cita-hora { font-size:1.1rem; font-weight:800; color:#1a1a1a; }
+.estado-pill {
+    font-size:0.75rem; font-weight:700; padding:0.25rem 0.7rem;
+    border-radius:20px; white-space:nowrap;
+}
+.ep-programada  { background:#dbeafe; color:#1e40af; }
+.ep-en_atencion { background:#fef3c7; color:#92400e; }
+.ep-completada  { background:#dcfce7; color:#166534; }
+.ep-cancelada   { background:#fee2e2; color:#991b1b; }
+.cita-card-body { padding:0.8rem 1rem; }
+.cita-cliente { font-weight:700; font-size:0.95rem; color:#1a1a1a; margin-bottom:0.3rem; }
+.cita-servicio{ font-size:0.85rem; color:#666; margin-bottom:0.6rem; }
+.cita-montos  { display:flex; gap:0.8rem; flex-wrap:wrap; font-size:0.82rem; }
+.monto-item   { display:flex; flex-direction:column; }
+.monto-lbl    { color:#aaa; font-size:0.72rem; }
+.monto-val    { font-weight:700; color:#1a1a1a; }
+.monto-val.saldo{ color:#c41e3a; }
+.cita-card-footer {
+    padding:0.7rem 1rem; border-top:1px solid #f0f0f0;
+    display:flex; gap:0.5rem; flex-wrap:wrap;
+}
+.btn-atencion {
+    flex:1; background:#fef3c7; color:#d97706;
+    border:1.5px solid #fde68a; border-radius:8px;
+    padding:0.5rem 0.8rem; font-size:0.82rem; font-weight:700;
+    cursor:pointer; transition:all 0.2s;
+}
+.btn-atencion:hover { background:#fde68a; }
+.btn-liquidar {
+    flex:1; background:linear-gradient(135deg,#10b981,#059669);
+    color:white; border:none; border-radius:8px;
+    padding:0.5rem 0.8rem; font-size:0.82rem; font-weight:700;
+    cursor:pointer; transition:all 0.2s;
+}
+.btn-liquidar:hover { opacity:0.88; transform:translateY(-1px); }
+.btn-disabled {
+    flex:1; background:#f3f4f6; color:#9ca3af;
+    border:1.5px solid #e5e7eb; border-radius:8px;
+    padding:0.5rem 0.8rem; font-size:0.82rem; font-weight:600; cursor:default;
+}
+
+/* ── Modal liquidar ── */
+.modal-overlay {
+    display:none; position:fixed; inset:0;
+    background:rgba(0,0,0,0.5); z-index:3000;
+    align-items:center; justify-content:center;
+}
+.modal-overlay.open { display:flex; }
+.modal-box {
+    background:white; border-radius:20px; padding:2rem;
+    width:90%; max-width:420px;
+    box-shadow:0 20px 60px rgba(0,0,0,0.2);
+    animation:popIn 0.3s ease;
+}
+@keyframes popIn{from{transform:scale(0.85);opacity:0}to{transform:scale(1);opacity:1}}
+.modal-box h3 { font-size:1.2rem; font-weight:700; color:#1a1a1a; margin-bottom:0.3rem; }
+.modal-box p  { font-size:0.9rem; color:#666; margin-bottom:1.2rem; }
+.modal-resumen {
+    background:#fff0f6; border:1.5px solid #ffd6e8;
+    border-radius:12px; padding:1rem; margin-bottom:1.2rem;
+}
+.modal-resumen .row { display:flex; justify-content:space-between; font-size:0.9rem; padding:0.3rem 0; }
+.modal-resumen .row .v { font-weight:700; }
+.modal-resumen .row.saldo .v { color:#c41e3a; font-size:1.1rem; }
+.metodo-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:0.5rem; margin-bottom:1.2rem; }
+.metodo-btn {
+    border:2px solid #e5e7eb; border-radius:10px;
+    padding:0.6rem 0.4rem; text-align:center;
+    font-size:0.82rem; font-weight:600; color:#555;
+    cursor:pointer; transition:all 0.2s; background:white;
+}
+.metodo-btn.selected, .metodo-btn:hover {
+    border-color:#10b981; background:#ecfdf5; color:#059669;
+}
+.btn-confirmar-liquidar {
+    width:100%; background:linear-gradient(135deg,#10b981,#059669);
+    color:white; border:none; border-radius:12px;
+    padding:0.85rem; font-size:1rem; font-weight:700; cursor:pointer;
+    transition:all 0.25s;
+}
+.btn-confirmar-liquidar:hover { opacity:0.88; }
+.btn-cancelar-modal {
+    width:100%; background:white; color:#888;
+    border:1.5px solid #e5e7eb; border-radius:12px;
+    padding:0.7rem; font-size:0.9rem; font-weight:600;
+    cursor:pointer; margin-top:0.5rem; transition:all 0.2s;
+}
+.btn-cancelar-modal:hover { border-color:#c41e3a; color:#c41e3a; }
+
+/* ── Toast ── */
+#toastAgenda {
+    position:fixed; bottom:28px; left:50%;
+    transform:translateX(-50%) translateY(80px);
+    padding:0.85rem 2rem; border-radius:30px;
+    font-weight:700; font-size:0.95rem; color:white;
+    box-shadow:0 8px 30px rgba(0,0,0,0.2);
+    transition:transform 0.4s ease; z-index:9999;
+}
+#toastAgenda.show    { transform:translateX(-50%) translateY(0); }
+#toastAgenda.success { background:#10b981; }
+#toastAgenda.warning { background:#f59e0b; }
+#toastAgenda.error   { background:#dc2626; }
+
+/* ── Vacío ── */
+.empty-agenda {
+    text-align:center; padding:4rem; background:white;
+    border-radius:16px; box-shadow:0 2px 12px rgba(0,0,0,0.05);
+}
+.empty-agenda i { font-size:3.5rem; color:#e9d5ff; }
+.empty-agenda h3 { font-size:1.3rem; color:#555; margin:1rem 0 0.5rem; }
+.empty-agenda p  { color:#aaa; }
+</style>
+
+<!-- HEADER -->
+<div class="agenda-header">
+    <div>
+        <h1><i class="bi bi-calendar-week" style="color:#c41e3a;"></i> Agenda Diaria</h1>
+        <p style="color:#888;font-size:0.9rem;margin-top:0.2rem;">
+            Vista operativa por profesional — gestión en tiempo real
+        </p>
+    </div>
+    <div class="date-nav">
+        <a href="{{ url_for('admin_agenda_diaria', fecha_str=fecha_prev.strftime('%Y-%m-%d')) }}">
+            <i class="bi bi-chevron-left"></i>
+        </a>
+        <span class="fecha-actual">
+            {{ fecha.strftime('%A %d de %B').capitalize() }}
+        </span>
+        <a href="{{ url_for('admin_agenda_diaria', fecha_str=fecha_next.strftime('%Y-%m-%d')) }}">
+            <i class="bi bi-chevron-right"></i>
+        </a>
+        <a href="{{ url_for('admin_agenda_diaria') }}"
+           style="font-size:0.82rem;font-weight:600;color:#c41e3a;padding:0.3rem 0.7rem;
+                  background:#fff0f6;border-radius:8px;text-decoration:none;">
+            Hoy
+        </a>
+    </div>
+    <a href="{{ url_for('dashboard_admin') }}" class="btn-secondary-r">
+        <i class="bi bi-arrow-left"></i> Volver
+    </a>
+</div>
+
+<!-- ESTADÍSTICAS DEL DÍA -->
+<div class="stats-dia">
+    <div class="stat-dia s1">
+        <div class="num">{{ stats_dia.total }}</div>
+        <div class="lbl">Total Citas</div>
+    </div>
+    <div class="stat-dia s2">
+        <div class="num">{{ stats_dia.programadas }}</div>
+        <div class="lbl">Programadas</div>
+    </div>
+    <div class="stat-dia s3">
+        <div class="num">{{ stats_dia.en_atencion }}</div>
+        <div class="lbl">En Atención</div>
+    </div>
+    <div class="stat-dia s4">
+        <div class="num">{{ stats_dia.completadas }}</div>
+        <div class="lbl">Completadas</div>
+    </div>
+    <div class="stat-dia s5">
+        <div class="num">${{ "{:,.0f}".format(stats_dia.ingresos) }}</div>
+        <div class="lbl">Ingresos del Día</div>
+    </div>
+</div>
+
+<!-- CUADRÍCULA POR PROFESIONAL -->
+{% if cuadricula %}
+    {% for profesional, citas in cuadricula.items() %}
+    <div class="profesional-section">
+        <div class="profesional-header">
+            <div class="prof-avatar">{{ profesional[0]|upper }}</div>
+            <div>
+                <div class="prof-nombre"><i class="bi bi-person-badge"></i> {{ profesional }}</div>
+                <div class="prof-count">{{ citas|length }} cita{{ 's' if citas|length != 1 }}</div>
+            </div>
+        </div>
+        <div class="citas-grid">
+            {% for c in citas %}
+            <div class="cita-card" id="card-{{ c.id_cita }}">
+                <div class="cita-card-header">
+                    <span class="cita-hora"><i class="bi bi-clock"></i> {{ c.hora }}</span>
+                    <span class="estado-pill ep-{{ c.estado_key|lower }}" id="pill-{{ c.id_cita }}">
+                        {% if c.estado_key == 'PROGRAMADA' %}⏰ Programada
+                        {% elif c.estado_key == 'EN_ATENCION' %}💅 En Atención
+                        {% elif c.estado_key == 'COMPLETADA' %}✅ Completada
+                        {% else %}❌ Cancelada{% endif %}
+                    </span>
+                </div>
+                <div class="cita-card-body">
+                    <div class="cita-cliente"><i class="bi bi-person-circle"></i> {{ c.cliente }}</div>
+                    <div class="cita-servicio"><i class="bi bi-scissors"></i> {{ c.servicio }}</div>
+                    <div class="cita-montos">
+                        <div class="monto-item">
+                            <span class="monto-lbl">Total</span>
+                            <span class="monto-val">{{ c.precio_total }}</span>
+                        </div>
+                        <div class="monto-item">
+                            <span class="monto-lbl">Abono</span>
+                            <span class="monto-val">{{ c.abono }}</span>
+                        </div>
+                        <div class="monto-item">
+                            <span class="monto-lbl">Saldo</span>
+                            <span class="monto-val saldo" id="saldo-{{ c.id_cita }}">{{ c.saldo_pendiente }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="cita-card-footer" id="footer-{{ c.id_cita }}">
+                    {% if c.estado_key == 'PROGRAMADA' %}
+                        <button class="btn-atencion"
+                                onclick="marcarEnAtencion({{ c.id_cita }}, '{{ c.cliente }}')">
+                            <i class="bi bi-play-circle"></i> En Atención
+                        </button>
+                    {% elif c.estado_key == 'EN_ATENCION' %}
+                        <button class="btn-disabled"><i class="bi bi-play-circle-fill"></i> En Atención</button>
+                        <button class="btn-liquidar"
+                                onclick="abrirModalLiquidar({{ c.id_cita }}, '{{ c.cliente }}', '{{ c.servicio }}', {{ c.saldo_num }})">
+                            <i class="bi bi-cash-coin"></i> Liquidar
+                        </button>
+                    {% elif c.estado_key == 'COMPLETADA' %}
+                        <span class="btn-disabled" style="text-align:center;">✅ Completada</span>
+                    {% else %}
+                        <span class="btn-disabled" style="text-align:center;">❌ Cancelada</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+<div class="empty-agenda">
+    <i class="bi bi-calendar-x"></i>
+    <h3>Sin citas para este día</h3>
+    <p>No hay citas programadas para el {{ fecha.strftime('%d/%m/%Y') }}.</p>
+</div>
+{% endif %}
+
+</div><!-- /agenda-wrap -->
+
+<!-- MODAL LIQUIDAR -->
+<div class="modal-overlay" id="modalLiquidar">
+    <div class="modal-box">
+        <h3>💰 Liquidar Cita</h3>
+        <p id="modalSubtitle">Registrar cobro del saldo pendiente</p>
+        <div class="modal-resumen">
+            <div class="row"><span>Cliente</span><span class="v" id="mCliente">—</span></div>
+            <div class="row"><span>Servicio</span><span class="v" id="mServicio">—</span></div>
+            <div class="row saldo"><span>Saldo a cobrar</span><span class="v" id="mSaldo">—</span></div>
+        </div>
+        <p style="font-size:0.88rem;font-weight:600;color:#444;margin-bottom:0.7rem;">
+            Método de pago del saldo:
+        </p>
+        <div class="metodo-grid" id="metodoGrid">
+            {% for m in metodos_pago %}
+            <div class="metodo-btn" onclick="seleccionarMetodo(this, '{{ m }}')">{{ m }}</div>
+            {% endfor %}
+        </div>
+        <button class="btn-confirmar-liquidar" onclick="confirmarLiquidar()">
+            <i class="bi bi-check-circle-fill"></i> Confirmar Cobro
+        </button>
+        <button class="btn-cancelar-modal" onclick="cerrarModal()">Cancelar</button>
+    </div>
+</div>
+
+<!-- TOAST -->
+<div id="toastAgenda"></div>
+
+<script>
+let citaActivaId   = null;
+let metodoSeleccionado = null;
+
+// ── Paso 3: Marcar en atención ──────────────────────────────────────────────
+async function marcarEnAtencion(idCita, nombreCliente) {
+    if (!confirm(`¿Confirmar que ${nombreCliente} llegó a su cita?`)) return;
+    try {
+        const res  = await fetch(`/admin/agenda-diaria/en-atencion/${idCita}`, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+            // Actualizar UI sin recargar
+            document.getElementById(`pill-${idCita}`).className = 'estado-pill ep-en_atencion';
+            document.getElementById(`pill-${idCita}`).innerHTML = '💅 En Atención';
+            const footer = document.getElementById(`footer-${idCita}`);
+            footer.innerHTML = `
+                <button class="btn-disabled"><i class="bi bi-play-circle-fill"></i> En Atención</button>
+                <button class="btn-liquidar"
+                        onclick="abrirModalLiquidar(${idCita}, '${nombreCliente}', '', 0)">
+                    <i class="bi bi-cash-coin"></i> Liquidar
+                </button>`;
+            mostrarToast(`✅ ${nombreCliente} marcada en atención`, 'success');
+        } else {
+            mostrarToast('❌ ' + data.message, 'error');
+        }
+    } catch(e) { mostrarToast('❌ Error de conexión', 'error'); }
+}
+
+// ── Paso 4 y 5: Modal liquidar ──────────────────────────────────────────────
+function abrirModalLiquidar(idCita, cliente, servicio, saldo) {
+    citaActivaId          = idCita;
+    metodoSeleccionado    = null;
+    document.getElementById('mCliente').textContent  = cliente;
+    document.getElementById('mServicio').textContent = servicio || 'Ver detalle';
+    document.getElementById('mSaldo').textContent    = `$${saldo.toLocaleString('es-CO')} COP`;
+    // Limpiar selección previa
+    document.querySelectorAll('.metodo-btn').forEach(b => b.classList.remove('selected'));
+    document.getElementById('modalLiquidar').classList.add('open');
+}
+
+function cerrarModal() {
+    document.getElementById('modalLiquidar').classList.remove('open');
+    citaActivaId = null; metodoSeleccionado = null;
+}
+
+function seleccionarMetodo(el, metodo) {
+    document.querySelectorAll('.metodo-btn').forEach(b => b.classList.remove('selected'));
+    el.classList.add('selected');
+    metodoSeleccionado = metodo;
+}
+
+async function confirmarLiquidar() {
+    if (!citaActivaId) return;
+    if (!metodoSeleccionado) { mostrarToast('⚠️ Selecciona un método de pago', 'warning'); return; }
+
+    const form = new FormData();
+    form.append('metodo_pago', metodoSeleccionado);
+
+    try {
+        const res  = await fetch(`/admin/agenda-diaria/liquidar/${citaActivaId}`, {
+            method: 'POST', body: form
+        });
+        const data = await res.json();
+        if (data.success) {
+            cerrarModal();
+            // Actualizar UI
+            document.getElementById(`pill-${citaActivaId}`).className = 'estado-pill ep-completada';
+            document.getElementById(`pill-${citaActivaId}`).innerHTML = '✅ Completada';
+            document.getElementById(`footer-${citaActivaId}`).innerHTML =
+                '<span class="btn-disabled" style="text-align:center;">✅ Completada</span>';
+            // Actualizar saldo a $0
+            const saldoEl = document.getElementById(`saldo-${citaActivaId}`);
+            if (saldoEl) saldoEl.textContent = '$0';
+            mostrarToast(
+                `✅ Cobro de $${data.saldo_cobrado.toLocaleString('es-CO')} COP (${data.metodo_pago})`,
+                'success'
+            );
+        } else {
+            mostrarToast('❌ ' + data.message, 'error');
+        }
+    } catch(e) { mostrarToast('❌ Error de conexión', 'error'); }
+}
+
+// Cerrar modal al hacer clic fuera
+document.getElementById('modalLiquidar').addEventListener('click', function(e) {
+    if (e.target === this) cerrarModal();
+});
+
+// ── Toast ────────────────────────────────────────────────────────────────────
+function mostrarToast(msg, tipo = 'success') {
+    const t = document.getElementById('toastAgenda');
+    t.textContent = msg;
+    t.className   = `show ${tipo}`;
+    setTimeout(() => t.className = '', 3500);
+}
+
+// Auto-recarga cada 60 segundos para mantener la vista actualizada
+setTimeout(() => location.reload(), 60000);
+</script>
+{% endblock %}

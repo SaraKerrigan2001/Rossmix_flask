@@ -330,6 +330,17 @@
                 <span class="module-tag" style="background:#fef3c7;color:#d97706;border-color:#fde68a;">Requiere revisión</span>
             </div>
         </a>
+
+        <a href="{{ url_for('admin_agenda_diaria') }}" class="module-card" style="border-color:#bfdbfe;">
+            <div class="module-icon-wrap mi-blue" style="background:linear-gradient(135deg,#dbeafe,#bfdbfe);color:#2563eb;">
+                <i class="bi bi-calendar-week"></i>
+            </div>
+            <div class="module-body">
+                <h3>Agenda Diaria</h3>
+                <p>Vista operativa del día — marcar en atención y liquidar citas</p>
+                <span class="module-tag" style="background:#eff6ff;color:#2563eb;border-color:#bfdbfe;">Operaciones del día</span>
+            </div>
+        </a>
     </div>
 
     <!-- ACCESOS RÁPIDOS -->
@@ -356,6 +367,9 @@
             </a>
             <a href="{{ url_for('admin_pagos_confirmar') }}" class="quick-link" style="background:#fef3c7;color:#d97706;">
                 <i class="bi bi-clock-history"></i> Pagos por Confirmar
+            </a>
+            <a href="{{ url_for('admin_agenda_diaria') }}" class="quick-link" style="background:#eff6ff;color:#2563eb;">
+                <i class="bi bi-calendar-week"></i> Agenda Diaria
             </a>
         </div>
     </div>

@@ -2,7 +2,7 @@ from functools import wraps
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, send_file
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date, time
 from decimal import Decimal
 import random
 import string
@@ -196,6 +196,169 @@ class ReservaService:
                 "id_transaccion": self.id_transaccion,
             }
         }
+
+
+# ============================================================================
+# AGENDA DIARIA — SistemaAgendaDiaria, CitaDiaria, EstadoCitaOperativa
+# ============================================================================
+
+class EstadoCitaOperativa(Enum):
+    PROGRAMADA  = "Programada"
+    EN_ATENCION = "En atención"
+    COMPLETADA  = "Completada"
+    CANCELADA   = "Cancelada"
+
+
+class MetodoPagoSaldo(Enum):
+    EFECTIVO      = "Efectivo"
+    TRANSFERENCIA = "Transferencia"
+    NEQUI         = "Nequi"
+    DAVIPLATA     = "Daviplata"
+    TARJETA       = "Tarjeta"
+
+
+class InvalidOperationError(Exception):
+    """Error cuando se intenta una operación inválida sobre el estado de una cita."""
+    pass
+
+
+@dataclass
+class CitaDiaria:
+    """Representa una cita operativa del día con su ciclo de vida completo."""
+    id_cita:            str
+    cliente_nombre:     str
+    profesional_id:     str
+    profesional_nombre: str
+    servicio_nombre:    str
+    hora:               time
+    precio_total:       float
+    abono_previo:       float                    = 5000.0
+    estado:             EstadoCitaOperativa      = field(default_factory=lambda: EstadoCitaOperativa.PROGRAMADA)
+    metodo_pago_saldo:  Optional[MetodoPagoSaldo]= None
+    saldo_pagado:       float                    = 0.0
+
+    @property
+    def saldo_pendiente(self) -> float:
+        """Paso 4: Calcula saldo pendiente = Precio Total - Abono."""
+        return max(0.0, self.precio_total - self.abono_previo)
+
+
+class SistemaAgendaDiaria:
+    """
+    Módulo de gestión de agenda diaria y liquidación de citas.
+    Pasos:
+    1. Acceso a la vista Agenda Diaria
+    2. Visualización en cuadrícula filtrada por profesional
+    3. Marcar cita como 'En atención' cuando llega el cliente
+    4. Calcular saldo pendiente al finalizar el servicio
+    5. Registrar pago del saldo y marcar como 'Completada'
+    """
+
+    def __init__(self):
+        self._citas_db: List[CitaDiaria] = []
+
+    def cargar_desde_bd(self, citas_orm: list) -> None:
+        """Carga citas desde los objetos ORM de SQLAlchemy."""
+        self._citas_db = []
+        for c in citas_orm:
+            empleado  = c.empleado
+            servicio  = c.servicio
+            cliente   = c.cliente
+            self._citas_db.append(CitaDiaria(
+                id_cita            = str(c.id_cita),
+                cliente_nombre     = cliente.nombre   if cliente  else 'N/A',
+                profesional_id     = str(empleado.id_empleado) if empleado else '0',
+                profesional_nombre = empleado.nombre  if empleado else 'Sin asignar',
+                servicio_nombre    = servicio.nombre_servicio if servicio else 'N/A',
+                hora               = c.fecha_hora_inicio.time(),
+                precio_total       = float(c.monto_total or 0),
+                abono_previo       = float(c.monto_abono or 5000),
+                estado             = self._mapear_estado(c.estado),
+                saldo_pagado       = float(c.monto_total or 0) - float(c.saldo_pendiente or 0)
+                                     if c.estado == 'completada' else 0.0,
+            ))
+
+    @staticmethod
+    def _mapear_estado(estado_bd: str) -> EstadoCitaOperativa:
+        return {
+            'pendiente_pago': EstadoCitaOperativa.PROGRAMADA,
+            'confirmada':     EstadoCitaOperativa.PROGRAMADA,
+            'en_atencion':    EstadoCitaOperativa.EN_ATENCION,
+            'completada':     EstadoCitaOperativa.COMPLETADA,
+            'cancelada':      EstadoCitaOperativa.CANCELADA,
+            'no_asistio':     EstadoCitaOperativa.CANCELADA,
+        }.get(estado_bd, EstadoCitaOperativa.PROGRAMADA)
+
+    def obtener_cuadrilla_agenda_diaria(self, fecha_consulta: date) -> Dict[str, List[Dict]]:
+        """Pasos 1 y 2: Genera la cuadrícula diaria agrupada por profesional."""
+        logging.info(
+            f"[AGENDA DIARIA] Generando cuadrícula para el {fecha_consulta.strftime('%d/%m/%Y')}..."
+        )
+        cuadricula: Dict[str, List[Dict]] = {}
+        for cita in self._citas_db:
+            if cita.profesional_nombre not in cuadricula:
+                cuadricula[cita.profesional_nombre] = []
+            cuadricula[cita.profesional_nombre].append({
+                "id_cita":         cita.id_cita,
+                "hora":            cita.hora.strftime("%H:%M"),
+                "cliente":         cita.cliente_nombre,
+                "servicio":        cita.servicio_nombre,
+                "estado":          cita.estado.value,
+                "estado_key":      cita.estado.name,
+                "precio_total":    f"${cita.precio_total:,.0f}",
+                "abono":           f"${cita.abono_previo:,.0f}",
+                "saldo_pendiente": f"${cita.saldo_pendiente:,.0f}",
+                "saldo_num":       cita.saldo_pendiente,
+            })
+        return cuadricula
+
+    def marcar_en_atencion(self, id_cita: str) -> bool:
+        """Paso 3: El cliente llegó — cambia estado a 'En atención'."""
+        cita = self._buscar_cita(id_cita)
+        if not cita:
+            return False
+        if cita.estado != EstadoCitaOperativa.PROGRAMADA:
+            logging.warning(f"[AGENDA] Cita {id_cita} no está PROGRAMADA.")
+            return False
+        cita.estado = EstadoCitaOperativa.EN_ATENCION
+        logging.info(
+            f"[AGENDA] Paso 3: {cita.cliente_nombre} llegó. "
+            f"Cita {id_cita} → 'En atención'."
+        )
+        return True
+
+    def liquidar_y_completar_cita(self,
+                                   id_cita: str,
+                                   metodo_pago: MetodoPagoSaldo) -> Dict[str, float]:
+        """Pasos 4 y 5: Calcula saldo, registra pago y marca como 'Completada'."""
+        cita = self._buscar_cita(id_cita)
+        if not cita:
+            raise ValueError(f"Cita {id_cita} no encontrada.")
+        if cita.estado != EstadoCitaOperativa.EN_ATENCION:
+            raise InvalidOperationError(
+                "La cita debe estar 'En atención' para poder ser completada."
+            )
+        monto_a_cobrar     = cita.saldo_pendiente
+        cita.saldo_pagado  = monto_a_cobrar
+        cita.metodo_pago_saldo = metodo_pago
+        cita.estado        = EstadoCitaOperativa.COMPLETADA
+        logging.info(
+            f"[AGENDA] Pasos 4-5: Saldo ${monto_a_cobrar:,.0f} COP cobrado "
+            f"en [{metodo_pago.value}]. Cita {id_cita} → 'Completada'."
+        )
+        return {
+            "precio_total":  cita.precio_total,
+            "abono_previo":  cita.abono_previo,
+            "saldo_cobrado": monto_a_cobrar,
+            "metodo_pago":   metodo_pago.value
+        }
+
+    def _buscar_cita(self, id_cita: str) -> Optional[CitaDiaria]:
+        for c in self._citas_db:
+            if c.id_cita == id_cita:
+                return c
+        logging.error(f"[AGENDA] Cita {id_cita} no encontrada.")
+        return None
 
 
 # ============================================================================
@@ -2021,6 +2184,203 @@ def admin_aceptar_pago(id_cita):
         pass
 
     return jsonify({'success': True, 'message': 'Pago aceptado y cita confirmada'})
+
+
+# ============================================================================
+# RUTAS PANEL ADMIN — AGENDA DIARIA (SistemaAgendaDiaria)
+# ============================================================================
+
+@app.route('/admin/agenda-diaria')
+@app.route('/admin/agenda-diaria/<fecha_str>')
+@admin_required
+def admin_agenda_diaria(fecha_str: str = None):
+    """
+    Pasos 1 y 2: Vista de Agenda Diaria.
+    Carga citas del día desde PostgreSQL, construye SistemaAgendaDiaria
+    y devuelve la cuadrícula agrupada por profesional al template.
+    """
+    # Parsear fecha — por defecto hoy
+    try:
+        fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date() if fecha_str else date.today()
+    except ValueError:
+        fecha = date.today()
+
+    # Cargar citas del día desde la BD (incluyendo confirmadas y en_atencion)
+    from sqlalchemy import func
+    citas_orm = db.session.query(Cita)\
+        .filter(
+            func.date(Cita.fecha_hora_inicio) == fecha,
+            Cita.estado.in_(['pendiente_pago', 'confirmada', 'en_atencion', 'completada'])
+        )\
+        .order_by(Cita.fecha_hora_inicio).all()
+
+    # Construir sistema y cuadrícula usando SistemaAgendaDiaria
+    sistema = SistemaAgendaDiaria()
+    sistema.cargar_desde_bd(citas_orm)
+    cuadricula = sistema.obtener_cuadrilla_agenda_diaria(fecha)
+
+    logging.info(
+        f"[AGENDA DIARIA] Fecha: {fecha} | "
+        f"Citas: {len(citas_orm)} | "
+        f"Profesionales: {len(cuadricula)}"
+    )
+
+    # Estadísticas del día
+    stats_dia = {
+        'total':       len(citas_orm),
+        'programadas': sum(1 for c in citas_orm if c.estado in ['pendiente_pago', 'confirmada']),
+        'en_atencion': sum(1 for c in citas_orm if c.estado == 'en_atencion'),
+        'completadas': sum(1 for c in citas_orm if c.estado == 'completada'),
+        'ingresos':    sum(float(c.monto_total or 0) for c in citas_orm if c.estado == 'completada'),
+    }
+
+    # Días navegables (semana actual)
+    fecha_prev = (datetime.combine(fecha, time.min) - timedelta(days=1)).date()
+    fecha_next = (datetime.combine(fecha, time.min) + timedelta(days=1)).date()
+
+    metodos_pago = [m.value for m in MetodoPagoSaldo]
+
+    return render_template(
+        'admin/agenda_diaria.html',
+        cuadricula  = cuadricula,
+        fecha       = fecha,
+        fecha_prev  = fecha_prev,
+        fecha_next  = fecha_next,
+        stats_dia   = stats_dia,
+        metodos_pago= metodos_pago
+    )
+
+
+@app.route('/admin/agenda-diaria/en-atencion/<int:id_cita>', methods=['POST'])
+@admin_required
+def admin_marcar_en_atencion(id_cita: int):
+    """
+    Paso 3: El cliente llegó — cambia estado a 'en_atencion' en PostgreSQL.
+    Usa SistemaAgendaDiaria.marcar_en_atencion() para la lógica de negocio.
+    """
+    cita = Cita.query.get_or_404(id_cita)
+
+    # Validar con SistemaAgendaDiaria
+    sistema = SistemaAgendaDiaria()
+    sistema.cargar_desde_bd([cita])
+    resultado = sistema.marcar_en_atencion(str(id_cita))
+
+    if not resultado:
+        return jsonify({
+            'success': False,
+            'message': f'No se puede marcar en atención. Estado actual: {cita.estado}'
+        }), 400
+
+    # Persistir en PostgreSQL
+    cita.estado = 'en_atencion'
+    db.session.commit()
+
+    logging.info(
+        f"[AGENDA] Cita #{id_cita} → 'en_atencion' | "
+        f"Cliente: {cita.cliente.nombre if cita.cliente else 'N/A'}"
+    )
+
+    # Notificar al cliente
+    try:
+        add_notificacion(
+            cita.id_cliente,
+            '💅 ¡Tu turno ha comenzado!',
+            f'Tu servicio de {cita.servicio.nombre_servicio if cita.servicio else "belleza"} '
+            f'está en curso. ¡Disfrútalo!',
+            target=url_for('mis_citas')
+        )
+    except Exception:
+        pass
+
+    return jsonify({
+        'success': True,
+        'message': f'Cita #{id_cita} marcada como En Atención',
+        'estado':  'en_atencion'
+    })
+
+
+@app.route('/admin/agenda-diaria/liquidar/<int:id_cita>', methods=['POST'])
+@admin_required
+def admin_liquidar_cita(id_cita: int):
+    """
+    Pasos 4 y 5: Finaliza el servicio, cobra el saldo pendiente
+    y marca la cita como 'completada' usando SistemaAgendaDiaria.
+    """
+    cita         = Cita.query.get_or_404(id_cita)
+    metodo_str   = request.form.get('metodo_pago', 'Efectivo')
+
+    # Mapear string → MetodoPagoSaldo
+    metodo_map = {m.value: m for m in MetodoPagoSaldo}
+    metodo     = metodo_map.get(metodo_str, MetodoPagoSaldo.EFECTIVO)
+
+    # Validar y ejecutar con SistemaAgendaDiaria
+    sistema = SistemaAgendaDiaria()
+    sistema.cargar_desde_bd([cita])
+
+    try:
+        ticket = sistema.liquidar_y_completar_cita(str(id_cita), metodo)
+    except InvalidOperationError as e:
+        return jsonify({'success': False, 'message': str(e)}), 400
+    except ValueError as e:
+        return jsonify({'success': False, 'message': str(e)}), 404
+
+    # Persistir en PostgreSQL
+    saldo_cobrado       = Decimal(str(ticket['saldo_cobrado']))
+    cita.estado         = 'completada'
+    cita.monto_abono    = (cita.monto_abono or Decimal('0')) + saldo_cobrado
+    cita.saldo_pendiente= Decimal('0')
+    db.session.commit()
+
+    # Registrar pago en tabla Pago
+    try:
+        metodo_bd_map = {
+            'Efectivo':      'efectivo',
+            'Transferencia': 'transferencia',
+            'Nequi':         'nequi',
+            'Daviplata':     'daviplata',
+            'Tarjeta':       'tarjeta',
+        }
+        nuevo_pago = Pago(
+            id_cita     = id_cita,
+            monto       = saldo_cobrado,
+            metodo_pago = metodo_bd_map.get(metodo_str, 'efectivo'),
+            estado_pago = 'completado',
+            notas       = f'Saldo liquidado en recepción — {metodo_str}'
+        )
+        db.session.add(nuevo_pago)
+        db.session.commit()
+    except Exception as e:
+        logging.error(f"[AGENDA] Error al registrar pago: {e}")
+
+    # Notificar al cliente
+    try:
+        add_notificacion(
+            cita.id_cliente,
+            '✅ Servicio completado',
+            f'Tu servicio de {cita.servicio.nombre_servicio if cita.servicio else "belleza"} '
+            f'fue completado. Saldo cobrado: ${ticket["saldo_cobrado"]:,.0f} COP '
+            f'({ticket["metodo_pago"]}). ¡Gracias por visitarnos!',
+            target=url_for('mis_citas')
+        )
+    except Exception:
+        pass
+
+    logging.info(
+        f"[AGENDA] Cita #{id_cita} COMPLETADA | "
+        f"Total: ${ticket['precio_total']:,.0f} | "
+        f"Abono: ${ticket['abono_previo']:,.0f} | "
+        f"Saldo cobrado: ${ticket['saldo_cobrado']:,.0f} ({ticket['metodo_pago']})"
+    )
+
+    return jsonify({
+        'success':       True,
+        'message':       f'Cita #{id_cita} completada exitosamente',
+        'estado':        'completada',
+        'precio_total':  ticket['precio_total'],
+        'abono_previo':  ticket['abono_previo'],
+        'saldo_cobrado': ticket['saldo_cobrado'],
+        'metodo_pago':   ticket['metodo_pago']
+    })
 
 
 # ============================================================================
