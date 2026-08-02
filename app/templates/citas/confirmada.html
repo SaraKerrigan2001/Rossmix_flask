@@ -260,6 +260,12 @@
 
     <!-- Botones de acción -->
     <div class="action-buttons">
+        {% if cita.token_gestion %}
+        <a href="{{ url_for('gestionar_cita', token=cita.token_gestion) }}"
+           class="btn-download" style="background:linear-gradient(135deg,#2563eb,#3b82f6);">
+            <i class="bi bi-calendar-event"></i> Gestionar / Reprogramar
+        </a>
+        {% endif %}
         <a href="{{ url_for('descargar_cita_pdf', id_cita=cita.id_cita) }}"
            class="btn-download" id="btnDescargar">
             <i class="bi bi-file-earmark-pdf-fill"></i> Descargar Comprobante PDF

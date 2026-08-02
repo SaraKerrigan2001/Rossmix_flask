@@ -10,6 +10,7 @@ import io
 import openpyxl
 import logging
 import uuid
+import secrets
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Optional, Dict, Any
@@ -362,6 +363,223 @@ class SistemaAgendaDiaria:
 
 
 # ============================================================================
+# GESTIÓN Y REPROGRAMACIÓN DE CITAS — SistemaGestionCitas
+# ============================================================================
+
+class ReprogramacionError(Exception):
+    """Excepción para errores en el flujo de reprogramación."""
+    pass
+
+
+class ServicioNotificaciones:
+    """
+    Simula el envío de actualizaciones al cliente
+    vía Email y WhatsApp (integrar con API real en producción).
+    """
+
+    @staticmethod
+    def enviar_confirmacion_reprogramacion(
+        nombre:              str,
+        telefono:            str,
+        email:               str,
+        nueva_fecha:         datetime,
+        profesional_nombre:  str,
+        abono:               float
+    ) -> None:
+        mensaje = (
+            f"Hola {nombre}, tu cita ha sido reprogramada con éxito.\n"
+            f"Nueva Fecha/Hora: {nueva_fecha.strftime('%d/%m/%Y a las %H:%M')}\n"
+            f"Profesional: {profesional_nombre}\n"
+            f"Se conserva tu abono de: ${abono:,.0f} COP."
+        )
+        # Log simulando WhatsApp — reemplazar por API de WhatsApp Business en producción
+        logging.info(
+            f"[NOTIFICACIÓN WHATSAPP] → {telefono}: {mensaje}"
+        )
+        logging.info(
+            f"[NOTIFICACIÓN EMAIL]    → {email}: {mensaje}"
+        )
+
+
+class SistemaGestionCitas:
+    """
+    Módulo central para gestión y reprogramación de citas.
+    Flujo de 6 pasos:
+    1. Cliente accede a 'Gestionar Cita' desde el link de su token
+    2. Selecciona la opción 'Reprogramar Cita'
+    3. Sistema evalúa política de tiempo (>= 2 horas de anticipación)
+    4. Despliega calendario con disponibilidad del profesional
+    5. Cliente selecciona nueva fecha/hora (y opcionalmente nuevo profesional)
+    6. Sistema actualiza la cita, mantiene abono y notifica al cliente
+    """
+    HORAS_MINIMAS_REPROGRAMACION = 2
+    ABONO_COP                    = 5000.0
+
+    @staticmethod
+    def acceder_a_gestion(token: str, cita_orm) -> dict:
+        """Paso 1: Valida el token y retorna los datos de la cita."""
+        if not cita_orm:
+            raise ReprogramacionError("Enlace de gestión inválido o expirado.")
+        logging.info(
+            f"[REPROGRAMACIÓN] Paso 1: Cliente "
+            f"'{cita_orm.cliente.nombre if cita_orm.cliente else 'N/A'}' "
+            f"accedió a Gestionar Cita (token: {token[:8]}...)."
+        )
+        return {
+            "id_cita":       cita_orm.id_cita,
+            "estado":        cita_orm.estado,
+            "fecha_hora":    cita_orm.fecha_hora_inicio,
+            "profesional":   cita_orm.empleado.nombre if cita_orm.empleado else 'Sin asignar',
+            "servicio":      cita_orm.servicio.nombre_servicio if cita_orm.servicio else 'N/A',
+            "abono":         float(cita_orm.monto_abono or SistemaGestionCitas.ABONO_COP),
+            "token":         token,
+        }
+
+    @staticmethod
+    def validar_politica_reprogramacion(cita_orm,
+                                        hora_actual: Optional[datetime] = None) -> bool:
+        """Pasos 2 y 3: Valida que falten >= 2 horas para la cita."""
+        logging.info(
+            f"[REPROGRAMACIÓN] Paso 2: Cliente seleccionó 'Reprogramar Cita'."
+        )
+        if hora_actual is None:
+            hora_actual = datetime.now()
+
+        tiempo_restante = cita_orm.fecha_hora_inicio - hora_actual
+        horas_restantes = tiempo_restante.total_seconds() / 3600
+
+        if horas_restantes < SistemaGestionCitas.HORAS_MINIMAS_REPROGRAMACION:
+            logging.error(
+                f"[REPROGRAMACIÓN] Paso 3 [DENEGADO]: {horas_restantes:.2f} hrs restantes. "
+                f"Se requieren >= {SistemaGestionCitas.HORAS_MINIMAS_REPROGRAMACION} hrs."
+            )
+            raise ReprogramacionError(
+                f"No es posible reprogramar con menos de "
+                f"{SistemaGestionCitas.HORAS_MINIMAS_REPROGRAMACION} horas de anticipación. "
+                f"Tiempo restante: {horas_restantes:.1f} hrs."
+            )
+
+        logging.info(
+            f"[REPROGRAMACIÓN] Paso 3 [APROBADO]: "
+            f"{horas_restantes:.2f} hrs restantes — cumple política de tiempo."
+        )
+        return True
+
+    @staticmethod
+    def obtener_agenda_disponible(id_servicio: int,
+                                  id_empleado_actual: Optional[int],
+                                  fecha_desde: Optional[datetime] = None) -> dict:
+        """
+        Paso 4: Construye el mapa de disponibilidad de empleados
+        para el servicio dado a partir de hoy + 2 horas.
+        Retorna {empleado_nombre: [slots de datetime disponibles]}
+        """
+        from sqlalchemy import func as sqlfunc
+        if fecha_desde is None:
+            fecha_desde = datetime.now() + timedelta(
+                hours=SistemaGestionCitas.HORAS_MINIMAS_REPROGRAMACION
+            )
+
+        logging.info(
+            f"[REPROGRAMACIÓN] Paso 4: Desplegando disponibilidad "
+            f"desde {fecha_desde.strftime('%d/%m/%Y %H:%M')}..."
+        )
+        # Obtener empleados que realizan este servicio
+        from app import db, EmpleadoServicio, Empleado, HorarioEmpleado, Cita as CitaModel
+        empleados_ids = db.session.query(EmpleadoServicio.id_empleado)\
+            .filter_by(id_servicio=id_servicio).all()
+        empleados_ids = [e[0] for e in empleados_ids]
+
+        disponibilidad = {}
+        for emp_id in empleados_ids:
+            empleado = Empleado.query.get(emp_id)
+            if not empleado or not empleado.activo:
+                continue
+            # Horarios de los próximos 7 días
+            slots = []
+            for dias_offset in range(0, 8):
+                dia = (fecha_desde + timedelta(days=dias_offset)).date()
+                dia_semana = (dia.weekday() + 1) % 7  # 0=Domingo
+                horario = HorarioEmpleado.query.filter_by(
+                    id_empleado=emp_id, dia_semana=dia_semana
+                ).first()
+                if not horario:
+                    continue
+                slot = datetime.combine(dia, horario.hora_inicio)
+                fin  = datetime.combine(dia, horario.hora_fin)
+                while slot < fin:
+                    if slot >= fecha_desde:
+                        # Verificar si el slot está libre
+                        ocupado = CitaModel.query.filter(
+                            CitaModel.id_empleado == emp_id,
+                            CitaModel.fecha_hora_inicio <= slot,
+                            CitaModel.fecha_hora_fin    >  slot,
+                            CitaModel.estado.in_(['pendiente_pago','confirmada','en_atencion'])
+                        ).first()
+                        if not ocupado:
+                            slots.append(slot)
+                    slot += timedelta(minutes=30)
+            if slots:
+                disponibilidad[emp_id] = {
+                    "nombre": empleado.nombre,
+                    "actual": emp_id == id_empleado_actual,
+                    "slots":  [s.strftime('%Y-%m-%d %H:%M') for s in slots[:20]]
+                }
+        return disponibilidad
+
+    @staticmethod
+    def ejecutar_reprogramacion(cita_orm,
+                                nueva_fecha_hora: datetime,
+                                nuevo_id_empleado: Optional[int] = None) -> dict:
+        """
+        Pasos 5 y 6: Actualiza la cita en BD,
+        mantiene el abono y notifica al cliente.
+        """
+        profesional_id  = nuevo_id_empleado or cita_orm.id_empleado
+        empleado        = Empleado.query.get(profesional_id) if profesional_id else None
+        fecha_fin       = nueva_fecha_hora + timedelta(
+            minutes=cita_orm.servicio.duracion_minutos if cita_orm.servicio else 60
+        )
+
+        # Actualizar cita
+        cita_orm.fecha_hora_inicio = nueva_fecha_hora
+        cita_orm.fecha_hora_fin    = fecha_fin
+        cita_orm.id_empleado       = profesional_id
+        cita_orm.estado            = 'confirmada'   # Reprogramada → vuelve a confirmada
+
+        from app import db
+        db.session.commit()
+
+        profesional_nombre = empleado.nombre if empleado else 'Sin asignar'
+        abono              = float(cita_orm.monto_abono or SistemaGestionCitas.ABONO_COP)
+
+        logging.info(
+            f"[REPROGRAMACIÓN] Paso 6: Cita #{cita_orm.id_cita} reprogramada → "
+            f"{nueva_fecha_hora.strftime('%d/%m/%Y %H:%M')} "
+            f"con {profesional_nombre}. Abono ${abono:,.0f} COP mantenido."
+        )
+
+        # Notificar al cliente (Email + WhatsApp)
+        if cita_orm.cliente:
+            ServicioNotificaciones.enviar_confirmacion_reprogramacion(
+                nombre             = cita_orm.cliente.nombre,
+                telefono           = cita_orm.cliente.telefono,
+                email              = cita_orm.cliente.email,
+                nueva_fecha        = nueva_fecha_hora,
+                profesional_nombre = profesional_nombre,
+                abono              = abono
+            )
+
+        return {
+            "id_cita":            cita_orm.id_cita,
+            "nueva_fecha":        nueva_fecha_hora.strftime('%d/%m/%Y a las %H:%M'),
+            "profesional":        profesional_nombre,
+            "abono_mantenido":    abono,
+            "codigo_reserva":     cita_orm.codigo_reserva,
+        }
+
+
+# ============================================================================
 # MODELOS DE LA BASE DE DATOS CON RELACIONES
 # ============================================================================
 
@@ -475,9 +693,10 @@ class Cita(db.Model):
         nullable=False,
         default='pendiente_pago',
     )
-    reembolsado = db.Column(db.Boolean, default=False)
+    reembolsado    = db.Column(db.Boolean, default=False)
     codigo_reserva = db.Column(db.String(10), unique=True)
-    notas = db.Column(db.Text)
+    token_gestion  = db.Column(db.String(32), unique=True, nullable=True)  # Token para link de gestión
+    notas          = db.Column(db.Text)
     fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Relación con pagos (una cita tiene máximo un pago)
@@ -1100,6 +1319,9 @@ def confirmar_cita():
             f"Estado: {comprobante['estado']}"
         )
 
+        # Generar token de gestión seguro (para link de reprogramación)
+        token_gestion = secrets.token_urlsafe(16)
+
         # Crear la cita en PostgreSQL con el código del ReservaService
         nueva_cita = Cita(
             id_cliente        = session['usuario_id'],
@@ -1112,7 +1334,8 @@ def confirmar_cita():
             saldo_pendiente   = Decimal(str(servicio.precio_total)) - Decimal(str(ReservaService.ABONO_REQUERIDO)),
             estado            = 'pendiente_pago',
             reembolsado       = False,
-            codigo_reserva    = reserva.id_reserva,   # Usa el ID del ReservaService
+            codigo_reserva    = reserva.id_reserva,
+            token_gestion     = token_gestion,
             notas             = f"TRX: {id_transaccion} | Comprobante: {comprobante['comprobante_id']}",
             fecha_creacion    = datetime.now()
         )
@@ -1122,17 +1345,19 @@ def confirmar_cita():
 
         logging.info(
             f"[BD] Cita #{nueva_cita.id_cita} creada en PostgreSQL — "
-            f"Reserva: {reserva.id_reserva} — Estado: {reserva.estado.value}"
+            f"Reserva: {reserva.id_reserva} — Token gestión generado ✓"
         )
 
-        # Notificar al cliente
+        # Notificar al cliente con el link de gestión
         try:
+            link_gestion = url_for('gestionar_cita', token=token_gestion, _external=True)
             add_notificacion(
                 session['usuario_id'],
                 '📅 Cita agendada exitosamente',
                 f'Tu cita de {servicio.nombre_servicio} para el '
                 f'{fecha_hora_inicio.strftime("%d/%m/%Y a las %H:%M")} '
-                f'fue registrada. Código: {reserva.id_reserva}.',
+                f'fue registrada. Código: {reserva.id_reserva}. '
+                f'Gestiona tu cita en: {link_gestion}',
                 target=url_for('mis_citas')
             )
         except Exception:
@@ -2184,6 +2409,160 @@ def admin_aceptar_pago(id_cita):
         pass
 
     return jsonify({'success': True, 'message': 'Pago aceptado y cita confirmada'})
+
+
+# ============================================================================
+# RUTAS — GESTIÓN Y REPROGRAMACIÓN DE CITAS (SistemaGestionCitas)
+# ============================================================================
+
+@app.route('/citas/gestionar/<token>')
+def gestionar_cita(token: str):
+    """
+    Paso 1: Cliente accede desde el link de gestión recibido por WhatsApp/email.
+    Muestra las opciones: Reprogramar o Cancelar.
+    """
+    cita = Cita.query.filter_by(token_gestion=token).first()
+    if not cita:
+        flash('Enlace de gestión inválido o expirado.', 'error')
+        return redirect(url_for('index'))
+
+    try:
+        datos = SistemaGestionCitas.acceder_a_gestion(token, cita)
+    except ReprogramacionError as e:
+        flash(str(e), 'error')
+        return redirect(url_for('index'))
+
+    servicio = Servicio.query.get(cita.id_servicio)
+    empleado = Empleado.query.get(cita.id_empleado) if cita.id_empleado else None
+
+    return render_template(
+        'citas/gestionar_cita.html',
+        cita     = cita,
+        datos    = datos,
+        servicio = servicio,
+        empleado = empleado,
+        token    = token
+    )
+
+
+@app.route('/citas/reprogramar/<token>')
+def reprogramar_cita_form(token: str):
+    """
+    Pasos 2, 3 y 4: Valida la política de reprogramación
+    y muestra el calendario de disponibilidad.
+    """
+    cita = Cita.query.filter_by(token_gestion=token).first()
+    if not cita:
+        flash('Enlace inválido o expirado.', 'error')
+        return redirect(url_for('index'))
+
+    # Paso 2 y 3: Validar política de tiempo
+    try:
+        SistemaGestionCitas.validar_politica_reprogramacion(cita)
+    except ReprogramacionError as e:
+        flash(str(e), 'error')
+        return redirect(url_for('gestionar_cita', token=token))
+
+    # Paso 4: Obtener disponibilidad
+    disponibilidad = SistemaGestionCitas.obtener_agenda_disponible(
+        id_servicio         = cita.id_servicio,
+        id_empleado_actual  = cita.id_empleado
+    )
+
+    servicio = Servicio.query.get(cita.id_servicio)
+
+    return render_template(
+        'citas/reprogramar.html',
+        cita           = cita,
+        servicio       = servicio,
+        disponibilidad = disponibilidad,
+        token          = token
+    )
+
+
+@app.route('/citas/reprogramar/<token>/confirmar', methods=['POST'])
+def reprogramar_cita_confirmar(token: str):
+    """
+    Pasos 5 y 6: Ejecuta la reprogramación, mantiene el abono
+    y notifica al cliente.
+    """
+    cita = Cita.query.filter_by(token_gestion=token).first()
+    if not cita:
+        return jsonify({'success': False, 'message': 'Enlace inválido'}), 404
+
+    nueva_fecha_str  = request.form.get('nueva_fecha')
+    nuevo_empleado   = request.form.get('id_empleado', type=int)
+
+    if not nueva_fecha_str:
+        return jsonify({'success': False, 'message': 'Fecha no proporcionada'}), 400
+
+    try:
+        nueva_fecha = datetime.strptime(nueva_fecha_str, '%Y-%m-%d %H:%M')
+    except ValueError:
+        return jsonify({'success': False, 'message': 'Formato de fecha inválido'}), 400
+
+    # Validar política antes de ejecutar
+    try:
+        SistemaGestionCitas.validar_politica_reprogramacion(cita)
+    except ReprogramacionError as e:
+        return jsonify({'success': False, 'message': str(e)}), 400
+
+    # Pasos 5 y 6: Ejecutar reprogramación
+    try:
+        resultado = SistemaGestionCitas.ejecutar_reprogramacion(
+            cita_orm          = cita,
+            nueva_fecha_hora  = nueva_fecha,
+            nuevo_id_empleado = nuevo_empleado
+        )
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"[REPROGRAMACIÓN] Error: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+    # Notificar al admin
+    try:
+        admins = Usuario.query.filter_by(tipo_usuario='admin').all()
+        for a in admins:
+            add_notificacion(
+                a.id,
+                f'🔄 Cita #{cita.id_cita} reprogramada',
+                f'Cliente: {cita.cliente.nombre if cita.cliente else "N/A"} | '
+                f'Nueva fecha: {resultado["nueva_fecha"]} | '
+                f'Profesional: {resultado["profesional"]}',
+                target=url_for('admin_citas')
+            )
+    except Exception:
+        pass
+
+    # Notificación interna al cliente
+    try:
+        add_notificacion(
+            cita.id_cliente,
+            '🔄 Cita reprogramada con éxito',
+            f'Tu cita fue reprogramada para el {resultado["nueva_fecha"]} '
+            f'con {resultado["profesional"]}. '
+            f'Abono de ${resultado["abono_mantenido"]:,.0f} COP conservado.',
+            target=url_for('mis_citas')
+        )
+    except Exception:
+        pass
+
+    return jsonify({
+        'success':  True,
+        'message':  '¡Cita reprogramada exitosamente!',
+        'resultado': resultado
+    })
+
+
+@app.route('/citas/disponibilidad/<int:id_servicio>')
+def api_disponibilidad(id_servicio: int):
+    """API: Retorna slots disponibles para un servicio dado."""
+    id_empleado = request.args.get('id_empleado', type=int)
+    disponibilidad = SistemaGestionCitas.obtener_agenda_disponible(
+        id_servicio        = id_servicio,
+        id_empleado_actual = id_empleado
+    )
+    return jsonify(disponibilidad)
 
 
 # ============================================================================

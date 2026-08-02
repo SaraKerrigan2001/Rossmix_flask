@@ -419,6 +419,12 @@
                         <a href="{{ url_for('cita_confirmada', codigo=cita.codigo_reserva) }}" class="btn btn-ver">
                             👁️ Ver Detalles
                         </a>
+                        {% if cita.token_gestion %}
+                        <a href="{{ url_for('gestionar_cita', token=cita.token_gestion) }}"
+                           class="btn" style="background:linear-gradient(135deg,#2563eb,#3b82f6);color:white;">
+                            🔄 Gestionar / Reprogramar
+                        </a>
+                        {% endif %}
                         <a href="{{ url_for('descargar_cita_pdf', id_cita=cita.id_cita) }}" class="btn" style="background:linear-gradient(135deg,#c41e3a,#ff1493);color:white;">
                             📄 Descargar PDF
                         </a>
