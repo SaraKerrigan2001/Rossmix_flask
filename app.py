@@ -343,6 +343,7 @@ def login():
 
             session['usuario_id'] = usuario.id
             session['nombre'] = usuario.nombre
+            session['email'] = usuario.email
             session['tipo_usuario'] = usuario.tipo_usuario
             flash(f'¡Bienvenido/a {usuario.nombre}!', 'success')
 

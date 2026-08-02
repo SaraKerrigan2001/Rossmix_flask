@@ -63,15 +63,81 @@
             transition: all 0.2s;
         }
         nav ul li a:hover { background: #fff0f6; color: #c41e3a; }
-        .nav-user-badge {
-            background: linear-gradient(135deg, #fff0f6, #ffe5f3);
-            color: #c41e3a;
-            font-weight: 600;
-            font-size: 0.88rem;
-            padding: 0.45rem 1.1rem;
-            border-radius: 25px;
-            border: 1.5px solid #ffb3d1;
+        /* ── PERFIL DROPDOWN ────────────────────────────────── */
+        .profile-dropdown-wrap {
+            position: relative;
         }
+        .profile-btn {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            background: linear-gradient(135deg, #fff0f6, #ffe5f3);
+            color: #c41e3a; border: 1.5px solid #ffb3d1;
+            font-weight: 600; font-size: 0.88rem;
+            padding: 0.45rem 1.1rem; border-radius: 25px;
+            cursor: pointer; text-decoration: none;
+            transition: all 0.2s;
+        }
+        .profile-btn:hover { background: #ffe0ef; color: #c41e3a; }
+        .profile-btn .avatar {
+            width: 28px; height: 28px; border-radius: 50%;
+            background: linear-gradient(135deg, #c41e3a, #ff1493);
+            color: white; display: flex; align-items: center;
+            justify-content: center; font-size: 0.78rem; font-weight: 700;
+            flex-shrink: 0;
+        }
+        .profile-menu {
+            display: none;
+            position: absolute; right: 0; top: 46px;
+            width: 280px; background: white;
+            border-radius: 14px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.13);
+            border: 1.5px solid #f0e8ff;
+            z-index: 2000; overflow: hidden;
+            animation: fadeInDown 0.2s ease;
+        }
+        .profile-menu.open { display: block; }
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .profile-menu-header {
+            background: linear-gradient(135deg, #fff0f6, #ffe5f3);
+            padding: 1.2rem 1.4rem;
+            border-bottom: 1.5px solid #ffd6e8;
+        }
+        .profile-menu-header .pm-avatar {
+            width: 48px; height: 48px; border-radius: 50%;
+            background: linear-gradient(135deg, #c41e3a, #ff1493);
+            color: white; display: flex; align-items: center;
+            justify-content: center; font-size: 1.3rem; font-weight: 700;
+            margin-bottom: 0.6rem;
+        }
+        .profile-menu-header .pm-name {
+            font-weight: 700; font-size: 1rem; color: #1a1a1a;
+        }
+        .profile-menu-header .pm-email {
+            font-size: 0.8rem; color: #888; margin-top: 0.1rem;
+        }
+        .profile-menu-header .pm-badge {
+            display: inline-block; margin-top: 0.4rem;
+            background: #c41e3a; color: white;
+            font-size: 0.72rem; font-weight: 700;
+            padding: 0.15rem 0.6rem; border-radius: 10px;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .profile-menu-body { padding: 0.5rem 0; }
+        .pm-item {
+            display: flex; align-items: center; gap: 0.7rem;
+            padding: 0.7rem 1.4rem; font-size: 0.9rem;
+            color: #444; text-decoration: none;
+            transition: background 0.15s;
+        }
+        .pm-item:hover { background: #fff0f6; color: #c41e3a; }
+        .pm-item i { font-size: 1rem; width: 18px; }
+        .pm-divider {
+            height: 1px; background: #f5f5f5; margin: 0.3rem 0;
+        }
+        .pm-item.danger { color: #dc2626; }
+        .pm-item.danger:hover { background: #fff1f2; }
         .nav-btn-logout {
             background: #fff0f6;
             color: #c41e3a;
@@ -334,7 +400,62 @@
         <a href="{{ url_for('index') }}" class="logo">Rossmix</a>
         <ul>
             {% if session.usuario_id %}
-                <li><span class="nav-user-badge"><i class="bi bi-person-circle"></i> {{ session.nombre|title }}</span></li>
+                <!-- Perfil con dropdown -->
+                <li class="profile-dropdown-wrap">
+                    <a href="#" class="profile-btn" id="profileBtn">
+                        <span class="avatar">{{ session.nombre[0]|upper }}</span>
+                        {{ session.nombre|title }}
+                        <i class="bi bi-chevron-down" style="font-size:0.7rem;"></i>
+                    </a>
+                    <div class="profile-menu" id="profileMenu">
+                        <!-- Header con datos del usuario -->
+                        <div class="profile-menu-header">
+                            <div class="pm-avatar">{{ session.nombre[0]|upper }}</div>
+                            <div class="pm-name">{{ session.nombre|title }}</div>
+                            <div class="pm-email">{{ session.get('email', '') }}</div>
+                            <span class="pm-badge">
+                                {% if session.tipo_usuario == 'admin' %}Administrador{% else %}Cliente{% endif %}
+                            </span>
+                        </div>
+                        <!-- Links del menú -->
+                        <div class="profile-menu-body">
+                            {% if session.tipo_usuario == 'admin' %}
+                                <a href="{{ url_for('dashboard_admin') }}" class="pm-item">
+                                    <i class="bi bi-grid"></i> Panel Admin
+                                </a>
+                                <a href="{{ url_for('admin_citas') }}" class="pm-item">
+                                    <i class="bi bi-calendar3"></i> Gestión de Citas
+                                </a>
+                                <a href="{{ url_for('admin_clientes') }}" class="pm-item">
+                                    <i class="bi bi-people"></i> Clientes
+                                </a>
+                                <a href="{{ url_for('admin_pagos_confirmar') }}" class="pm-item">
+                                    <i class="bi bi-clock-history"></i> Pagos por Confirmar
+                                </a>
+                            {% else %}
+                                <a href="{{ url_for('dashboard_cliente') }}" class="pm-item">
+                                    <i class="bi bi-house"></i> Mi Panel
+                                </a>
+                                <a href="{{ url_for('mis_citas') }}" class="pm-item">
+                                    <i class="bi bi-calendar3"></i> Mis Citas
+                                </a>
+                                <a href="{{ url_for('agendar_paso1') }}" class="pm-item">
+                                    <i class="bi bi-plus-circle"></i> Agendar Cita
+                                </a>
+                                <a href="{{ url_for('notificaciones') }}" class="pm-item">
+                                    <i class="bi bi-bell"></i> Notificaciones
+                                    {% if notificaciones_unread and notificaciones_unread > 0 %}
+                                        <span style="background:#dc2626;color:white;padding:0.1rem 0.5rem;border-radius:10px;font-size:0.72rem;font-weight:700;margin-left:auto;">{{ notificaciones_unread }}</span>
+                                    {% endif %}
+                                </a>
+                            {% endif %}
+                            <div class="pm-divider"></div>
+                            <a href="{{ url_for('logout') }}" class="pm-item danger">
+                                <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
+                            </a>
+                        </div>
+                    </div>
+                </li>
                 <li style="position:relative;">
                     <a href="#" id="btnNotifs" title="Notificaciones" style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.4rem 0.8rem;border-radius:8px;color:#555;text-decoration:none;">
                         <i class="bi bi-bell" style="font-size:1.05rem;"></i>
@@ -367,18 +488,14 @@
                     </div>
                 </li>
                 {% if session.tipo_usuario == 'admin' %}
-                    <li><a href="{{ url_for('dashboard_admin') }}"><i class="bi bi-grid"></i> Panel Admin</a></li>
                     <li>
                         <a href="{{ url_for('admin_pagos_confirmar') }}" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.45rem 1rem;border-radius:8px;background:#fef3c7;color:#d97706;font-weight:600;font-size:0.9rem;text-decoration:none;">
                             <i class="bi bi-clock-history"></i> Pagos por Confirmar
                         </a>
                     </li>
                 {% else %}
-                    <li><a href="{{ url_for('dashboard_cliente') }}"><i class="bi bi-house"></i> Mi Panel</a></li>
-                    <li><a href="{{ url_for('mis_citas') }}"><i class="bi bi-calendar3"></i> Mis Citas</a></li>
-                    <li><a href="{{ url_for('agendar_paso1') }}"><i class="bi bi-plus-circle"></i> Agendar</a></li>
+                    <li><a href="{{ url_for('agendar_paso1') }}" style="background:linear-gradient(135deg,#c41e3a,#ff1493);color:white;padding:0.5rem 1.2rem;border-radius:8px;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:0.4rem;"><i class="bi bi-plus-circle"></i> Agendar</a></li>
                 {% endif %}
-                <li><a href="{{ url_for('logout') }}" class="nav-btn-logout"><i class="bi bi-box-arrow-right"></i> Cerrar Sesión</a></li>
             {% else %}
                 <li><a href="{{ url_for('index') }}">Inicio</a></li>
                 <li><a href="{{ url_for('login') }}">Iniciar Sesión</a></li>
@@ -501,8 +618,23 @@ const IG_SVG = `<path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.6
     }, 4500);
 </script>
 <script>
-    // Toggle notificaciones dropdown
+    // Toggle dropdown de perfil
     document.addEventListener('DOMContentLoaded', function(){
+        const profileBtn  = document.getElementById('profileBtn');
+        const profileMenu = document.getElementById('profileMenu');
+        if (profileBtn && profileMenu) {
+            profileBtn.addEventListener('click', function(e){
+                e.preventDefault();
+                profileMenu.classList.toggle('open');
+            });
+            document.addEventListener('click', function(e){
+                if (!profileBtn.contains(e.target) && !profileMenu.contains(e.target)) {
+                    profileMenu.classList.remove('open');
+                }
+            });
+        }
+    });
+</script>
         const btn = document.getElementById('btnNotifs');
         const dd = document.getElementById('notifsDropdown');
         if (btn && dd) {
