@@ -1,6 +1,7 @@
 """
 Application Factory de Rossmix Flask.
 """
+import os
 from flask import Flask
 from werkzeug.security import generate_password_hash
 from app.config import Config
@@ -83,21 +84,33 @@ def create_app(config_class=Config):
     # Crear tablas y usuario administrador por defecto si no existen
     with app.app_context():
         db.create_all()
-        
+
         # Importación tardía para evitar ciclos
         from app.models.usuario import Usuario
-        
-        admin = Usuario.query.filter_by(email='admin@rossmix.com').first()
+
+        admin_email    = os.environ.get('ADMIN_EMAIL',    'admin@rossmix.com')
+        admin_password = os.environ.get('ADMIN_PASSWORD')
+
+        admin = Usuario.query.filter_by(email=admin_email).first()
         if not admin:
-            admin = Usuario(
-                nombre='Administrador',
-                email='admin@rossmix.com',
-                telefono='3000000000',
-                password=generate_password_hash('admin123'),
-                tipo_usuario='admin'
-            )
-            db.session.add(admin)
-            db.session.commit()
-            print('Usuario administrador creado por defecto: admin@rossmix.com / admin123')
+            if not admin_password:
+                # No se creó ADMIN_PASSWORD: no generamos un admin con
+                # contraseña predecible. Definir ADMIN_PASSWORD en el .env
+                # para que el administrador por defecto se cree.
+                print(
+                    'Aviso: no se creó el usuario administrador por defecto '
+                    'porque falta la variable de entorno ADMIN_PASSWORD.'
+                )
+            else:
+                admin = Usuario(
+                    nombre='Administrador',
+                    email=admin_email,
+                    telefono='3000000000',
+                    password=generate_password_hash(admin_password),
+                    tipo_usuario='admin'
+                )
+                db.session.add(admin)
+                db.session.commit()
+                print(f'Usuario administrador creado por defecto: {admin_email}')
 
     return app

@@ -11,9 +11,14 @@ import openpyxl
 import logging
 import uuid
 import secrets
+import os
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Optional, Dict, Any
+from dotenv import load_dotenv
+
+# Cargar variables de entorno desde .env (desarrollo local)
+load_dotenv()
 
 # Configuración de logs profesional
 logging.basicConfig(
@@ -35,10 +40,17 @@ app = Flask(
     template_folder=os.path.join(os.path.dirname(__file__), 'app', 'templates'),
     static_folder=os.path.join(os.path.dirname(__file__), 'app', 'static')
 )
-app.config['SECRET_KEY'] = 'tu_clave_secreta_aqui_cambiar_en_produccion'
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY') or os.urandom(32).hex()
 
-# Configuración de PostgreSQL - Base de datos Rossmix
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg://postgres:1234@localhost:5432/Rossmix'
+# Configuración de PostgreSQL — leída desde variables de entorno / .env
+_db_url = os.environ.get('DATABASE_URL') or (
+    f"postgresql+psycopg://{os.environ.get('DB_USER','postgres')}:"
+    f"{os.environ.get('DB_PASSWORD','1234')}@"
+    f"{os.environ.get('DB_HOST','localhost')}:"
+    f"{os.environ.get('DB_PORT','5432')}/"
+    f"{os.environ.get('DB_NAME','Rossmix')}"
+)
+app.config['SQLALCHEMY_DATABASE_URI'] = _db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -757,18 +769,23 @@ class Notificacion(db.Model):
 with app.app_context():
     db.create_all()
     # Crear usuario administrador por defecto si no existe
-    admin = Usuario.query.filter_by(email='admin@rossmix.com').first()
+    _admin_email = os.environ.get('ADMIN_EMAIL', 'admin@rossmix.com')
+    _admin_pwd   = os.environ.get('ADMIN_PASSWORD')
+    admin = Usuario.query.filter_by(email=_admin_email).first()
     if not admin:
-        admin = Usuario(
-            nombre='Administrador',
-            email='admin@rossmix.com',
-            telefono='3000000000',
-            password=generate_password_hash('admin123'),
-            tipo_usuario='admin'
-        )
-        db.session.add(admin)
-        db.session.commit()
-        print('Usuario administrador creado: admin@rossmix.com / admin123')
+        if not _admin_pwd:
+            print('Aviso: no se creó admin por defecto — define ADMIN_PASSWORD en .env')
+        else:
+            admin = Usuario(
+                nombre='Administrador',
+                email=_admin_email,
+                telefono='3000000000',
+                password=generate_password_hash(_admin_pwd),
+                tipo_usuario='admin'
+            )
+            db.session.add(admin)
+            db.session.commit()
+            print(f'Usuario administrador creado: {_admin_email}')
 
 # ============================================================================
 # DECORADOR PARA RUTAS DE ADMINISTRADOR
