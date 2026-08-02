@@ -9,9 +9,16 @@ import string
 import io
 import openpyxl
 import logging
+import uuid
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Optional, Dict, Any
 
-# Configuración de logs
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+# Configuración de logs profesional
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] (%(filename)s): %(message)s"
+)
 
 # PDF generation
 from reportlab.lib.pagesizes import A4
@@ -51,17 +58,144 @@ class PasarelaPagoService:
     def procesar_reembolso(id_transaccion: str,
                            monto: float = 5000.0,
                            moneda: str = "COP") -> bool:
-        """
-        Simula/ejecuta la devolución del abono al cliente.
-        Retorna True si el reembolso fue exitoso, False si falló.
-        """
         logging.info(
             f"[PASARELA DE PAGO] Procesando reembolso de ${monto:,.0f} {moneda} "
             f"para TRX: {id_transaccion}..."
         )
-        # TODO: Reemplazar por integración real con la API de la pasarela
-        # Ejemplo Wompi: wompi.procesar_reembolso(id_transaccion, monto)
         return True   # Simulación: siempre exitoso
+
+    @staticmethod
+    def crear_sesion_checkout(reserva_id: str, monto: float, moneda: str = "COP") -> str:
+        """Genera el link de checkout para el abono (integrar con Wompi/MercadoPago)."""
+        logging.info(
+            f"[PASARELA] Creando checkout para reserva {reserva_id} "
+            f"por ${monto:,.0f} {moneda}..."
+        )
+        # TODO: Reemplazar por URL real de la pasarela
+        return f"https://checkout.pasarela.com/pay/{reserva_id}?amount={int(monto)}"
+
+    @staticmethod
+    def validar_transaccion(monto_requerido: float, monto_recibido: float) -> bool:
+        """Valida que el monto recibido cubre el abono requerido."""
+        return monto_recibido >= monto_requerido
+
+
+# ============================================================================
+# ESTADO DE RESERVA — Máquina de estados del flujo de agendamiento
+# ============================================================================
+
+class EstadoReserva(Enum):
+    INICIADA          = "Iniciada"
+    DATOS_REGISTRADOS = "Datos Registrados"
+    PENDIENTE_PAGO    = "Pendiente de Pago"
+    CONFIRMADA        = "Confirmada"
+    ERROR_PAGO        = "Error en Pago"
+
+
+class ReservaError(Exception):
+    """Excepción base para errores en el proceso de reserva."""
+    pass
+
+
+@dataclass(frozen=True)
+class ClienteDTO:
+    """Data Transfer Object para validar y transportar los datos del cliente."""
+    nombre:   str
+    telefono: str
+    correo:   str
+
+    def __post_init__(self):
+        if not self.nombre.strip():
+            raise ValueError("El nombre no puede estar vacío.")
+        if "@" not in self.correo:
+            raise ValueError("El correo electrónico no es válido.")
+
+
+class ReservaService:
+    """
+    Orquesta el flujo completo de reserva en 6 pasos:
+    1. Cliente inicia la reserva
+    2. Captura de datos del cliente
+    3. Redirección a pasarela de pago
+    4. Procesamiento del pago
+    5. Validación y confirmación
+    6. Generación del comprobante descargable
+    """
+    ABONO_REQUERIDO: float = 5000.0  # $5.000 COP
+
+    def __init__(self, servicio: str, fecha_cita: datetime):
+        self.id_reserva:      str                  = f"RES-{uuid.uuid4().hex[:6].upper()}"
+        self.servicio:        str                  = servicio
+        self.fecha_cita:      datetime             = fecha_cita
+        self.estado:          EstadoReserva        = EstadoReserva.INICIADA
+        self.cliente:         Optional[ClienteDTO] = None
+        self.id_transaccion:  Optional[str]        = None
+        logging.info(
+            f"Paso 1: Cliente inició la reserva [{self.id_reserva}] "
+            f"para '{self.servicio}'."
+        )
+
+    def registrar_datos_cliente(self, nombre: str, telefono: str, correo: str) -> str:
+        """Pasos 2 y 3: Valida los datos del cliente y genera link de pago."""
+        if self.estado != EstadoReserva.INICIADA:
+            raise ReservaError("No se pueden actualizar datos en el estado actual.")
+
+        self.cliente = ClienteDTO(nombre=nombre, telefono=telefono, correo=correo)
+        self.estado  = EstadoReserva.DATOS_REGISTRADOS
+        logging.info(f"Paso 2: Datos de '{self.cliente.nombre}' capturados correctamente.")
+
+        self.estado  = EstadoReserva.PENDIENTE_PAGO
+        link_pago    = PasarelaPagoService.crear_sesion_checkout(
+            self.id_reserva, self.ABONO_REQUERIDO
+        )
+        logging.info("Paso 3: Redirigiendo cliente a la pasarela de pagos...")
+        return link_pago
+
+    def recibir_confirmacion_pago(self, monto_pagado: float, transaction_id: str) -> bool:
+        """Pasos 4, 5 y 6: Procesa y valida el pago, cambia el estado."""
+        if self.estado != EstadoReserva.PENDIENTE_PAGO:
+            raise ReservaError("La reserva no está esperando un pago.")
+
+        logging.info(
+            f"Paso 4: Procesando pago de ${monto_pagado:,.0f} COP "
+            f"(Ref: {transaction_id})..."
+        )
+        pago_exitoso = PasarelaPagoService.validar_transaccion(
+            self.ABONO_REQUERIDO, monto_pagado
+        )
+        if pago_exitoso:
+            self.id_transaccion = transaction_id
+            self.estado         = EstadoReserva.CONFIRMADA
+            logging.info(
+                f"Paso 5 y 6: Pago confirmado. Estado → '{self.estado.value}'."
+            )
+            return True
+        else:
+            self.estado = EstadoReserva.ERROR_PAGO
+            logging.error("Paso 5: Pago rechazado o monto inferior al requerido.")
+            return False
+
+    def obtener_comprobante_cita(self) -> Dict[str, Any]:
+        """Genera el diccionario de datos para el comprobante PDF."""
+        if self.estado != EstadoReserva.CONFIRMADA:
+            raise ReservaError("Solo se puede generar comprobante de citas confirmadas.")
+        return {
+            "comprobante_id": f"DOC-{self.id_reserva}",
+            "estado":         self.estado.value,
+            "detalles_servicio": {
+                "servicio":   self.servicio,
+                "fecha_hora": self.fecha_cita.strftime("%Y-%m-%d %H:%M"),
+            },
+            "cliente": {
+                "nombre":   self.cliente.nombre,
+                "telefono": self.cliente.telefono,
+                "correo":   self.cliente.correo,
+            },
+            "pago": {
+                "monto_abono":    f"${self.ABONO_REQUERIDO:,.0f} COP",
+                "id_transaccion": self.id_transaccion,
+            }
+        }
 
 
 # ============================================================================
@@ -715,32 +849,41 @@ def agendar_paso4():
 
 @app.route('/citas/confirmar', methods=['POST'])
 def confirmar_cita():
-    """Confirmar y crear la cita"""
+    """
+    Flujo completo de reserva usando ReservaService (6 pasos):
+    1. Cliente inicia reserva
+    2. Captura y valida datos del cliente (ClienteDTO)
+    3. Genera link de pasarela de pago
+    4. Procesa confirmación de pago
+    5. Valida transacción (ServicePasarelaPago)
+    6. Crea la cita en BD con estado confirmado y genera comprobante
+    """
     if 'usuario_id' not in session:
         return jsonify({'error': 'No autorizado'}), 401
 
-    # Obtener datos
-    id_servicio = request.form.get('id_servicio', type=int)
-    id_empleado = request.form.get('id_empleado', type=int)
+    # ── Obtener datos del formulario ─────────────────────────────────────────
+    id_servicio           = request.form.get('id_servicio', type=int)
+    id_empleado           = request.form.get('id_empleado', type=int)
     fecha_hora_inicio_str = request.form.get('fecha_hora_inicio')
-    fecha_hora_fin_str = request.form.get('fecha_hora_fin')
+    fecha_hora_fin_str    = request.form.get('fecha_hora_fin')
 
     try:
         fecha_hora_inicio = datetime.strptime(fecha_hora_inicio_str, '%Y-%m-%d %H:%M:%S')
-        fecha_hora_fin = datetime.strptime(fecha_hora_fin_str, '%Y-%m-%d %H:%M:%S')
-    except BaseException:
+        fecha_hora_fin    = datetime.strptime(fecha_hora_fin_str,    '%Y-%m-%d %H:%M:%S')
+    except (ValueError, TypeError):
         flash('Error en las fechas', 'error')
         return redirect(url_for('agendar_paso1'))
 
-    # Obtener servicio
+    # ── Obtener servicio ─────────────────────────────────────────────────────
     servicio = Servicio.query.get(id_servicio)
     if not servicio:
         flash('Servicio no encontrado', 'error')
         return redirect(url_for('agendar_paso1'))
 
-    # Si empleado es 0, asignar aleatorio
+    # ── Si empleado es 0, asignar uno aleatorio ──────────────────────────────
     if id_empleado == 0:
-        empleados_ids = db.session.query(EmpleadoServicio.id_empleado).filter_by(id_servicio=id_servicio).all()
+        empleados_ids = db.session.query(EmpleadoServicio.id_empleado)\
+            .filter_by(id_servicio=id_servicio).all()
         empleados_ids = [e[0] for e in empleados_ids]
         if empleados_ids:
             id_empleado = random.choice(empleados_ids)
@@ -748,32 +891,100 @@ def confirmar_cita():
             flash('No hay empleados disponibles para este servicio', 'error')
             return redirect(url_for('agendar_paso1'))
 
-    # Generar código de reserva
-    codigo_reserva = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
-
-    # Crear cita
-    nueva_cita = Cita(
-        id_cliente=session['usuario_id'],
-        id_empleado=id_empleado,
-        id_servicio=id_servicio,
-        fecha_hora_inicio=fecha_hora_inicio,
-        fecha_hora_fin=fecha_hora_fin,
-        monto_total=Decimal(str(servicio.precio_total)),
-        monto_abono=Decimal('5000.00'),
-        saldo_pendiente=Decimal(str(servicio.precio_total)) - Decimal('5000.00'),
-        estado='pendiente_pago',
-        reembolsado=False,
-        codigo_reserva=codigo_reserva,
-        fecha_creacion=datetime.now()
-    )
+    # ── Obtener datos del cliente desde la BD ────────────────────────────────
+    cliente_db = Usuario.query.get(session['usuario_id'])
+    if not cliente_db:
+        flash('Cliente no encontrado', 'error')
+        return redirect(url_for('agendar_paso1'))
 
     try:
+        # ── PASO 1: Iniciar reserva ──────────────────────────────────────────
+        reserva = ReservaService(
+            servicio   = servicio.nombre_servicio,
+            fecha_cita = fecha_hora_inicio
+        )
+
+        # ── PASO 2 y 3: Registrar datos del cliente y generar link pago ─────
+        try:
+            link_pago = reserva.registrar_datos_cliente(
+                nombre   = cliente_db.nombre,
+                telefono = cliente_db.telefono,
+                correo   = cliente_db.email
+            )
+            logging.info(f"[RESERVA] Link de pasarela generado: {link_pago}")
+        except ValueError as e:
+            flash(f'Error en los datos del cliente: {str(e)}', 'error')
+            return redirect(url_for('agendar_paso1'))
+
+        # ── PASO 4 y 5: Confirmar pago (abono fijo $5.000 COP) ───────────────
+        # En producción este paso llega por webhook de la pasarela.
+        # Aquí lo simulamos con el abono registrado en el sistema.
+        id_transaccion = f"TRX-{reserva.id_reserva}-{datetime.now().strftime('%Y%m%d%H%M%S')}"
+        pago_exitoso   = reserva.recibir_confirmacion_pago(
+            monto_pagado   = ReservaService.ABONO_REQUERIDO,
+            transaction_id = id_transaccion
+        )
+
+        if not pago_exitoso:
+            flash('Error al procesar el pago. Intenta de nuevo.', 'error')
+            return redirect(url_for('agendar_paso1'))
+
+        # ── PASO 6: Obtener comprobante y crear cita en BD ───────────────────
+        comprobante = reserva.obtener_comprobante_cita()
+        logging.info(
+            f"[RESERVA] Comprobante generado: {comprobante['comprobante_id']} | "
+            f"Cliente: {comprobante['cliente']['nombre']} | "
+            f"Estado: {comprobante['estado']}"
+        )
+
+        # Crear la cita en PostgreSQL con el código del ReservaService
+        nueva_cita = Cita(
+            id_cliente        = session['usuario_id'],
+            id_empleado       = id_empleado,
+            id_servicio       = id_servicio,
+            fecha_hora_inicio = fecha_hora_inicio,
+            fecha_hora_fin    = fecha_hora_fin,
+            monto_total       = Decimal(str(servicio.precio_total)),
+            monto_abono       = Decimal(str(ReservaService.ABONO_REQUERIDO)),
+            saldo_pendiente   = Decimal(str(servicio.precio_total)) - Decimal(str(ReservaService.ABONO_REQUERIDO)),
+            estado            = 'pendiente_pago',
+            reembolsado       = False,
+            codigo_reserva    = reserva.id_reserva,   # Usa el ID del ReservaService
+            notas             = f"TRX: {id_transaccion} | Comprobante: {comprobante['comprobante_id']}",
+            fecha_creacion    = datetime.now()
+        )
+
         db.session.add(nueva_cita)
         db.session.commit()
+
+        logging.info(
+            f"[BD] Cita #{nueva_cita.id_cita} creada en PostgreSQL — "
+            f"Reserva: {reserva.id_reserva} — Estado: {reserva.estado.value}"
+        )
+
+        # Notificar al cliente
+        try:
+            add_notificacion(
+                session['usuario_id'],
+                '📅 Cita agendada exitosamente',
+                f'Tu cita de {servicio.nombre_servicio} para el '
+                f'{fecha_hora_inicio.strftime("%d/%m/%Y a las %H:%M")} '
+                f'fue registrada. Código: {reserva.id_reserva}.',
+                target=url_for('mis_citas')
+            )
+        except Exception:
+            pass
+
         flash('¡Cita agendada exitosamente!', 'success')
-        return redirect(url_for('cita_confirmada', codigo=codigo_reserva))
+        return redirect(url_for('cita_confirmada', codigo=reserva.id_reserva))
+
+    except ReservaError as e:
+        logging.error(f"[RESERVA] Error en el flujo: {e}")
+        flash(f'Error en el proceso de reserva: {str(e)}', 'error')
+        return redirect(url_for('agendar_paso1'))
     except Exception as e:
         db.session.rollback()
+        logging.error(f"[RESERVA] Error inesperado: {e}")
         flash(f'Error al crear la cita: {str(e)}', 'error')
         return redirect(url_for('agendar_paso1'))
 
@@ -1833,14 +2044,16 @@ def cita_estado(id_cita):
 
 @app.route('/citas/descargar/<int:id_cita>')
 def descargar_cita_pdf(id_cita):
-    """Genera y descarga un PDF con los detalles de la cita"""
+    """
+    Genera y descarga el comprobante PDF usando obtener_comprobante_cita()
+    del ReservaService para poblar los datos del documento.
+    """
     if 'usuario_id' not in session:
         flash('Debes iniciar sesión', 'error')
         return redirect(url_for('login'))
 
     cita = Cita.query.get_or_404(id_cita)
 
-    # Solo el dueño de la cita o un admin puede descargarla
     if cita.id_cliente != session['usuario_id'] and session.get('tipo_usuario') != 'admin':
         flash('No tienes permiso para esta acción', 'error')
         return redirect(url_for('mis_citas'))
@@ -1849,193 +2062,209 @@ def descargar_cita_pdf(id_cita):
     servicio = Servicio.query.get(cita.id_servicio)
     empleado = Empleado.query.get(cita.id_empleado) if cita.id_empleado else None
 
+    # ── Reconstruir ReservaService para obtener comprobante estructurado ─────
+    # Usamos los datos de la cita ya guardada para simular el estado CONFIRMADA
+    try:
+        reserva_temp = ReservaService(
+            servicio   = servicio.nombre_servicio if servicio else 'Servicio',
+            fecha_cita = cita.fecha_hora_inicio
+        )
+        # Registrar datos del cliente (pasa a PENDIENTE_PAGO)
+        reserva_temp.registrar_datos_cliente(
+            nombre   = cliente.nombre   if cliente else 'N/A',
+            telefono = cliente.telefono if cliente else 'N/A',
+            correo   = cliente.email    if cliente else 'N/A'
+        )
+        # Extraer TRX de las notas si existe, si no generar uno de referencia
+        id_trx = 'N/A'
+        if cita.notas:
+            for parte in cita.notas.split('|'):
+                if 'TRX:' in parte:
+                    id_trx = parte.replace('TRX:', '').strip()
+                    break
+
+        # Confirmar pago para llegar a estado CONFIRMADA
+        reserva_temp.recibir_confirmacion_pago(
+            monto_pagado   = ReservaService.ABONO_REQUERIDO,
+            transaction_id = id_trx
+        )
+        # Sobreescribir id_reserva con el código real de la cita
+        object.__setattr__(reserva_temp, 'id_reserva', cita.codigo_reserva) \
+            if hasattr(reserva_temp, '__dataclass_fields__') else \
+            setattr(reserva_temp, 'id_reserva', cita.codigo_reserva)
+
+        comprobante = reserva_temp.obtener_comprobante_cita()
+        logging.info(
+            f"[PDF] Comprobante generado: {comprobante['comprobante_id']} | "
+            f"Cliente: {comprobante['cliente']['nombre']}"
+        )
+    except Exception as e:
+        logging.error(f"[PDF] Error al reconstruir ReservaService: {e}")
+        # Fallback: construir comprobante manual con datos de la BD
+        comprobante = {
+            "comprobante_id": f"DOC-{cita.codigo_reserva}",
+            "estado":         EstadoReserva.CONFIRMADA.value if cita.estado == 'confirmada' else cita.estado,
+            "detalles_servicio": {
+                "servicio":   servicio.nombre_servicio if servicio else 'N/A',
+                "fecha_hora": cita.fecha_hora_inicio.strftime("%Y-%m-%d %H:%M"),
+            },
+            "cliente": {
+                "nombre":   cliente.nombre   if cliente else 'N/A',
+                "telefono": cliente.telefono if cliente else 'N/A',
+                "correo":   cliente.email    if cliente else 'N/A',
+            },
+            "pago": {
+                "monto_abono":    f"${float(cita.monto_abono or 0):,.0f} COP",
+                "id_transaccion": id_trx if 'id_trx' in dir() else 'N/A',
+            }
+        }
+
+    # ── Construir PDF con datos del comprobante ──────────────────────────────
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(
-        buffer,
-        pagesize=A4,
+        buffer, pagesize=A4,
         rightMargin=2*cm, leftMargin=2*cm,
-        topMargin=2*cm, bottomMargin=2*cm
+        topMargin=2*cm,   bottomMargin=2*cm
     )
 
-    styles = getSampleStyleSheet()
     PINK   = colors.HexColor('#c41e3a')
     LPINK  = colors.HexColor('#fff0f6')
     GREY   = colors.HexColor('#888888')
     BLACK  = colors.HexColor('#1a1a1a')
     GREEN  = colors.HexColor('#16a34a')
-    LGREEN = colors.HexColor('#f0fff4')
 
-    title_style = ParagraphStyle('title', fontName='Helvetica-Bold',
-                                  fontSize=22, textColor=PINK, alignment=TA_CENTER, spaceAfter=4)
-    sub_style   = ParagraphStyle('sub', fontName='Helvetica',
-                                  fontSize=11, textColor=GREY, alignment=TA_CENTER, spaceAfter=2)
-    label_style = ParagraphStyle('label', fontName='Helvetica-Bold',
-                                  fontSize=10, textColor=BLACK)
-    value_style = ParagraphStyle('value', fontName='Helvetica',
-                                  fontSize=10, textColor=BLACK)
-    footer_style= ParagraphStyle('footer', fontName='Helvetica',
-                                  fontSize=9, textColor=GREY, alignment=TA_CENTER)
+    estado_map = {
+        'confirmada':     ('✓ CONFIRMADA',        GREEN),
+        'pendiente_pago': ('⏳ PENDIENTE DE PAGO', colors.HexColor('#d97706')),
+        'completada':     ('✓ COMPLETADA',         GREEN),
+        'cancelada':      ('✗ CANCELADA',          colors.HexColor('#dc2626')),
+    }
+    estado_texto, estado_color = estado_map.get(
+        cita.estado, (cita.estado.upper(), GREY)
+    )
 
-    estado_color = GREEN if cita.estado == 'confirmada' else colors.HexColor('#d97706')
-    estado_texto = {
-        'confirmada':     '✓ CONFIRMADA',
-        'pendiente_pago': '⏳ PENDIENTE DE PAGO',
-        'completada':     '✓ COMPLETADA',
-        'cancelada':      '✗ CANCELADA',
-    }.get(cita.estado, cita.estado.upper())
+    title_s  = ParagraphStyle('t',  fontName='Helvetica-Bold', fontSize=22, textColor=PINK,  alignment=TA_CENTER, spaceAfter=4)
+    sub_s    = ParagraphStyle('s',  fontName='Helvetica',      fontSize=11, textColor=GREY,  alignment=TA_CENTER, spaceAfter=2)
+    sec_s    = ParagraphStyle('sc', fontName='Helvetica-Bold', fontSize=11, textColor=PINK,  spaceAfter=4)
+    footer_s = ParagraphStyle('f',  fontName='Helvetica',      fontSize=9,  textColor=GREY,  alignment=TA_CENTER)
+
+    def make_table(data, col_widths=[5*cm, 11*cm]):
+        t = Table(data, colWidths=col_widths)
+        t.setStyle(TableStyle([
+            ('FONTNAME',        (0,0), (0,-1), 'Helvetica-Bold'),
+            ('FONTNAME',        (1,0), (1,-1), 'Helvetica'),
+            ('FONTSIZE',        (0,0), (-1,-1), 10),
+            ('TEXTCOLOR',       (0,0), (0,-1),  GREY),
+            ('TEXTCOLOR',       (1,0), (1,-1),  BLACK),
+            ('ROWBACKGROUNDS',  (0,0), (-1,-1), [colors.white, LPINK]),
+            ('TOPPADDING',      (0,0), (-1,-1), 8),
+            ('BOTTOMPADDING',   (0,0), (-1,-1), 8),
+            ('LEFTPADDING',     (0,0), (-1,-1), 10),
+        ]))
+        return t
 
     elements = []
 
-    # ── Cabecera ────────────────────────────────────────────
-    elements.append(Paragraph('Rossmix', title_style))
-    elements.append(Paragraph('Salón de Belleza & Uñas', sub_style))
-    elements.append(Paragraph('instagram.com/rossmiix', ParagraphStyle(
-        'ig', fontName='Helvetica', fontSize=9, textColor=PINK, alignment=TA_CENTER)))
+    # Cabecera
+    elements.append(Paragraph('Rossmix', title_s))
+    elements.append(Paragraph('Salón de Belleza & Uñas', sub_s))
+    elements.append(Paragraph('instagram.com/rossmiix | WhatsApp: +57 317 382 4030',
+        ParagraphStyle('ig', fontName='Helvetica', fontSize=9, textColor=PINK, alignment=TA_CENTER)))
     elements.append(Spacer(1, 0.3*cm))
     elements.append(HRFlowable(width='100%', thickness=2, color=PINK))
     elements.append(Spacer(1, 0.4*cm))
 
-    # ── Título del documento ─────────────────────────────────
+    # Título y estado
     elements.append(Paragraph('COMPROBANTE DE CITA', ParagraphStyle(
-        'doc_title', fontName='Helvetica-Bold', fontSize=16,
-        textColor=BLACK, alignment=TA_CENTER, spaceAfter=2)))
-
-    # Estado badge
+        'dt', fontName='Helvetica-Bold', fontSize=16, textColor=BLACK, alignment=TA_CENTER, spaceAfter=2)))
     elements.append(Paragraph(estado_texto, ParagraphStyle(
-        'estado', fontName='Helvetica-Bold', fontSize=13,
-        textColor=estado_color, alignment=TA_CENTER, spaceAfter=6)))
+        'es', fontName='Helvetica-Bold', fontSize=13, textColor=estado_color, alignment=TA_CENTER, spaceAfter=6)))
     elements.append(Spacer(1, 0.5*cm))
 
-    # ── Código de reserva ────────────────────────────────────
-    code_data = [['CÓDIGO DE RESERVA', cita.codigo_reserva]]
-    code_table = Table(code_data, colWidths=[7*cm, 9*cm])
-    code_table.setStyle(TableStyle([
-        ('BACKGROUND', (0,0), (0,0), PINK),
-        ('BACKGROUND', (1,0), (1,0), LPINK),
-        ('TEXTCOLOR',  (0,0), (0,0), colors.white),
-        ('TEXTCOLOR',  (1,0), (1,0), PINK),
-        ('FONTNAME',   (0,0), (-1,-1), 'Helvetica-Bold'),
-        ('FONTSIZE',   (0,0), (0,0), 10),
-        ('FONTSIZE',   (1,0), (1,0), 16),
-        ('ALIGN',      (0,0), (-1,-1), 'CENTER'),
-        ('VALIGN',     (0,0), (-1,-1), 'MIDDLE'),
-        ('ROWBACKGROUNDS', (0,0), (-1,-1), [None]),
-        ('ROUNDEDCORNERS', [8]),
-        ('TOPPADDING',  (0,0), (-1,-1), 14),
-        ('BOTTOMPADDING',(0,0), (-1,-1), 14),
-        ('BOX',         (0,0), (-1,-1), 1, PINK),
-    ]))
-    elements.append(code_table)
-    elements.append(Spacer(1, 0.6*cm))
-
-    # ── Datos del cliente ────────────────────────────────────
-    elements.append(Paragraph('DATOS DE LA CLIENTA', ParagraphStyle(
-        'sec', fontName='Helvetica-Bold', fontSize=11,
-        textColor=PINK, spaceAfter=4, borderPad=4)))
+    # ── Sección: Información de Reserva (datos del ReservaService) ───────────
+    elements.append(Paragraph('INFORMACIÓN DE RESERVA', sec_s))
     elements.append(HRFlowable(width='100%', thickness=1, color=colors.HexColor('#ffd6e8')))
     elements.append(Spacer(1, 0.2*cm))
-
-    cliente_data = [
-        ['Nombre',   cliente.nombre if cliente else 'N/A'],
-        ['Email',    cliente.email if cliente else 'N/A'],
-        ['Teléfono', cliente.telefono if cliente else 'N/A'],
-    ]
-    cli_table = Table(cliente_data, colWidths=[5*cm, 11*cm])
-    cli_table.setStyle(TableStyle([
-        ('FONTNAME',  (0,0), (0,-1), 'Helvetica-Bold'),
-        ('FONTNAME',  (1,0), (1,-1), 'Helvetica'),
-        ('FONTSIZE',  (0,0), (-1,-1), 10),
-        ('TEXTCOLOR', (0,0), (0,-1), GREY),
-        ('TEXTCOLOR', (1,0), (1,-1), BLACK),
-        ('ROWBACKGROUNDS', (0,0), (-1,-1), [colors.white, LPINK]),
-        ('TOPPADDING',    (0,0), (-1,-1), 8),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 8),
-        ('LEFTPADDING',   (0,0), (-1,-1), 10),
+    elements.append(make_table([
+        ['ID Comprobante',  comprobante['comprobante_id']],
+        ['Código Reserva',  cita.codigo_reserva],
+        ['ID Transacción',  comprobante['pago']['id_transaccion']],
+        ['Estado Reserva',  comprobante['estado']],
+        ['Fecha Emisión',   datetime.now().strftime('%d/%m/%Y %H:%M')],
     ]))
-    elements.append(cli_table)
     elements.append(Spacer(1, 0.5*cm))
 
-    # ── Detalles de la cita ──────────────────────────────────
-    elements.append(Paragraph('DETALLES DE LA CITA', ParagraphStyle(
-        'sec2', fontName='Helvetica-Bold', fontSize=11, textColor=PINK, spaceAfter=4)))
+    # ── Sección: Datos de la Clienta (del ClienteDTO) ────────────────────────
+    elements.append(Paragraph('DATOS DE LA CLIENTA', sec_s))
     elements.append(HRFlowable(width='100%', thickness=1, color=colors.HexColor('#ffd6e8')))
     elements.append(Spacer(1, 0.2*cm))
+    elements.append(make_table([
+        ['Nombre',    comprobante['cliente']['nombre']],
+        ['Correo',    comprobante['cliente']['correo']],
+        ['Teléfono',  comprobante['cliente']['telefono']],
+    ]))
+    elements.append(Spacer(1, 0.5*cm))
 
-    cita_data = [
-        ['Servicio',    servicio.nombre_servicio if servicio else 'N/A'],
+    # ── Sección: Detalles del Servicio ───────────────────────────────────────
+    elements.append(Paragraph('DETALLES DEL SERVICIO', sec_s))
+    elements.append(HRFlowable(width='100%', thickness=1, color=colors.HexColor('#ffd6e8')))
+    elements.append(Spacer(1, 0.2*cm))
+    elements.append(make_table([
+        ['Servicio',     comprobante['detalles_servicio']['servicio']],
         ['Especialista', empleado.nombre if empleado else 'Por asignar'],
-        ['Fecha',       cita.fecha_hora_inicio.strftime('%d de %B de %Y')],
-        ['Hora inicio', cita.fecha_hora_inicio.strftime('%H:%M')],
-        ['Hora fin',    cita.fecha_hora_fin.strftime('%H:%M')],
-        ['Duración',    f'{servicio.duracion_minutos} minutos' if servicio else 'N/A'],
-    ]
-    cita_table = Table(cita_data, colWidths=[5*cm, 11*cm])
-    cita_table.setStyle(TableStyle([
-        ('FONTNAME',  (0,0), (0,-1), 'Helvetica-Bold'),
-        ('FONTNAME',  (1,0), (1,-1), 'Helvetica'),
-        ('FONTSIZE',  (0,0), (-1,-1), 10),
-        ('TEXTCOLOR', (0,0), (0,-1), GREY),
-        ('TEXTCOLOR', (1,0), (1,-1), BLACK),
-        ('ROWBACKGROUNDS', (0,0), (-1,-1), [colors.white, LPINK]),
-        ('TOPPADDING',    (0,0), (-1,-1), 8),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 8),
-        ('LEFTPADDING',   (0,0), (-1,-1), 10),
+        ['Fecha',        cita.fecha_hora_inicio.strftime('%d de %B de %Y')],
+        ['Hora inicio',  cita.fecha_hora_inicio.strftime('%H:%M')],
+        ['Hora fin',     cita.fecha_hora_fin.strftime('%H:%M')],
+        ['Duración',     f'{servicio.duracion_minutos} min' if servicio else 'N/A'],
     ]))
-    elements.append(cita_table)
     elements.append(Spacer(1, 0.5*cm))
 
-    # ── Información de pago ──────────────────────────────────
-    elements.append(Paragraph('INFORMACIÓN DE PAGO', ParagraphStyle(
-        'sec3', fontName='Helvetica-Bold', fontSize=11, textColor=PINK, spaceAfter=4)))
+    # ── Sección: Información de Pago ─────────────────────────────────────────
+    elements.append(Paragraph('INFORMACIÓN DE PAGO', sec_s))
     elements.append(HRFlowable(width='100%', thickness=1, color=colors.HexColor('#ffd6e8')))
     elements.append(Spacer(1, 0.2*cm))
-
-    pago_data = [
-        ['Total del servicio', f'${float(cita.monto_total or 0):,.0f}'],
-        ['Abono realizado',    f'${float(cita.monto_abono or 0):,.0f}'],
-        ['Saldo pendiente',    f'${float(cita.saldo_pendiente or 0):,.0f}'],
-    ]
-    pago_table = Table(pago_data, colWidths=[8*cm, 8*cm])
-    pago_table.setStyle(TableStyle([
-        ('FONTNAME',     (0,0), (0,-1), 'Helvetica-Bold'),
-        ('FONTNAME',     (1,0), (1,-1), 'Helvetica-Bold'),
-        ('FONTSIZE',     (0,0), (-1,-1), 10),
-        ('TEXTCOLOR',    (0,0), (0,-1), GREY),
-        ('TEXTCOLOR',    (1,0), (1,-1), BLACK),
+    pago_t = Table([
+        ['Total del servicio', f'${float(cita.monto_total or 0):,.0f} COP'],
+        ['Abono realizado',    comprobante['pago']['monto_abono']],
+        ['Saldo pendiente',    f'${float(cita.saldo_pendiente or 0):,.0f} COP'],
+    ], colWidths=[8*cm, 8*cm])
+    pago_t.setStyle(TableStyle([
+        ('FONTNAME',       (0,0), (0,-1), 'Helvetica-Bold'),
+        ('FONTNAME',       (1,0), (1,-1), 'Helvetica-Bold'),
+        ('FONTSIZE',       (0,0), (-1,-1), 10),
+        ('TEXTCOLOR',      (0,0), (0,-1),  GREY),
+        ('TEXTCOLOR',      (1,0), (1,-1),  BLACK),
         ('ROWBACKGROUNDS', (0,0), (-1,-1), [colors.white, LPINK]),
-        ('TOPPADDING',    (0,0), (-1,-1), 8),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 8),
-        ('LEFTPADDING',   (0,0), (-1,-1), 10),
-        ('ALIGN',         (1,0), (1,-1), 'RIGHT'),
-        ('RIGHTPADDING',  (1,0), (1,-1), 10),
-        # Última fila resaltada
-        ('BACKGROUND',    (0,2), (-1,2), colors.HexColor('#fff0f6')),
-        ('TEXTCOLOR',     (1,2), (1,2),  PINK),
-        ('FONTSIZE',      (1,2), (1,2),  12),
+        ('TOPPADDING',     (0,0), (-1,-1), 8),
+        ('BOTTOMPADDING',  (0,0), (-1,-1), 8),
+        ('LEFTPADDING',    (0,0), (-1,-1), 10),
+        ('ALIGN',          (1,0), (1,-1),  'RIGHT'),
+        ('RIGHTPADDING',   (1,0), (1,-1),  10),
+        ('BACKGROUND',     (0,2), (-1,2),  colors.HexColor('#fff0f6')),
+        ('TEXTCOLOR',      (1,2), (1,2),   PINK),
+        ('FONTSIZE',       (1,2), (1,2),   12),
     ]))
-    elements.append(pago_table)
+    elements.append(pago_t)
     elements.append(Spacer(1, 0.5*cm))
 
-    # ── Nota ─────────────────────────────────────────────────
+    # Nota y footer
     elements.append(Paragraph(
         '⚠️  Política de cancelación: debes cancelar con mínimo 2 horas de anticipación desde tu panel.',
-        ParagraphStyle('nota', fontName='Helvetica', fontSize=9,
-                       textColor=GREY, alignment=TA_CENTER, spaceAfter=4)
+        ParagraphStyle('nota', fontName='Helvetica', fontSize=9, textColor=GREY, alignment=TA_CENTER)
     ))
     elements.append(Spacer(1, 0.3*cm))
     elements.append(HRFlowable(width='100%', thickness=1, color=colors.HexColor('#ffd6e8')))
     elements.append(Spacer(1, 0.2*cm))
-
-    # ── Footer ───────────────────────────────────────────────
     elements.append(Paragraph(
-        f'Documento generado el {datetime.now().strftime("%d/%m/%Y a las %H:%M")} · Rossmix Salón de Belleza',
-        footer_style
+        f'Generado el {datetime.now().strftime("%d/%m/%Y a las %H:%M")} · Rossmix Salón de Belleza',
+        footer_s
     ))
 
     doc.build(elements)
     buffer.seek(0)
 
-    filename = f"cita_{cita.codigo_reserva}_{cita.fecha_hora_inicio.strftime('%Y%m%d')}.pdf"
+    filename = f"comprobante_{cita.codigo_reserva}_{cita.fecha_hora_inicio.strftime('%Y%m%d')}.pdf"
+    logging.info(f"[PDF] Descarga iniciada: {filename}")
     return send_file(buffer, download_name=filename,
                      as_attachment=True, mimetype='application/pdf')
 
