@@ -406,11 +406,22 @@
                             <i class="bi bi-person-x"></i> No se presentó
                         </button>
                         {% endif %}
+                        <button class="btn-no-asistio" style="flex:none;padding:0.4rem 0.5rem;
+                                background:#eff6ff;color:#2563eb;border-color:#bfdbfe;"
+                                onclick="abrirReprogramarAdmin({{ c.id_cita }})"
+                                title="Reprogramar esta cita (CU-06)">
+                            <i class="bi bi-calendar-event"></i>
+                        </button>
                     {% elif c.estado_key == 'EN_ATENCION' %}
                         <button class="btn-disabled"><i class="bi bi-play-circle-fill"></i> En Atención</button>
                         <button class="btn-liquidar"
                                 onclick="abrirModalLiquidar({{ c.id_cita }}, '{{ c.cliente }}', '{{ c.servicio }}', {{ c.saldo_num }})">
                             <i class="bi bi-cash-coin"></i> Liquidar
+                        </button>
+                        <button class="btn-no-asistio" style="flex:none;padding:0.4rem 0.5rem;"
+                                onclick="abrirServicioAdicional({{ c.id_cita }}, '{{ c.cliente }}')"
+                                title="Agregar servicio adicional">
+                            <i class="bi bi-plus-circle"></i>
                         </button>
                     {% elif c.estado_key == 'COMPLETADA' %}
                         <span class="btn-disabled" style="text-align:center;">✅ Completada</span>
@@ -595,5 +606,254 @@ function mostrarToast(msg, tipo = 'success') {
 
 // Auto-recarga cada 60 segundos para mantener la vista actualizada
 setTimeout(() => location.reload(), 60000);
+</script>
+
+<!-- CU-05: Modal Servicio Adicional -->
+<div id="modalServicioAdicional" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);
+     z-index:3001;align-items:center;justify-content:center;padding:1rem;">
+    <div style="background:white;border-radius:16px;padding:1.8rem;max-width:420px;width:100%;
+                box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+        <h3 style="margin:0 0 0.3rem;font-size:1.1rem;font-weight:700;">
+            <i class="bi bi-plus-circle" style="color:#c41e3a;"></i> Servicio Adicional
+        </h3>
+        <p id="saSubtitle" style="color:#888;font-size:0.85rem;margin-bottom:1rem;"></p>
+        <label style="font-size:0.88rem;font-weight:600;color:#444;margin-bottom:0.4rem;display:block;">
+            Selecciona el servicio extra:
+        </label>
+        <select id="saSelectorServicio"
+                style="width:100%;padding:0.65rem;border:1.5px solid #e5e7eb;border-radius:10px;
+                       font-size:0.9rem;margin-bottom:1rem;">
+            <option value="">-- Elige un servicio --</option>
+            {% for s in servicios_disponibles | default([]) %}
+            <option value="{{ s.id_servicio }}" data-precio="{{ s.precio_total }}">
+                {{ s.nombre_servicio }} — ${{ "{:,.0f}".format(s.precio_total) }}
+            </option>
+            {% endfor %}
+        </select>
+        <div id="saPrecioPreview" style="background:#fff0f6;border-radius:10px;padding:0.7rem;
+             font-size:0.88rem;color:#c41e3a;font-weight:700;margin-bottom:1rem;display:none;">
+        </div>
+        <div style="display:flex;gap:0.8rem;">
+            <button onclick="cerrarServicioAdicional()"
+                    style="flex:1;background:#f3f4f6;color:#555;border:1px solid #e5e7eb;
+                           padding:0.6rem;border-radius:10px;font-weight:600;cursor:pointer;">
+                Cancelar
+            </button>
+            <button onclick="confirmarServicioAdicional()"
+                    style="flex:1;background:linear-gradient(135deg,#c41e3a,#ff1493);color:white;
+                           border:none;padding:0.6rem;border-radius:10px;font-weight:700;cursor:pointer;">
+                <i class="bi bi-plus-lg"></i> Agregar
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- CU-06: Modal Reprogramar Admin -->
+<div id="modalReprogramarAdmin" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);
+     z-index:3001;align-items:center;justify-content:center;padding:1rem;">
+    <div style="background:white;border-radius:16px;padding:1.8rem;max-width:520px;width:100%;
+                max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+        <h3 style="margin:0 0 0.3rem;font-size:1.1rem;font-weight:700;">
+            <i class="bi bi-calendar-event" style="color:#2563eb;"></i> Reprogramar Cita (Admin)
+        </h3>
+        <p id="raInfo" style="color:#888;font-size:0.85rem;margin-bottom:1rem;"></p>
+        <div id="raLoading" style="text-align:center;padding:1rem;color:#888;">
+            <i class="bi bi-hourglass-split"></i> Cargando disponibilidad...
+        </div>
+        <div id="raContenido" style="display:none;">
+            <label style="font-size:0.85rem;font-weight:600;color:#444;margin-bottom:0.4rem;display:block;">
+                Motivo de reprogramación:
+            </label>
+            <input id="raMotivo" type="text" placeholder="Ej: Imprevisto del profesional"
+                   style="width:100%;padding:0.6rem;border:1.5px solid #e5e7eb;border-radius:8px;
+                          font-size:0.88rem;margin-bottom:1rem;">
+            <label style="font-size:0.85rem;font-weight:600;color:#444;margin-bottom:0.4rem;display:block;">
+                Especialista:
+            </label>
+            <div id="raTabs" class="profesional-tabs" style="margin-bottom:0.8rem;"></div>
+            <div id="raSlots" style="max-height:220px;overflow-y:auto;"></div>
+            <div id="raSeleccion" style="background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:8px;
+                 padding:0.6rem;font-size:0.85rem;color:#2563eb;font-weight:600;
+                 margin-top:0.8rem;display:none;"></div>
+        </div>
+        <div style="display:flex;gap:0.8rem;margin-top:1rem;">
+            <button onclick="cerrarReprogramarAdmin()"
+                    style="flex:1;background:#f3f4f6;color:#555;border:1px solid #e5e7eb;
+                           padding:0.6rem;border-radius:10px;font-weight:600;cursor:pointer;">
+                Cancelar
+            </button>
+            <button id="btnRaConfirmar" onclick="confirmarReprogramarAdmin()" disabled
+                    style="flex:1;background:linear-gradient(135deg,#2563eb,#3b82f6);color:white;
+                           border:none;padding:0.6rem;border-radius:10px;font-weight:700;cursor:pointer;">
+                <i class="bi bi-calendar-check"></i> Reprogramar y notificar
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ── CU-05: Servicio adicional ────────────────────────────────────────────────
+let saCitaId = null;
+
+async function abrirServicioAdicional(idCita, nombreCliente) {
+    saCitaId = idCita;
+    document.getElementById('saSubtitle').textContent =
+        `Cita #${idCita} — ${nombreCliente}`;
+    // Cargar servicios si el select está vacío
+    const sel = document.getElementById('saSelectorServicio');
+    if (sel.options.length <= 1) {
+        const res  = await fetch('/admin/servicios-lista');
+        const data = await res.json();
+        data.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s.id; opt.dataset.precio = s.precio;
+            opt.textContent = `${s.nombre} — $${s.precio.toLocaleString('es-CO')}`;
+            sel.appendChild(opt);
+        });
+    }
+    document.getElementById('saPrecioPreview').style.display = 'none';
+    sel.value = '';
+    document.getElementById('modalServicioAdicional').style.display = 'flex';
+}
+
+document.getElementById('saSelectorServicio')?.addEventListener('change', function() {
+    const opt     = this.options[this.selectedIndex];
+    const precio  = parseFloat(opt.dataset.precio || 0);
+    const preview = document.getElementById('saPrecioPreview');
+    if (precio > 0) {
+        preview.textContent  = `+ $${precio.toLocaleString('es-CO')} COP se sumará al total`;
+        preview.style.display = 'block';
+    } else {
+        preview.style.display = 'none';
+    }
+});
+
+async function confirmarServicioAdicional() {
+    const sel = document.getElementById('saSelectorServicio');
+    if (!sel.value || !saCitaId) return;
+    const form = new FormData();
+    form.append('id_servicio', sel.value);
+    try {
+        const res  = await fetch(`/admin/agenda-diaria/servicio-adicional/${saCitaId}`,
+                                 { method:'POST', body:form });
+        const data = await res.json();
+        cerrarServicioAdicional();
+        if (data.success) {
+            mostrarToast(
+                `✅ ${data.servicio_nombre} agregado. Nuevo saldo: $${data.nuevo_saldo.toLocaleString('es-CO')}`,
+                'success'
+            );
+            setTimeout(() => location.reload(), 1800);
+        } else {
+            mostrarToast('❌ ' + data.message, 'error');
+        }
+    } catch(e) { mostrarToast('❌ Error de conexión', 'error'); }
+}
+function cerrarServicioAdicional() {
+    document.getElementById('modalServicioAdicional').style.display = 'none';
+    saCitaId = null;
+}
+
+// ── CU-06: Reprogramar por Admin ─────────────────────────────────────────────
+let raCitaId = null, raSlotSel = null, raEmpSel = null;
+
+async function abrirReprogramarAdmin(idCita) {
+    raCitaId = idCita; raSlotSel = null; raEmpSel = null;
+    document.getElementById('raLoading').style.display    = 'block';
+    document.getElementById('raContenido').style.display  = 'none';
+    document.getElementById('btnRaConfirmar').disabled    = true;
+    document.getElementById('raSeleccion').style.display  = 'none';
+    document.getElementById('raMotivo').value             = '';
+    document.getElementById('modalReprogramarAdmin').style.display = 'flex';
+
+    try {
+        const res  = await fetch(`/admin/citas/reprogramar-admin/${idCita}`);
+        const data = await res.json();
+        document.getElementById('raInfo').textContent =
+            `${data.cliente} — ${data.servicio} — Actual: ${data.fecha_actual}`;
+        document.getElementById('raLoading').style.display   = 'none';
+        document.getElementById('raContenido').style.display = 'block';
+
+        const tabs = document.getElementById('raTabs');
+        tabs.innerHTML = '';
+        Object.entries(data.disponibilidad).forEach(([empId, info], i) => {
+            const btn = document.createElement('button');
+            btn.className  = 'prof-tab' + (i===0?' active':'');
+            btn.textContent = info.nombre + (info.actual?' ★':'');
+            btn.onclick    = () => mostrarSlotsAdmin(empId, info.slots, btn);
+            tabs.appendChild(btn);
+            if (i === 0) mostrarSlotsAdmin(empId, info.slots, btn);
+        });
+    } catch(e) {
+        document.getElementById('raLoading').textContent = 'Error al cargar.';
+    }
+}
+
+function mostrarSlotsAdmin(empId, slots, tabBtn) {
+    raEmpSel = empId; raSlotSel = null;
+    document.querySelectorAll('#raTabs .prof-tab').forEach(b => b.classList.remove('active'));
+    tabBtn.classList.add('active');
+    document.getElementById('btnRaConfirmar').disabled = true;
+    document.getElementById('raSeleccion').style.display = 'none';
+    const cont = document.getElementById('raSlots');
+    cont.innerHTML = `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;">
+        ${slots.map(s => {
+            const [f,h] = s.split(' ');
+            return `<button class="slot-btn" onclick="selSlotAdmin('${s}',this)">
+                        <span class="slot-fecha">${f}</span>${h}
+                    </button>`;
+        }).join('')}
+    </div>`;
+}
+
+function selSlotAdmin(slot, btn) {
+    document.querySelectorAll('#raSlots .slot-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    raSlotSel = slot;
+    document.getElementById('raSeleccion').textContent = `Nueva fecha: ${slot}`;
+    document.getElementById('raSeleccion').style.display = 'block';
+    document.getElementById('btnRaConfirmar').disabled = false;
+}
+
+async function confirmarReprogramarAdmin() {
+    if (!raCitaId || !raSlotSel) return;
+    const motivo = document.getElementById('raMotivo').value || 'Reprogramación por el salón';
+    const ok = await rossmixConfirm({
+        titulo:  'Reprogramar cita',
+        mensaje: `¿Confirmar reprogramación al ${raSlotSel}?\n\nEl cliente recibirá notificación automática.`,
+        tipo:    'info',
+        okText:  'Sí, reprogramar'
+    });
+    if (!ok) return;
+    const btn = document.getElementById('btnRaConfirmar');
+    btn.disabled = true; btn.textContent = 'Procesando...';
+    const form = new FormData();
+    form.append('nueva_fecha',  raSlotSel);
+    form.append('id_empleado',  raEmpSel || '');
+    form.append('motivo',       motivo);
+    try {
+        const res  = await fetch(`/admin/citas/reprogramar-admin/${raCitaId}`,
+                                 { method:'POST', body:form });
+        const data = await res.json();
+        cerrarReprogramarAdmin();
+        if (data.success) {
+            mostrarToast(`✅ ${data.message}`, 'success');
+            setTimeout(() => location.reload(), 1800);
+        } else {
+            mostrarToast('❌ ' + data.message, 'error');
+        }
+    } catch(e) { mostrarToast('❌ Error de conexión', 'error'); }
+}
+
+function cerrarReprogramarAdmin() {
+    document.getElementById('modalReprogramarAdmin').style.display = 'none';
+    raCitaId = null; raSlotSel = null;
+}
+document.getElementById('modalReprogramarAdmin').addEventListener('click', function(e){
+    if(e.target===this) cerrarReprogramarAdmin();
+});
+document.getElementById('modalServicioAdicional').addEventListener('click', function(e){
+    if(e.target===this) cerrarServicioAdicional();
+});
 </script>
 {% endblock %}

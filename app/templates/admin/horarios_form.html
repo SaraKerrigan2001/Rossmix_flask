@@ -11,7 +11,43 @@
                     <h4 class="mb-0">{{ 'Editar' if horario else 'Crear' }} Horario para {{ empleado.nombre }}</h4>
                 </div>
                 <div class="card-body">
-                    <form method="POST">
+
+                    <!-- CU-04: Alerta de citas afectadas (se muestra dinámicamente) -->
+                    <div id="alertaCitasAfectadas" style="display:none;
+                         background:#fff7ed;border:1.5px solid #fed7aa;border-radius:12px;
+                         padding:1rem 1.2rem;margin-bottom:1rem;">
+                        <strong style="color:#92400e;">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                            ⚠️ Solapamiento con citas existentes
+                        </strong>
+                        <p style="color:#92400e;font-size:0.9rem;margin:0.5rem 0;">
+                            El nuevo horario afecta a <strong id="totalAfectadasHorario">0</strong>
+                            cita(s) confirmadas. Los clientes deberán ser contactados para cancelar
+                            o reprogramar manualmente.
+                        </p>
+                        <div id="listaAfectadasHorario"
+                             style="max-height:160px;overflow-y:auto;margin:0.5rem 0;
+                                    font-size:0.85rem;background:white;border-radius:8px;padding:0.5rem;">
+                        </div>
+                        <div style="display:flex;gap:0.8rem;margin-top:0.8rem;flex-wrap:wrap;">
+                            <button type="button" id="btnForzarGuardar"
+                                    style="background:#d97706;color:white;border:none;
+                                           padding:0.55rem 1.2rem;border-radius:8px;
+                                           font-weight:700;font-size:0.88rem;cursor:pointer;">
+                                <i class="bi bi-check-lg"></i> Confirmar y guardar de todas formas
+                            </button>
+                            <button type="button" onclick="document.getElementById('alertaCitasAfectadas').style.display='none'"
+                                    style="background:#f3f4f6;color:#555;border:1px solid #e5e7eb;
+                                           padding:0.55rem 1.2rem;border-radius:8px;
+                                           font-weight:600;font-size:0.88rem;cursor:pointer;">
+                                Revisar y corregir
+                            </button>
+                        </div>
+                    </div>
+
+                    <form id="formHorario" method="POST">
+                        <input type="hidden" name="forzar" id="inputForzar" value="false">
+
                         {% if not horario %}
                         <div class="mb-3">
                             <label for="dia_semana" class="form-label">Día de la Semana *</label>
@@ -33,21 +69,20 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="hora_inicio" class="form-label">Hora de Inicio *</label>
-                                <input type="time" class="form-control" id="hora_inicio" name="hora_inicio" 
+                                <input type="time" class="form-control" id="hora_inicio" name="hora_inicio"
                                        value="{{ horario.hora_inicio.strftime('%H:%M') if horario else '' }}" required>
                             </div>
-
                             <div class="col-md-6 mb-3">
                                 <label for="hora_fin" class="form-label">Hora de Fin *</label>
-                                <input type="time" class="form-control" id="hora_fin" name="hora_fin" 
+                                <input type="time" class="form-control" id="hora_fin" name="hora_fin"
                                        value="{{ horario.hora_fin.strftime('%H:%M') if horario else '' }}" required>
                             </div>
                         </div>
 
                         <div class="alert alert-info">
-                            <i class="bi bi-info-circle"></i> 
-                            <strong>Nota:</strong> Asegúrate de que el horario sea realista y permita atender múltiples clientes.
-                            Los turnos se programan en intervalos de 30 minutos.
+                            <i class="bi bi-info-circle"></i>
+                            <strong>Nota:</strong> Si el nuevo horario excluye citas ya confirmadas,
+                            el sistema te avisará antes de guardar.
                         </div>
 
                         <div class="d-flex gap-2">
@@ -64,4 +99,53 @@
         </div>
     </div>
 </div>
+
+{% if horario %}
+<script>
+// CU-04: Intercepción del formulario para verificar citas afectadas
+document.getElementById('formHorario').addEventListener('submit', async function(e) {
+    if (document.getElementById('inputForzar').value === 'true') return; // ya confirmado
+    e.preventDefault();
+
+    const hi = document.getElementById('hora_inicio').value;
+    const hf = document.getElementById('hora_fin').value;
+    if (!hi || !hf) return;
+
+    try {
+        const res  = await fetch(this.action, {
+            method: 'POST',
+            body:   new FormData(this)
+        });
+
+        if (res.status === 409) {
+            const data = await res.json();
+            if (data.requiere_confirmacion) {
+                // Mostrar alerta con lista de afectados
+                document.getElementById('totalAfectadasHorario').textContent = data.total;
+                const lista = document.getElementById('listaAfectadasHorario');
+                lista.innerHTML = data.clientes.map(c =>
+                    `<div style="padding:0.3rem 0;border-bottom:1px solid #f5f5f5;">
+                        <strong>${c.nombre}</strong> — ${c.fecha}
+                        <span style="color:#888;font-size:0.8rem;"> | ${c.telefono}</span>
+                     </div>`
+                ).join('');
+                document.getElementById('alertaCitasAfectadas').style.display = 'block';
+                document.getElementById('alertaCitasAfectadas').scrollIntoView({behavior:'smooth'});
+                return;
+            }
+        }
+        // Sin conflictos o respuesta exitosa → redirigir
+        window.location.href = '/admin/horarios';
+    } catch(err) {
+        this.submit(); // fallback
+    }
+});
+
+// Botón "Confirmar y guardar de todas formas"
+document.getElementById('btnForzarGuardar').addEventListener('click', function() {
+    document.getElementById('inputForzar').value = 'true';
+    document.getElementById('formHorario').submit();
+});
+</script>
+{% endif %}
 {% endblock %}

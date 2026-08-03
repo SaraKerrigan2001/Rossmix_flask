@@ -1734,7 +1734,14 @@ def admin_empleados_editar(id_empleado):
             db.session.add(empleado_servicio)
 
         db.session.commit()
-        flash(f'Empleado {empleado.nombre} actualizado exitosamente', 'success')
+
+        # CU-04: Advertencia si quedó sin servicios asignados
+        if not servicios_ids:
+            flash(f'⚠️ {empleado.nombre} actualizado pero SIN servicios asignados. '
+                  f'No aparecerá disponible para las clientas hasta que le asignes al menos un servicio.',
+                  'error')
+        else:
+            flash(f'Empleado {empleado.nombre} actualizado exitosamente', 'success')
         return redirect(url_for('admin_empleados'))
 
     # GET: Mostrar formulario
@@ -2110,41 +2117,141 @@ def admin_horarios_crear(id_empleado):
     return render_template('admin/horarios_form.html', empleado=empleado, horario=None, dias_semana=dias_semana)
 
 
+@app.route('/admin/horarios/citas-afectadas/<int:id_horario>', methods=['GET'])
+@admin_required
+def admin_horarios_citas_afectadas(id_horario):
+    """
+    CU-04: API que retorna clientes con citas confirmadas que caen
+    fuera del nuevo rango horario propuesto.
+    """
+    horario    = HorarioEmpleado.query.get_or_404(id_horario)
+    hora_inicio_str = request.args.get('hora_inicio', '')
+    hora_fin_str    = request.args.get('hora_fin', '')
+
+    if not hora_inicio_str or not hora_fin_str:
+        return jsonify({'afectados': [], 'total': 0})
+
+    try:
+        nueva_inicio = datetime.strptime(hora_inicio_str, '%H:%M').time()
+        nueva_fin    = datetime.strptime(hora_fin_str,    '%H:%M').time()
+    except ValueError:
+        return jsonify({'afectados': [], 'total': 0})
+
+    dias_semana = {0:'Domingo',1:'Lunes',2:'Martes',3:'Miércoles',
+                   4:'Jueves',5:'Viernes',6:'Sábado'}
+    dia_nombre = dias_semana.get(horario.dia_semana, '')
+
+    # Citas futuras en ese día de la semana para este empleado
+    from sqlalchemy import extract
+    citas = db.session.query(Cita, Usuario, Servicio)\
+        .join(Usuario, Cita.id_cliente == Usuario.id)\
+        .join(Servicio, Cita.id_servicio == Servicio.id_servicio)\
+        .filter(
+            Cita.id_empleado == horario.id_empleado,
+            Cita.fecha_hora_inicio >= datetime.now(),
+            Cita.estado.in_(['pendiente_pago', 'confirmada']),
+            extract('dow', Cita.fecha_hora_inicio) == (horario.dia_semana % 7)
+        ).order_by(Cita.fecha_hora_inicio).all()
+
+    afectados = []
+    for cita, cliente, servicio in citas:
+        hora_cita    = cita.fecha_hora_inicio.time()
+        hora_fin_cita = cita.fecha_hora_fin.time()
+        # Cita queda FUERA del nuevo rango
+        if hora_cita < nueva_inicio or hora_fin_cita > nueva_fin:
+            afectados.append({
+                'id_cita':  cita.id_cita,
+                'cliente':  cliente.nombre,
+                'telefono': cliente.telefono,
+                'servicio': servicio.nombre_servicio,
+                'fecha':    cita.fecha_hora_inicio.strftime('%d/%m/%Y'),
+                'hora':     cita.fecha_hora_inicio.strftime('%H:%M'),
+            })
+
+    return jsonify({
+        'afectados':   afectados,
+        'total':       len(afectados),
+        'dia':         dia_nombre,
+        'rango_actual': f"{horario.hora_inicio.strftime('%H:%M')} — {horario.hora_fin.strftime('%H:%M')}",
+        'rango_nuevo':  f"{hora_inicio_str} — {hora_fin_str}",
+    })
+
+
 @app.route('/admin/horarios/editar/<int:id_horario>', methods=['GET', 'POST'])
 @admin_required
 def admin_horarios_editar(id_horario):
-    """Editar horario"""
+    """Editar horario — CU-04: alerta si hay citas afectadas en el nuevo rango"""
     horario = HorarioEmpleado.query.get_or_404(id_horario)
 
     if request.method == 'POST':
         hora_inicio_str = request.form.get('hora_inicio')
-        hora_fin_str = request.form.get('hora_fin')
+        hora_fin_str    = request.form.get('hora_fin')
+        forzar          = request.form.get('forzar') == 'true'
 
-        # Convertir strings a time
         hora_inicio = datetime.strptime(hora_inicio_str, '%H:%M').time()
-        hora_fin = datetime.strptime(hora_fin_str, '%H:%M').time()
+        hora_fin    = datetime.strptime(hora_fin_str,    '%H:%M').time()
 
         if hora_inicio >= hora_fin:
             flash('La hora de inicio debe ser menor que la hora de fin', 'error')
             return redirect(url_for('admin_horarios_editar', id_horario=id_horario))
 
-        horario.hora_inicio = hora_inicio
-        horario.hora_fin = hora_fin
+        # CU-04: Detectar citas afectadas por el cambio de horario
+        if not forzar:
+            from sqlalchemy import extract
+            citas_afectadas = db.session.query(Cita, Usuario)\
+                .join(Usuario, Cita.id_cliente == Usuario.id)\
+                .filter(
+                    Cita.id_empleado == horario.id_empleado,
+                    Cita.fecha_hora_inicio >= datetime.now(),
+                    Cita.estado.in_(['pendiente_pago', 'confirmada']),
+                    extract('dow', Cita.fecha_hora_inicio) == (horario.dia_semana % 7)
+                ).all()
 
+            afectadas = [
+                c for c, u in citas_afectadas
+                if c.fecha_hora_inicio.time() < hora_inicio
+                or c.fecha_hora_fin.time() > hora_fin
+            ]
+
+            if afectadas:
+                nombres = ', '.join(
+                    f"{u.nombre} ({c.fecha_hora_inicio.strftime('%d/%m %H:%M')})"
+                    for c, u in citas_afectadas
+                    if c.id_cita in [a.id_cita for a in afectadas]
+                )
+                logging.warning(
+                    f"[CU-04] Edición de horario #{id_horario} afecta "
+                    f"{len(afectadas)} cita(s): {nombres}"
+                )
+                # Retornar lista de afectados para que el frontend muestre alerta
+                return jsonify({
+                    'requiere_confirmacion': True,
+                    'total':   len(afectadas),
+                    'clientes': [
+                        {
+                            'nombre':  u.nombre,
+                            'telefono': u.telefono,
+                            'fecha':   c.fecha_hora_inicio.strftime('%d/%m/%Y %H:%M'),
+                        }
+                        for c, u in citas_afectadas
+                        if c.id_cita in [a.id_cita for a in afectadas]
+                    ]
+                }), 409
+
+        # Aplicar cambio (forzado o sin conflictos)
+        horario.hora_inicio = hora_inicio
+        horario.hora_fin    = hora_fin
         db.session.commit()
+
         flash('Horario actualizado exitosamente', 'success')
         return redirect(url_for('admin_horarios'))
 
-    # GET
-    dias_semana = {
-        0: 'Domingo', 1: 'Lunes', 2: 'Martes', 3: 'Miércoles',
-        4: 'Jueves', 5: 'Viernes', 6: 'Sábado'
-    }
-    return render_template(
-        'admin/horarios_form.html',
-        empleado=horario.empleado,
-        horario=horario,
-        dias_semana=dias_semana)
+    dias_semana = {0:'Domingo',1:'Lunes',2:'Martes',3:'Miércoles',
+                   4:'Jueves',5:'Viernes',6:'Sábado'}
+    return render_template('admin/horarios_form.html',
+                           empleado=horario.empleado,
+                           horario=horario,
+                           dias_semana=dias_semana)
 
 
 @app.route('/admin/horarios/eliminar/<int:id_horario>', methods=['POST'])
@@ -3149,6 +3256,158 @@ def reagendar_no_asistio(id_cita: int):
         db.session.rollback()
         logging.error(f"[REAGENDAR] Error: {e}")
         return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@app.route('/admin/servicios-lista')
+@admin_required
+def admin_servicios_lista():
+    """API: Lista todos los servicios activos para selects dinámicos."""
+    servicios = Servicio.query.filter_by(activo=True).order_by(Servicio.nombre_servicio).all()
+    return jsonify([
+        {'id': s.id_servicio, 'nombre': s.nombre_servicio, 'precio': float(s.precio_total)}
+        for s in servicios
+    ])
+
+
+# ============================================================================
+# CU-05: SERVICIO ADICIONAL EN CITA EN CURSO
+# ============================================================================
+
+@app.route('/admin/agenda-diaria/servicio-adicional/<int:id_cita>', methods=['POST'])
+@admin_required
+def admin_agregar_servicio_adicional(id_cita: int):
+    """
+    CU-05: Durante la cita, el cliente solicita un servicio extra.
+    Se agrega al monto total y se recalcula el saldo pendiente.
+    """
+    cita = Cita.query.get_or_404(id_cita)
+
+    if cita.estado != 'en_atencion':
+        return jsonify({
+            'success': False,
+            'message': 'Solo se puede agregar servicios adicionales cuando la cita está En Atención.'
+        }), 400
+
+    id_servicio_adicional = request.form.get('id_servicio', type=int)
+    if not id_servicio_adicional:
+        return jsonify({'success': False, 'message': 'Selecciona un servicio'}), 400
+
+    servicio_add = Servicio.query.get(id_servicio_adicional)
+    if not servicio_add:
+        return jsonify({'success': False, 'message': 'Servicio no encontrado'}), 404
+
+    precio_adicional = Decimal(str(servicio_add.precio_total))
+
+    # Recalcular totales
+    cita.monto_total     = (cita.monto_total or Decimal('0')) + precio_adicional
+    cita.saldo_pendiente = cita.monto_total - (cita.monto_abono or Decimal('0'))
+    nota_adicional       = f" | Serv. adicional: {servicio_add.nombre_servicio} +${float(precio_adicional):,.0f}"
+    cita.notas           = (cita.notas or '') + nota_adicional
+    db.session.commit()
+
+    logging.info(
+        f"[SERVICIO ADICIONAL] Cita #{id_cita}: +{servicio_add.nombre_servicio} "
+        f"(${float(precio_adicional):,.0f} COP). Nuevo total: ${float(cita.monto_total):,.0f}"
+    )
+
+    return jsonify({
+        'success':           True,
+        'message':           f'Servicio "{servicio_add.nombre_servicio}" agregado.',
+        'nuevo_total':       float(cita.monto_total),
+        'nuevo_saldo':       float(cita.saldo_pendiente),
+        'servicio_nombre':   servicio_add.nombre_servicio,
+        'precio_adicional':  float(precio_adicional),
+    })
+
+
+# ============================================================================
+# CU-06: ADMIN REPROGRAMA CITA DE CLIENTE CON NOTIFICACIÓN AUTOMÁTICA
+# ============================================================================
+
+@app.route('/admin/citas/reprogramar-admin/<int:id_cita>', methods=['GET', 'POST'])
+@admin_required
+def admin_reprogramar_cita(id_cita: int):
+    """
+    CU-06: El administrador reprograma la cita de un cliente
+    (por imprevisto del profesional u otro motivo).
+    Notifica automáticamente al cliente.
+    """
+    cita     = Cita.query.get_or_404(id_cita)
+    servicio = Servicio.query.get(cita.id_servicio)
+
+    if request.method == 'GET':
+        disponibilidad = SistemaGestionCitas.obtener_agenda_disponible(
+            id_servicio        = cita.id_servicio,
+            id_empleado_actual = cita.id_empleado
+        )
+        return jsonify({
+            'id_cita':       id_cita,
+            'cliente':       cita.cliente.nombre if cita.cliente else 'N/A',
+            'servicio':      servicio.nombre_servicio if servicio else 'N/A',
+            'fecha_actual':  cita.fecha_hora_inicio.strftime('%d/%m/%Y %H:%M'),
+            'empleado_actual': cita.empleado.nombre if cita.empleado else 'Sin asignar',
+            'disponibilidad': disponibilidad,
+        })
+
+    # POST — ejecutar reprogramación por admin
+    nueva_fecha_str   = request.form.get('nueva_fecha')
+    nuevo_empleado_id = request.form.get('id_empleado', type=int)
+    motivo            = request.form.get('motivo', 'Reprogramación por el salón')
+
+    if not nueva_fecha_str:
+        return jsonify({'success': False, 'message': 'Fecha requerida'}), 400
+
+    try:
+        nueva_fecha = datetime.strptime(nueva_fecha_str, '%Y-%m-%d %H:%M')
+    except ValueError:
+        return jsonify({'success': False, 'message': 'Formato de fecha inválido'}), 400
+
+    empleado_id   = nuevo_empleado_id or cita.id_empleado
+    empleado_obj  = Empleado.query.get(empleado_id) if empleado_id else None
+    fecha_fin     = nueva_fecha + timedelta(minutes=servicio.duracion_minutos if servicio else 60)
+
+    fecha_anterior       = cita.fecha_hora_inicio
+    cita.fecha_hora_inicio = nueva_fecha
+    cita.fecha_hora_fin    = fecha_fin
+    cita.id_empleado       = empleado_id
+    cita.estado            = 'confirmada'
+    cita.notas             = (cita.notas or '') + f" | Admin reprogramó: {motivo}"
+    db.session.commit()
+
+    logging.info(
+        f"[CU-06 ADMIN] Cita #{id_cita} reprogramada por admin: "
+        f"{fecha_anterior.strftime('%d/%m/%Y %H:%M')} → {nueva_fecha.strftime('%d/%m/%Y %H:%M')} "
+        f"| Profesional: {empleado_obj.nombre if empleado_obj else 'N/A'} | Motivo: {motivo}"
+    )
+
+    # Notificación automática al cliente (CU-06)
+    try:
+        add_notificacion(
+            cita.id_cliente,
+            '🔄 Tu cita fue reprogramada por el salón',
+            f'Por motivos internos, tu cita de {servicio.nombre_servicio if servicio else "servicio"} '
+            f'fue reprogramada del {fecha_anterior.strftime("%d/%m/%Y %H:%M")} '
+            f'al {nueva_fecha.strftime("%d/%m/%Y a las %H:%M")}. '
+            f'Profesional: {empleado_obj.nombre if empleado_obj else "a confirmar"}. '
+            f'Tu abono de $5.000 COP se conserva. '
+            f'Motivo: {motivo}.',
+            target=url_for('mis_citas')
+        )
+        # Log simulando WhatsApp
+        if cita.cliente:
+            logging.info(
+                f"[CU-06 NOTIF WHATSAPP] → {cita.cliente.telefono}: "
+                f"Cita reprogramada al {nueva_fecha.strftime('%d/%m/%Y %H:%M')}"
+            )
+    except Exception as e:
+        logging.error(f"[CU-06] Error al notificar: {e}")
+
+    return jsonify({
+        'success':        True,
+        'message':        f'Cita #{id_cita} reprogramada y cliente notificado.',
+        'nueva_fecha':    nueva_fecha.strftime('%d/%m/%Y a las %H:%M'),
+        'profesional':    empleado_obj.nombre if empleado_obj else 'Sin asignar',
+    })
 
 
 # ============================================================================
