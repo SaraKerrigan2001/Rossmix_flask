@@ -7,8 +7,11 @@
 -- ============================================================================
 -- 1. LIMPIEZA COMPLETA (orden inverso por dependencias)
 -- ============================================================================
+DROP VIEW  IF EXISTS vista_nuevos_usuarios  CASCADE;
 DROP VIEW  IF EXISTS vista_agenda_diaria    CASCADE;
 DROP VIEW  IF EXISTS vista_pagos_pendientes CASCADE;
+DROP TABLE IF EXISTS auditoria_usuarios     CASCADE;
+DROP TABLE IF EXISTS notificaciones         CASCADE;
 DROP TABLE IF EXISTS pagos                  CASCADE;
 DROP TABLE IF EXISTS citas                  CASCADE;
 DROP TABLE IF EXISTS horarios_empleados     CASCADE;
@@ -18,6 +21,7 @@ DROP TABLE IF EXISTS servicios              CASCADE;
 DROP TABLE IF EXISTS usuario                CASCADE;
 DROP TYPE  IF EXISTS estado_cita_enum       CASCADE;
 DROP TYPE  IF EXISTS metodo_pago_enum       CASCADE;
+DROP FUNCTION IF EXISTS fn_auditoria_nuevo_usuario CASCADE;
 
 -- ============================================================================
 -- 2. TIPOS ENUMERADOS
@@ -140,7 +144,8 @@ CREATE TABLE citas (
     saldo_pendiente   NUMERIC(10,2),
     estado            estado_cita_enum DEFAULT 'pendiente_pago',
     reembolsado       BOOLEAN         DEFAULT FALSE,
-    codigo_reserva    VARCHAR(10)     UNIQUE,
+    codigo_reserva    VARCHAR(20)     UNIQUE,       -- ID del ReservaService (RES-XXXXXX)
+    token_gestion     VARCHAR(32)     UNIQUE,       -- Token seguro para link de gestión/reprogramación
     notas             TEXT,
     fecha_creacion    TIMESTAMP       DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT chk_fechas_cita CHECK (fecha_hora_fin > fecha_hora_inicio),
@@ -155,9 +160,11 @@ CREATE TABLE citas (
         ON DELETE RESTRICT ON UPDATE CASCADE
 );
 
-COMMENT ON TABLE  citas                IS 'Reservas agendadas por los clientes';
-COMMENT ON COLUMN citas.monto_abono    IS 'Abono mínimo para reservar ($5.000)';
-COMMENT ON COLUMN citas.saldo_pendiente IS 'Se calcula: monto_total - monto_abono';
+COMMENT ON TABLE  citas                  IS 'Reservas agendadas por los clientes';
+COMMENT ON COLUMN citas.monto_abono      IS 'Abono mínimo para reservar ($5.000 COP)';
+COMMENT ON COLUMN citas.saldo_pendiente  IS 'Se calcula: monto_total - monto_abono';
+COMMENT ON COLUMN citas.codigo_reserva   IS 'ID generado por ReservaService (RES-XXXXXX)';
+COMMENT ON COLUMN citas.token_gestion    IS 'Token URL-safe para link de gestión/reprogramación';
 
 -- ============================================================================
 -- 9. TABLA: PAGOS
@@ -210,6 +217,7 @@ CREATE INDEX idx_citas_servicio     ON citas(id_servicio);
 CREATE INDEX idx_citas_fecha        ON citas(fecha_hora_inicio);
 CREATE INDEX idx_citas_estado       ON citas(estado);
 CREATE INDEX idx_citas_codigo       ON citas(codigo_reserva);
+CREATE INDEX idx_citas_token        ON citas(token_gestion);  -- Para búsqueda por token de gestión
 
 -- Pagos
 CREATE INDEX idx_pagos_cita         ON pagos(id_cita);
@@ -217,7 +225,49 @@ CREATE INDEX idx_pagos_fecha        ON pagos(fecha_pago);
 CREATE INDEX idx_pagos_estado       ON pagos(estado_pago);
 
 -- ============================================================================
--- 11. VISTAS
+-- 11. TABLA: NOTIFICACIONES
+--    Alertas internas para usuarios (clientes y admin)
+-- ============================================================================
+CREATE TABLE notificaciones (
+    id          SERIAL          PRIMARY KEY,
+    id_usuario  INTEGER         NOT NULL,
+    titulo      VARCHAR(200)    NOT NULL,
+    mensaje     TEXT,
+    target      VARCHAR(300),               -- URL de destino al hacer clic
+    leido       BOOLEAN         DEFAULT FALSE,
+    fecha       TIMESTAMP       DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_notif_usuario
+        FOREIGN KEY (id_usuario) REFERENCES usuario(id)
+        ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+COMMENT ON TABLE  notificaciones         IS 'Notificaciones internas para clientes y admins';
+COMMENT ON COLUMN notificaciones.target  IS 'Ruta Flask a la que redirige la notificación';
+
+CREATE INDEX idx_notif_usuario ON notificaciones(id_usuario);
+CREATE INDEX idx_notif_leido   ON notificaciones(leido);
+CREATE INDEX idx_notif_fecha   ON notificaciones(fecha);
+
+-- ============================================================================
+-- 12. TABLA: AUDITORIA_USUARIOS
+--    Registro automático de cada nuevo usuario vía trigger
+-- ============================================================================
+CREATE TABLE auditoria_usuarios (
+    id              SERIAL          PRIMARY KEY,
+    id_usuario      INTEGER         NOT NULL,
+    nombre          VARCHAR(100),
+    email           VARCHAR(120),
+    telefono        VARCHAR(20),
+    tipo_usuario    VARCHAR(20),
+    fecha_registro  TIMESTAMP       DEFAULT NOW(),
+    accion          VARCHAR(10)     DEFAULT 'INSERT',
+    ip_address      VARCHAR(45)
+);
+
+COMMENT ON TABLE auditoria_usuarios IS 'Registro automático de nuevos usuarios vía trigger PostgreSQL';
+
+CREATE INDEX idx_auditoria_usuario ON auditoria_usuarios(id_usuario);
+CREATE INDEX idx_auditoria_fecha   ON auditoria_usuarios(fecha_registro);
 -- ============================================================================
 
 -- Vista agenda diaria completa
@@ -272,7 +322,7 @@ WHERE c.estado IN ('confirmada', 'en_atencion')
 ORDER BY c.fecha_hora_inicio;
 
 -- ============================================================================
--- 12. DATOS INICIALES: SERVICIOS
+-- 14. DATOS INICIALES: SERVICIOS
 -- ============================================================================
 INSERT INTO servicios (nombre_servicio, descripcion, precio_total, duracion_minutos) VALUES
 -- Uñas
@@ -299,7 +349,7 @@ INSERT INTO servicios (nombre_servicio, descripcion, precio_total, duracion_minu
 ('Lifting de Pestañas',      'Rizado y definición de pestañas naturales',             55000,  60);
 
 -- ============================================================================
--- 13. DATOS INICIALES: EMPLEADOS
+-- 15. DATOS INICIALES: EMPLEADOS
 -- ============================================================================
 INSERT INTO empleados (nombre, especialidad) VALUES
 ('María González',   'Especialista en Uñas'),
@@ -314,7 +364,7 @@ INSERT INTO empleados (nombre, especialidad) VALUES
 ('Gabriela Morales', 'Estilista Integral');
 
 -- ============================================================================
--- 14. DATOS INICIALES: EMPLEADO_SERVICIOS
+-- 16. DATOS INICIALES: EMPLEADO_SERVICIOS
 -- ============================================================================
 -- Uñas: María(1), Ana(2), Laura(3)
 INSERT INTO empleado_servicios VALUES
@@ -344,7 +394,7 @@ INSERT INTO empleado_servicios VALUES
 (10,12),(10,13),(10,14),(10,15),(10,16),(10,17),(10,18);
 
 -- ============================================================================
--- 15. DATOS INICIALES: HORARIOS (Lun-Vie 8:00-18:00 | Sáb 9:00-16:00)
+-- 17. DATOS INICIALES: HORARIOS (Lun-Vie 8:00-18:00 | Sáb 9:00-16:00)
 -- ============================================================================
 INSERT INTO horarios_empleados (id_empleado, dia_semana, hora_inicio, hora_fin)
 SELECT id_empleado, dia, '08:00', '18:00'
@@ -355,37 +405,24 @@ SELECT id_empleado, 6, '09:00', '16:00'
 FROM empleados;
 
 -- ============================================================================
--- 16. VERIFICACIÓN FINAL
+-- 18. VERIFICACIÓN FINAL
 -- ============================================================================
-SELECT
-    'usuario'            AS tabla, COUNT(*) AS registros FROM usuario  UNION ALL
-SELECT 'servicios',          COUNT(*) FROM servicios         UNION ALL
-SELECT 'empleados',          COUNT(*) FROM empleados         UNION ALL
-SELECT 'empleado_servicios', COUNT(*) FROM empleado_servicios UNION ALL
-SELECT 'horarios_empleados', COUNT(*) FROM horarios_empleados UNION ALL
-SELECT 'citas',              COUNT(*) FROM citas              UNION ALL
-SELECT 'pagos',              COUNT(*) FROM pagos;
+SELECT 'usuario'             AS tabla, COUNT(*) AS registros FROM usuario          UNION ALL
+SELECT 'servicios',                    COUNT(*) FROM servicios                     UNION ALL
+SELECT 'empleados',                    COUNT(*) FROM empleados                     UNION ALL
+SELECT 'empleado_servicios',           COUNT(*) FROM empleado_servicios            UNION ALL
+SELECT 'horarios_empleados',           COUNT(*) FROM horarios_empleados            UNION ALL
+SELECT 'citas',                        COUNT(*) FROM citas                         UNION ALL
+SELECT 'pagos',                        COUNT(*) FROM pagos                         UNION ALL
+SELECT 'notificaciones',               COUNT(*) FROM notificaciones                UNION ALL
+SELECT 'auditoria_usuarios',           COUNT(*) FROM auditoria_usuarios;
 
 
 -- ============================================================================
--- AUDITORÍA DE NUEVOS USUARIOS — Registro en tiempo real
--- Cada INSERT en la tabla 'usuario' queda registrado automáticamente
+-- 19. TRIGGER: AUDITORÍA DE NUEVOS USUARIOS EN TIEMPO REAL
+--    Cada INSERT en usuario queda registrado automáticamente en
+--    auditoria_usuarios y emite un canal pg_notify para listeners externos.
 -- ============================================================================
-
--- Tabla de auditoría
-CREATE TABLE IF NOT EXISTS auditoria_usuarios (
-    id              SERIAL PRIMARY KEY,
-    id_usuario      INTEGER NOT NULL,
-    nombre          VARCHAR(100),
-    email           VARCHAR(120),
-    telefono        VARCHAR(20),
-    tipo_usuario    VARCHAR(20),
-    fecha_registro  TIMESTAMP DEFAULT NOW(),
-    accion          VARCHAR(10) DEFAULT 'INSERT',
-    ip_address      VARCHAR(45)  -- opcional: se puede pasar desde la app
-);
-
--- Función del trigger
 CREATE OR REPLACE FUNCTION fn_auditoria_nuevo_usuario()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -396,15 +433,15 @@ BEGIN
         NEW.tipo_usuario, NEW.fecha_registro, 'INSERT'
     );
 
-    -- Notificar canal PostgreSQL en tiempo real (útil para listeners externos)
+    -- Notificar canal en tiempo real (útil para listeners externos o WebSockets)
     PERFORM pg_notify(
         'nuevo_usuario',
         json_build_object(
-            'id',            NEW.id,
-            'nombre',        NEW.nombre,
-            'email',         NEW.email,
-            'tipo_usuario',  NEW.tipo_usuario,
-            'fecha',         to_char(NEW.fecha_registro, 'DD/MM/YYYY HH24:MI:SS')
+            'id',           NEW.id,
+            'nombre',       NEW.nombre,
+            'email',        NEW.email,
+            'tipo_usuario', NEW.tipo_usuario,
+            'fecha',        to_char(NEW.fecha_registro, 'DD/MM/YYYY HH24:MI:SS')
         )::text
     );
 
@@ -412,29 +449,35 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Crear el trigger sobre la tabla usuario
 DROP TRIGGER IF EXISTS trg_auditoria_nuevo_usuario ON usuario;
 CREATE TRIGGER trg_auditoria_nuevo_usuario
     AFTER INSERT ON usuario
     FOR EACH ROW
     EXECUTE FUNCTION fn_auditoria_nuevo_usuario();
 
--- Vista para consultar fácilmente los nuevos registros
+-- ============================================================================
+-- 20. VISTAS DE AUDITORÍA
+-- ============================================================================
 CREATE OR REPLACE VIEW vista_nuevos_usuarios AS
-    SELECT
-        au.id,
-        au.id_usuario,
-        au.nombre,
-        au.email,
-        au.telefono,
-        au.tipo_usuario,
-        au.fecha_registro,
-        au.accion
-    FROM auditoria_usuarios au
-    ORDER BY au.fecha_registro DESC;
+    SELECT id, id_usuario, nombre, email, telefono,
+           tipo_usuario, fecha_registro, accion
+    FROM auditoria_usuarios
+    ORDER BY fecha_registro DESC;
 
 -- ============================================================================
--- Para verificar nuevos registros en pgAdmin ejecuta:
---   SELECT * FROM vista_nuevos_usuarios;
---   SELECT * FROM vista_nuevos_usuarios WHERE fecha_registro >= NOW() - INTERVAL '1 hour';
+-- CONSULTAS ÚTILES EN PGADMIN:
+--
+--   Ver todos los usuarios nuevos:
+--     SELECT * FROM vista_nuevos_usuarios;
+--
+--   Ver registros de la última hora:
+--     SELECT * FROM vista_nuevos_usuarios
+--     WHERE fecha_registro >= NOW() - INTERVAL '1 hour';
+--
+--   Ver agenda de hoy:
+--     SELECT * FROM vista_agenda_diaria
+--     WHERE fecha_cita = CURRENT_DATE ORDER BY hora_inicio_formato;
+--
+--   Ver citas con saldo pendiente:
+--     SELECT * FROM vista_pagos_pendientes;
 -- ============================================================================
