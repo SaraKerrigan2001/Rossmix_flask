@@ -2790,16 +2790,39 @@ def admin_agenda_diaria(fecha_str: str = None):
     fecha_prev = (datetime.combine(fecha, time.min) - timedelta(days=1)).date()
     fecha_next = (datetime.combine(fecha, time.min) + timedelta(days=1)).date()
 
+    # Citas del mes completo para el calendario
+    from sqlalchemy import func as sqlfunc2
+    primer_dia_mes = fecha.replace(day=1)
+    if fecha.month == 12:
+        ultimo_dia_mes = fecha.replace(year=fecha.year+1, month=1, day=1) - timedelta(days=1)
+    else:
+        ultimo_dia_mes = fecha.replace(month=fecha.month+1, day=1) - timedelta(days=1)
+
+    citas_mes = db.session.query(
+        sqlfunc2.date(Cita.fecha_hora_inicio).label('dia'),
+        sqlfunc2.count(Cita.id_cita).label('total')
+    ).filter(
+        Cita.fecha_hora_inicio >= datetime.combine(primer_dia_mes, time.min),
+        Cita.fecha_hora_inicio <= datetime.combine(ultimo_dia_mes, time.max),
+        Cita.estado.in_(['pendiente_pago', 'confirmada', 'en_atencion', 'completada'])
+    ).group_by(sqlfunc2.date(Cita.fecha_hora_inicio)).all()
+
+    # Diccionario {dia_str: total}
+    dias_con_citas = {str(r.dia): r.total for r in citas_mes}
+
     metodos_pago = [m.value for m in MetodoPagoSaldo]
 
     return render_template(
         'admin/agenda_diaria.html',
-        cuadricula  = cuadricula,
-        fecha       = fecha,
-        fecha_prev  = fecha_prev,
-        fecha_next  = fecha_next,
-        stats_dia   = stats_dia,
-        metodos_pago= metodos_pago
+        cuadricula    = cuadricula,
+        fecha         = fecha,
+        fecha_prev    = fecha_prev,
+        fecha_next    = fecha_next,
+        stats_dia     = stats_dia,
+        metodos_pago  = metodos_pago,
+        dias_con_citas = dias_con_citas,
+        primer_dia_mes = primer_dia_mes,
+        ultimo_dia_mes = ultimo_dia_mes,
     )
 
 

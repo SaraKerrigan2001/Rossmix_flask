@@ -3,6 +3,56 @@
 
 {% block extra_css %}
 <style>
+/* ── Calendario mensual ── */
+.cal-wrap {
+    background:white; border-radius:16px;
+    box-shadow:0 2px 12px rgba(0,0,0,0.07);
+    border:1.5px solid #f0e8ff;
+    padding:1.2rem 1.4rem; margin-bottom:1.5rem;
+}
+.cal-header {
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:1rem;
+}
+.cal-mes-titulo { font-size:1.05rem; font-weight:700; color:#1a1a1a; }
+.cal-nav-btn {
+    width:32px; height:32px; border-radius:8px;
+    background:#f5f5f5; color:#555; text-decoration:none;
+    display:flex; align-items:center; justify-content:center;
+    font-size:0.9rem; transition:all 0.2s;
+}
+.cal-nav-btn:hover { background:#fff0f6; color:#c41e3a; }
+.cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
+.cal-dow {
+    text-align:center; font-size:0.72rem; font-weight:700;
+    color:#aaa; padding:0.3rem 0; text-transform:uppercase; letter-spacing:0.5px;
+}
+.cal-dia {
+    aspect-ratio:1; border-radius:10px;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    text-decoration:none; color:#555; font-size:0.88rem;
+    font-weight:500; transition:all 0.18s; position:relative;
+    border:1.5px solid transparent;
+}
+.cal-dia:hover { background:#fff0f6; color:#c41e3a; border-color:#ffd6e8; }
+.cal-vacio { pointer-events:none; }
+.cal-hoy {
+    background:linear-gradient(135deg,#c41e3a,#ff1493) !important;
+    color:white !important; border-color:transparent !important;
+    font-weight:800; box-shadow:0 4px 14px rgba(196,30,58,0.35);
+}
+.cal-hoy .cal-dot { background:rgba(255,255,255,0.35) !important; color:white !important; }
+.cal-tiene-citas { font-weight:700; color:#1a1a1a; }
+.cal-num { line-height:1; }
+.cal-dot {
+    font-size:0.62rem; font-weight:700;
+    background:#c41e3a; color:white;
+    border-radius:10px; padding:0 4px;
+    margin-top:2px; line-height:1.4;
+    min-width:16px; text-align:center;
+}
+
 /* ── Layout ── */
 .agenda-wrap { max-width:1400px; margin:0 auto; padding:0 0 4rem; }
 .agenda-header {
@@ -230,6 +280,44 @@
     <a href="{{ url_for('dashboard_admin') }}" class="btn-secondary-r">
         <i class="bi bi-arrow-left"></i> Volver
     </a>
+</div>
+
+<!-- CALENDARIO MENSUAL -->
+<div class="cal-wrap">
+    <div class="cal-header">
+        <a href="{{ url_for('admin_agenda_diaria', fecha_str=(primer_dia_mes - timedelta(days=1)).strftime('%Y-%m-%d')) }}"
+           class="cal-nav-btn"><i class="bi bi-chevron-left"></i></a>
+        <span class="cal-mes-titulo">
+            {{ primer_dia_mes.strftime('%B %Y').capitalize() }}
+        </span>
+        <a href="{{ url_for('admin_agenda_diaria', fecha_str=(ultimo_dia_mes + timedelta(days=1)).strftime('%Y-%m-%d')) }}"
+           class="cal-nav-btn"><i class="bi bi-chevron-right"></i></a>
+    </div>
+    <div class="cal-grid">
+        <!-- Encabezados días semana -->
+        {% for dia_name in ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'] %}
+        <div class="cal-dow">{{ dia_name }}</div>
+        {% endfor %}
+        <!-- Celdas vacías antes del primer día del mes (lunes=0) -->
+        {% set primer_dow = primer_dia_mes.weekday() %}
+        {% for _ in range(primer_dow) %}
+        <div class="cal-dia cal-vacio"></div>
+        {% endfor %}
+        <!-- Días del mes -->
+        {% for d in range(1, ultimo_dia_mes.day + 1) %}
+            {% set dia_obj   = primer_dia_mes.replace(day=d) %}
+            {% set dia_str   = dia_obj.strftime('%Y-%m-%d') %}
+            {% set es_hoy    = dia_obj == fecha %}
+            {% set tiene_citas = dias_con_citas.get(dia_str, 0) %}
+        <a href="{{ url_for('admin_agenda_diaria', fecha_str=dia_str) }}"
+           class="cal-dia {% if es_hoy %}cal-hoy{% endif %} {% if tiene_citas %}cal-tiene-citas{% endif %}">
+            <span class="cal-num">{{ d }}</span>
+            {% if tiene_citas %}
+            <span class="cal-dot" title="{{ tiene_citas }} cita(s)">{{ tiene_citas }}</span>
+            {% endif %}
+        </a>
+        {% endfor %}
+    </div>
 </div>
 
 <!-- ESTADÍSTICAS DEL DÍA -->
