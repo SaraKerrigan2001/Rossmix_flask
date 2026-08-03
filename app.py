@@ -2279,7 +2279,11 @@ def admin_citas_reasignar_empleado(id_cita):
         return jsonify({'success': False, 'message': 'Empleado no encontrado'}), 404
 
     cita.id_empleado = nuevo_empleado_id
-    cita.estado      = 'confirmada'
+    # Si estaba cancelada o sin asignar, reactivar como pendiente_pago
+    if cita.estado in ['cancelada', 'no_asistio']:
+        cita.estado = 'pendiente_pago'
+    else:
+        cita.estado = 'confirmada'
     db.session.commit()
 
     logging.info(

@@ -102,7 +102,7 @@
                             {{ empleado.nombre }}
                         {% else %}
                             <span style="color:#dc2626;font-weight:700;">— Sin asignar</span>
-                            {% if cita.estado in ['pendiente_pago','confirmada'] %}
+                            {% if cita.estado in ['pendiente_pago','confirmada','cancelada','no_asistio'] %}
                             <br>
                             <button onclick="abrirReasignar({{ cita.id_cita }})"
                                     style="margin-top:0.3rem;background:#eff6ff;color:#2563eb;
