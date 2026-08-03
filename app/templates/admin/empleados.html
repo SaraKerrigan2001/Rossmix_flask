@@ -106,38 +106,205 @@
     {% endif %}
 </div>
 
-<!-- Modal -->
-<div id="modalEliminar" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:3000; align-items:center; justify-content:center;">
-    <div style="background:white; border-radius:16px; padding:2rem; max-width:420px; width:90%; box-shadow:0 20px 60px rgba(0,0,0,0.2);">
-        <h3 style="font-family:'Playfair Display',serif; margin-bottom:0.8rem;">Confirmar Eliminación</h3>
-        <p id="modalMsg" style="color:#6b7280; margin-bottom:1.5rem; font-size:0.95rem;"></p>
-        <div style="display:flex; gap:1rem; justify-content:flex-end;">
-            <button onclick="cerrarModal()" class="btn-secondary-r">Cancelar</button>
-            <button id="btnConfirmar" class="btn-rossmix" style="background:linear-gradient(135deg,#dc2626,#ef4444);">
-                <i class="bi bi-trash3"></i> Eliminar
-            </button>
+<!-- Modal Eliminar con lista de clientes afectados -->
+<div id="modalEliminar" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55);
+     z-index:3000; align-items:center; justify-content:center; padding:1rem;">
+    <div style="background:white; border-radius:20px; padding:2rem; max-width:560px; width:100%;
+                box-shadow:0 20px 60px rgba(0,0,0,0.25); max-height:90vh; overflow-y:auto;">
+
+        <!-- Paso 1: Confirmación inicial -->
+        <div id="paso1">
+            <div style="display:flex; align-items:center; gap:0.8rem; margin-bottom:1rem;">
+                <div style="width:44px;height:44px;border-radius:50%;background:#fee2e2;
+                            display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <i class="bi bi-person-x-fill" style="color:#dc2626;font-size:1.2rem;"></i>
+                </div>
+                <div>
+                    <h3 style="margin:0;font-size:1.15rem;font-weight:700;color:#1a1a1a;">
+                        Eliminar Empleado
+                    </h3>
+                    <p id="modalNombre" style="margin:0;font-size:0.88rem;color:#888;"></p>
+                </div>
+            </div>
+            <div id="loadingMsg" style="text-align:center;padding:1.5rem;color:#888;font-size:0.9rem;">
+                <i class="bi bi-hourglass-split"></i> Verificando citas afectadas...
+            </div>
+            <div id="sinCitas" style="display:none;">
+                <div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:12px;
+                            padding:1rem;margin-bottom:1.2rem;color:#166534;font-size:0.9rem;">
+                    <i class="bi bi-check-circle-fill"></i>
+                    Este empleado no tiene citas futuras pendientes. Se puede eliminar sin impacto.
+                </div>
+            </div>
+            <div id="conCitas" style="display:none;">
+                <div style="background:#fff7ed;border:1.5px solid #fed7aa;border-radius:12px;
+                            padding:1rem;margin-bottom:1rem;color:#92400e;font-size:0.9rem;">
+                    <strong><i class="bi bi-exclamation-triangle-fill"></i>
+                    Las siguientes clientas tienen citas con este empleado:</strong>
+                    <span id="totalAfectados" style="margin-left:0.5rem;background:#dc2626;color:white;
+                          border-radius:12px;padding:0.1rem 0.55rem;font-size:0.8rem;font-weight:700;"></span>
+                </div>
+                <!-- Tabla de clientes afectados -->
+                <div style="border:1.5px solid #f0e8ff;border-radius:12px;overflow:hidden;
+                            margin-bottom:1rem;max-height:240px;overflow-y:auto;">
+                    <table style="width:100%;border-collapse:collapse;font-size:0.85rem;">
+                        <thead>
+                            <tr style="background:linear-gradient(135deg,#fee2e2,#fecaca);">
+                                <th style="padding:0.6rem 0.9rem;text-align:left;color:#991b1b;font-weight:700;">Clienta</th>
+                                <th style="padding:0.6rem 0.9rem;text-align:left;color:#991b1b;font-weight:700;">Servicio</th>
+                                <th style="padding:0.6rem 0.9rem;text-align:left;color:#991b1b;font-weight:700;">Fecha</th>
+                                <th style="padding:0.6rem 0.9rem;text-align:left;color:#991b1b;font-weight:700;">Teléfono</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaAfectados"></tbody>
+                    </table>
+                </div>
+                <div style="background:#fff1f2;border:1.5px solid #fecdd3;border-radius:10px;
+                            padding:0.85rem;font-size:0.85rem;color:#9f1239;margin-bottom:1rem;">
+                    <i class="bi bi-info-circle-fill"></i>
+                    Al confirmar: las citas quedarán <strong>sin especialista asignada</strong>
+                    y las clientas serán notificadas para reprogramación manual.
+                    Deberás reasignarlas desde <strong>Gestión de Citas</strong>.
+                </div>
+            </div>
+            <div id="botonesConfirmar" style="display:none;gap:1rem;justify-content:flex-end;flex-wrap:wrap;">
+                <button onclick="cerrarModal()" class="btn-secondary-r">
+                    <i class="bi bi-x"></i> Cancelar
+                </button>
+                <button id="btnConfirmar" onclick="ejecutarEliminar()"
+                        style="background:linear-gradient(135deg,#dc2626,#ef4444);color:white;
+                               border:none;padding:0.65rem 1.5rem;border-radius:10px;
+                               font-weight:700;font-size:0.9rem;cursor:pointer;
+                               display:inline-flex;align-items:center;gap:0.5rem;">
+                    <i class="bi bi-trash3-fill"></i>
+                    <span id="btnConfirmarTexto">Eliminar</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Resultado final -->
+        <div id="pasoResultado" style="display:none;text-align:center;padding:1rem 0;">
+            <div id="resultadoIcono" style="font-size:3rem;margin-bottom:0.8rem;"></div>
+            <h3 id="resultadoTitulo" style="margin-bottom:0.5rem;"></h3>
+            <p id="resultadoMsg" style="color:#666;font-size:0.9rem;margin-bottom:1.5rem;"></p>
+            <button onclick="cerrarModal()" class="btn-rossmix">Cerrar</button>
         </div>
     </div>
 </div>
 
 <script>
-let empId = null;
-function confirmarEliminar(id, nombre) {
-    empId = id;
-    document.getElementById('modalMsg').textContent = `¿Eliminar al empleado "${nombre}"? Esta acción no se puede deshacer.`;
+let empIdActual   = null;
+let tieneAfectados = false;
+
+async function confirmarEliminar(id, nombre) {
+    empIdActual = id;
+    tieneAfectados = false;
+
+    // Resetear modal
+    document.getElementById('loadingMsg').style.display   = 'block';
+    document.getElementById('sinCitas').style.display     = 'none';
+    document.getElementById('conCitas').style.display     = 'none';
+    document.getElementById('botonesConfirmar').style.display = 'none';
+    document.getElementById('paso1').style.display        = 'block';
+    document.getElementById('pasoResultado').style.display = 'none';
+    document.getElementById('modalNombre').textContent    = nombre;
     document.getElementById('modalEliminar').style.display = 'flex';
+
+    // Consultar clientes afectados
+    try {
+        const res  = await fetch(`/admin/empleados/clientes-afectados/${id}`);
+        const data = await res.json();
+
+        document.getElementById('loadingMsg').style.display = 'none';
+
+        if (data.total === 0) {
+            // Sin citas afectadas
+            document.getElementById('sinCitas').style.display = 'block';
+            document.getElementById('btnConfirmarTexto').textContent = 'Eliminar';
+            tieneAfectados = false;
+        } else {
+            // Hay clientes afectados — mostrar tabla
+            tieneAfectados = true;
+            document.getElementById('conCitas').style.display = 'block';
+            document.getElementById('totalAfectados').textContent = data.total + ' cita(s)';
+            document.getElementById('btnConfirmarTexto').textContent =
+                `Eliminar y desasignar ${data.total} cita(s)`;
+
+            const tbody = document.getElementById('tablaAfectados');
+            tbody.innerHTML = '';
+            data.afectados.forEach((a, i) => {
+                const bg = i % 2 === 0 ? 'white' : '#fff5f5';
+                tbody.innerHTML += `
+                    <tr style="background:${bg};border-bottom:1px solid #f5f5f5;">
+                        <td style="padding:0.55rem 0.9rem;font-weight:600;">${a.cliente}</td>
+                        <td style="padding:0.55rem 0.9rem;color:#555;">${a.servicio}</td>
+                        <td style="padding:0.55rem 0.9rem;color:#c41e3a;font-weight:600;">
+                            ${a.fecha} ${a.hora}
+                        </td>
+                        <td style="padding:0.55rem 0.9rem;color:#888;">${a.telefono}</td>
+                    </tr>`;
+            });
+        }
+
+        document.getElementById('botonesConfirmar').style.display = 'flex';
+
+    } catch(e) {
+        document.getElementById('loadingMsg').innerHTML =
+            '<i class="bi bi-exclamation-triangle" style="color:#dc2626;"></i> Error al cargar datos.';
+    }
 }
-function cerrarModal() { document.getElementById('modalEliminar').style.display = 'none'; }
-document.getElementById('btnConfirmar').addEventListener('click', function() {
-    if (!empId) return;
-    fetch(`/admin/empleados/eliminar/${empId}`, { method:'POST' })
-        .then(r => r.json())
-        .then(d => {
-            cerrarModal();
-            if (d.success) {
-                document.getElementById(`empleado-${empId}`)?.remove();
-            } else { alert(d.message); }
+
+async function ejecutarEliminar() {
+    if (!empIdActual) return;
+
+    const btn = document.getElementById('btnConfirmar');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Procesando...';
+
+    const form = new FormData();
+    form.append('confirmado', 'true');
+
+    try {
+        const res  = await fetch(`/admin/empleados/eliminar/${empIdActual}`, {
+            method: 'POST', body: form
         });
+        const data = await res.json();
+
+        document.getElementById('paso1').style.display        = 'none';
+        document.getElementById('pasoResultado').style.display = 'block';
+
+        if (data.success) {
+            document.getElementById('resultadoIcono').textContent = '✅';
+            document.getElementById('resultadoTitulo').textContent = 'Empleado eliminado';
+            let msg = data.message;
+            if (data.citas_desasignadas > 0) {
+                msg += ` Se desasignaron ${data.citas_desasignadas} cita(s). `
+                     + `Las clientas fueron notificadas. Recuerda reasignarlas en Gestión de Citas.`;
+            }
+            document.getElementById('resultadoMsg').textContent = msg;
+            // Quitar fila de la tabla
+            document.getElementById(`empleado-${empIdActual}`)?.remove();
+        } else {
+            document.getElementById('resultadoIcono').textContent = '❌';
+            document.getElementById('resultadoTitulo').textContent = 'No se pudo eliminar';
+            document.getElementById('resultadoMsg').textContent = data.message;
+        }
+
+    } catch(e) {
+        document.getElementById('resultadoIcono').textContent = '❌';
+        document.getElementById('resultadoTitulo').textContent = 'Error de conexión';
+        document.getElementById('resultadoMsg').textContent = 'Intenta de nuevo.';
+    }
+}
+
+function cerrarModal() {
+    document.getElementById('modalEliminar').style.display = 'none';
+    empIdActual = null;
+}
+
+// Cerrar al hacer clic fuera
+document.getElementById('modalEliminar').addEventListener('click', function(e) {
+    if (e.target === this) cerrarModal();
 });
 </script>
 {% endblock %}

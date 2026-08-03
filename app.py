@@ -1747,32 +1747,115 @@ def admin_empleados_editar(id_empleado):
                            servicios_empleado=servicios_empleado)
 
 
+@app.route('/admin/empleados/clientes-afectados/<int:id_empleado>', methods=['GET'])
+@admin_required
+def admin_empleados_clientes_afectados(id_empleado):
+    """API: Retorna clientes con citas futuras asignadas a este empleado."""
+    empleado = Empleado.query.get_or_404(id_empleado)
+    citas = db.session.query(Cita, Usuario, Servicio)\
+        .join(Usuario, Cita.id_cliente == Usuario.id)\
+        .join(Servicio, Cita.id_servicio == Servicio.id_servicio)\
+        .filter(
+            Cita.id_empleado == id_empleado,
+            Cita.fecha_hora_inicio >= datetime.now(),
+            Cita.estado.in_(['pendiente_pago', 'confirmada'])
+        ).order_by(Cita.fecha_hora_inicio).all()
+
+    afectados = []
+    for cita, cliente, servicio in citas:
+        afectados.append({
+            'id_cita':    cita.id_cita,
+            'codigo':     cita.codigo_reserva,
+            'cliente':    cliente.nombre,
+            'telefono':   cliente.telefono,
+            'email':      cliente.email,
+            'servicio':   servicio.nombre_servicio,
+            'fecha':      cita.fecha_hora_inicio.strftime('%d/%m/%Y'),
+            'hora':       cita.fecha_hora_inicio.strftime('%H:%M'),
+        })
+
+    return jsonify({
+        'empleado':  empleado.nombre,
+        'total':     len(afectados),
+        'afectados': afectados
+    })
+
+
 @app.route('/admin/empleados/eliminar/<int:id_empleado>', methods=['POST'])
 @admin_required
 def admin_empleados_eliminar(id_empleado):
-    """Eliminar empleado"""
+    """
+    Eliminar empleado.
+    Si tiene citas futuras, las desasigna (id_empleado = NULL)
+    y las deja en 'pendiente_pago' para reprogramación manual.
+    El admin debe haber confirmado explícitamente este paso.
+    """
     empleado = Empleado.query.get_or_404(id_empleado)
+    confirmado = request.form.get('confirmado') == 'true'
 
-    # Verificar si tiene citas futuras
+    # Buscar citas futuras activas
     citas_futuras = Cita.query.filter(
         Cita.id_empleado == id_empleado,
         Cita.fecha_hora_inicio >= datetime.now(),
         Cita.estado.in_(['pendiente_pago', 'confirmada'])
-    ).count()
+    ).all()
 
-    if citas_futuras > 0:
+    if citas_futuras and not confirmado:
         return jsonify({
-            'success': False,
-            'message': f'No se puede eliminar. El empleado tiene {citas_futuras} cita(s) pendiente(s)'
-        }), 400
+            'success':  False,
+            'requiere_confirmacion': True,
+            'message':  f'El empleado tiene {len(citas_futuras)} cita(s) pendiente(s). '
+                        f'Confirma para desasignarlas y programar reprogramación manual.'
+        }), 409
 
     nombre = empleado.nombre
+
+    # Desasignar citas futuras → quedan sin empleado, estado pendiente_pago
+    citas_desasignadas = 0
+    for cita in citas_futuras:
+        cita.id_empleado = None
+        cita.estado      = 'pendiente_pago'
+        # Notificar al cliente
+        try:
+            add_notificacion(
+                cita.id_cliente,
+                '⚠️ Tu cita necesita reprogramación',
+                f'La especialista asignada a tu cita del '
+                f'{cita.fecha_hora_inicio.strftime("%d/%m/%Y a las %H:%M")} '
+                f'ya no está disponible. El equipo Rossmix te contactará para reprogramarla.',
+                target=url_for('mis_citas')
+            )
+        except Exception:
+            pass
+        citas_desasignadas += 1
+        logging.info(
+            f"[ELIMINAR EMPLEADO] Cita #{cita.id_cita} desasignada "
+            f"— cliente notificado para reprogramación manual."
+        )
+
     db.session.delete(empleado)
     db.session.commit()
 
+    # Notificar a admins sobre citas que requieren reprogramación
+    if citas_desasignadas > 0:
+        try:
+            admins = Usuario.query.filter_by(tipo_usuario='admin').all()
+            for a in admins:
+                add_notificacion(
+                    a.id,
+                    f'⚠️ {citas_desasignadas} cita(s) requieren reprogramación manual',
+                    f'Se eliminó a {nombre}. '
+                    f'{citas_desasignadas} cita(s) quedaron sin especialista asignada. '
+                    f'Revisa la sección de Citas para reprogramarlas.',
+                    target=url_for('admin_citas') + '?estado=pendiente_pago'
+                )
+        except Exception:
+            pass
+
     return jsonify({
-        'success': True,
-        'message': f'Empleado {nombre} eliminado exitosamente'
+        'success':            True,
+        'message':            f'Empleado {nombre} eliminado exitosamente.',
+        'citas_desasignadas': citas_desasignadas
     })
 
 # ============================================================================
