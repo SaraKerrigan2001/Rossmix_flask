@@ -3,88 +3,90 @@
 
 {% block extra_css %}
 <style>
-/* ── Calendario mensual ── */
+/* ── Calendario mensual — compacto ── */
 .cal-wrap {
-    background:white; border-radius:16px;
-    box-shadow:0 2px 12px rgba(0,0,0,0.07);
+    background:white; border-radius:12px;
+    box-shadow:0 2px 10px rgba(0,0,0,0.06);
     border:1.5px solid #f0e8ff;
-    padding:1.2rem 1.4rem; margin-bottom:1.5rem;
+    padding:0.7rem 1rem; margin-bottom:1rem;
 }
 .cal-header {
     display:flex; align-items:center; justify-content:space-between;
-    margin-bottom:1rem;
+    margin-bottom:0.5rem;
 }
-.cal-mes-titulo { font-size:1.05rem; font-weight:700; color:#1a1a1a; }
+.cal-mes-titulo { font-size:0.88rem; font-weight:700; color:#1a1a1a; }
 .cal-nav-btn {
-    width:32px; height:32px; border-radius:8px;
+    width:24px; height:24px; border-radius:6px;
     background:#f5f5f5; color:#555; text-decoration:none;
     display:flex; align-items:center; justify-content:center;
-    font-size:0.9rem; transition:all 0.2s;
+    font-size:0.75rem; transition:all 0.2s;
 }
 .cal-nav-btn:hover { background:#fff0f6; color:#c41e3a; }
-.cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
+.cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; }
 .cal-dow {
-    text-align:center; font-size:0.72rem; font-weight:700;
-    color:#aaa; padding:0.3rem 0; text-transform:uppercase; letter-spacing:0.5px;
+    text-align:center; font-size:0.62rem; font-weight:700;
+    color:#bbb; padding:0.2rem 0; text-transform:uppercase;
 }
 .cal-dia {
-    aspect-ratio:1; border-radius:10px;
+    aspect-ratio:1; border-radius:6px;
     display:flex; flex-direction:column;
     align-items:center; justify-content:center;
-    text-decoration:none; color:#555; font-size:0.88rem;
-    font-weight:500; transition:all 0.18s; position:relative;
+    text-decoration:none; color:#555; font-size:0.75rem;
+    font-weight:500; transition:all 0.15s;
     border:1.5px solid transparent;
 }
 .cal-dia:hover { background:#fff0f6; color:#c41e3a; border-color:#ffd6e8; }
 .cal-vacio { pointer-events:none; }
 .cal-hoy {
     background:linear-gradient(135deg,#c41e3a,#ff1493) !important;
-    color:white !important; border-color:transparent !important;
-    font-weight:800; box-shadow:0 4px 14px rgba(196,30,58,0.35);
+    color:white !important; font-weight:800;
+    box-shadow:0 2px 8px rgba(196,30,58,0.3);
 }
 .cal-hoy .cal-dot { background:rgba(255,255,255,0.35) !important; color:white !important; }
 .cal-tiene-citas { font-weight:700; color:#1a1a1a; }
 .cal-num { line-height:1; }
 .cal-dot {
-    font-size:0.62rem; font-weight:700;
+    font-size:0.55rem; font-weight:700;
     background:#c41e3a; color:white;
-    border-radius:10px; padding:0 4px;
-    margin-top:2px; line-height:1.4;
-    min-width:16px; text-align:center;
+    border-radius:8px; padding:0 3px;
+    margin-top:1px; line-height:1.4;
+    min-width:12px; text-align:center;
 }
 
 /* ── Layout ── */
-.agenda-wrap { max-width:1400px; margin:0 auto; padding:0 0 4rem; }
+.agenda-wrap { max-width:1200px; margin:0 auto; padding:0 0 3rem; }
 .agenda-header {
     display:flex; align-items:center; justify-content:space-between;
-    flex-wrap:wrap; gap:1rem; margin-bottom:2rem;
+    flex-wrap:wrap; gap:0.8rem; margin-bottom:1rem;
 }
-.agenda-header h1 { font-size:1.8rem; font-weight:700; color:#1a1a1a; margin:0; }
+.agenda-header h1 { font-size:1.4rem; font-weight:700; color:#1a1a1a; margin:0; }
 
 /* ── Navegación de fecha ── */
 .date-nav {
-    display:flex; align-items:center; gap:0.8rem;
-    background:white; padding:0.5rem 1rem;
-    border-radius:12px; border:1.5px solid #f0e8ff;
-    box-shadow:0 2px 10px rgba(0,0,0,0.06);
+    display:flex; align-items:center; gap:0.6rem;
+    background:white; padding:0.4rem 0.8rem;
+    border-radius:10px; border:1.5px solid #f0e8ff;
+    box-shadow:0 2px 8px rgba(0,0,0,0.05);
 }
 .date-nav a {
-    color:#c41e3a; text-decoration:none; font-size:1.2rem;
-    padding:0.2rem 0.5rem; border-radius:6px; transition:all 0.2s;
+    color:#c41e3a; text-decoration:none; font-size:1rem;
+    padding:0.15rem 0.4rem; border-radius:5px; transition:all 0.2s;
 }
 .date-nav a:hover { background:#fff0f6; }
 .date-nav .fecha-actual {
-    font-weight:700; font-size:1rem; color:#1a1a1a; min-width:160px; text-align:center;
+    font-weight:700; font-size:0.88rem; color:#1a1a1a;
+    min-width:130px; text-align:center;
 }
 
-/* ── Stats del día ── */
+/* ── Stats del día — compactas ── */
 .stats-dia {
-    display:grid; grid-template-columns:repeat(5,1fr); gap:1rem; margin-bottom:2rem;
+    display:grid; grid-template-columns:repeat(5,1fr);
+    gap:0.6rem; margin-bottom:1rem;
 }
-@media(max-width:900px){ .stats-dia{ grid-template-columns:repeat(2,1fr); } }
+@media(max-width:900px){ .stats-dia{ grid-template-columns:repeat(3,1fr); } }
 .stat-dia {
-    background:white; border-radius:14px; padding:1.2rem 1rem;
-    text-align:center; box-shadow:0 2px 12px rgba(0,0,0,0.06);
+    background:white; border-radius:10px; padding:0.7rem 0.6rem;
+    text-align:center; box-shadow:0 2px 8px rgba(0,0,0,0.05);
     border-top:3px solid transparent;
 }
 .stat-dia.s1{ border-color:#6366f1; }
@@ -92,8 +94,8 @@
 .stat-dia.s3{ border-color:#c41e3a; }
 .stat-dia.s4{ border-color:#10b981; }
 .stat-dia.s5{ border-color:#8b5cf6; }
-.stat-dia .num{ font-size:1.8rem; font-weight:800; color:#1a1a1a; line-height:1; }
-.stat-dia .lbl{ font-size:0.78rem; color:#888; margin-top:0.3rem; font-weight:500; }
+.stat-dia .num{ font-size:1.3rem; font-weight:800; color:#1a1a1a; line-height:1; }
+.stat-dia .lbl{ font-size:0.7rem; color:#888; margin-top:0.2rem; font-weight:500; }
 </style>
 {% endblock %}
 
@@ -102,84 +104,84 @@
 
 <style>
 /* ── Cuadrícula por profesional ── */
-.profesional-section { margin-bottom:2.5rem; }
+.profesional-section { margin-bottom:1.5rem; }
 .profesional-header {
-    display:flex; align-items:center; gap:0.8rem;
-    padding:1rem 1.4rem; background:white;
-    border-radius:14px 14px 0 0;
+    display:flex; align-items:center; gap:0.6rem;
+    padding:0.7rem 1rem; background:white;
+    border-radius:10px 10px 0 0;
     border-bottom:2px solid #f0e8ff;
     box-shadow:0 2px 8px rgba(0,0,0,0.05);
 }
 .prof-avatar {
-    width:40px; height:40px; border-radius:50%;
+    width:32px; height:32px; border-radius:50%;
     background:linear-gradient(135deg,#c41e3a,#ff1493);
     color:white; display:flex; align-items:center;
-    justify-content:center; font-weight:700; font-size:1rem; flex-shrink:0;
+    justify-content:center; font-weight:700; font-size:0.85rem; flex-shrink:0;
 }
-.prof-nombre { font-weight:700; font-size:1.05rem; color:#1a1a1a; }
-.prof-count  { font-size:0.82rem; color:#888; }
+.prof-nombre { font-weight:700; font-size:0.95rem; color:#1a1a1a; }
+.prof-count  { font-size:0.75rem; color:#888; }
 
 /* ── Tarjetas de cita ── */
 .citas-grid {
-    display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
-    gap:1rem; padding:1rem;
-    background:white; border-radius:0 0 14px 14px;
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+    gap:0.7rem; padding:0.8rem;
+    background:white; border-radius:0 0 12px 12px;
     box-shadow:0 2px 8px rgba(0,0,0,0.05);
 }
 .cita-card {
-    border-radius:12px; overflow:hidden;
+    border-radius:10px; overflow:hidden;
     border:1.5px solid #f0e8ff;
-    transition:transform 0.25s, box-shadow 0.25s;
+    transition:transform 0.2s, box-shadow 0.2s;
     background:#fafafa;
 }
-.cita-card:hover { transform:translateY(-3px); box-shadow:0 8px 24px rgba(0,0,0,0.1); }
+.cita-card:hover { transform:translateY(-2px); box-shadow:0 6px 18px rgba(0,0,0,0.09); }
 .cita-card-header {
-    padding:0.8rem 1rem;
+    padding:0.55rem 0.8rem;
     display:flex; align-items:center; justify-content:space-between;
 }
-.cita-hora { font-size:1.1rem; font-weight:800; color:#1a1a1a; }
+.cita-hora { font-size:0.95rem; font-weight:800; color:#1a1a1a; }
 .estado-pill {
-    font-size:0.75rem; font-weight:700; padding:0.25rem 0.7rem;
+    font-size:0.68rem; font-weight:700; padding:0.18rem 0.55rem;
     border-radius:20px; white-space:nowrap;
 }
 .ep-programada  { background:#dbeafe; color:#1e40af; }
 .ep-en_atencion { background:#fef3c7; color:#92400e; }
 .ep-completada  { background:#dcfce7; color:#166534; }
 .ep-cancelada   { background:#fee2e2; color:#991b1b; }
-.cita-card-body { padding:0.8rem 1rem; }
-.cita-cliente { font-weight:700; font-size:0.95rem; color:#1a1a1a; margin-bottom:0.3rem; }
-.cita-servicio{ font-size:0.85rem; color:#666; margin-bottom:0.6rem; }
-.cita-montos  { display:flex; gap:0.8rem; flex-wrap:wrap; font-size:0.82rem; }
+.ep-no_asistio  { background:#fee2e2; color:#991b1b; }
+.cita-card-body { padding:0.55rem 0.8rem; }
+.cita-cliente { font-weight:700; font-size:0.85rem; color:#1a1a1a; margin-bottom:0.2rem; }
+.cita-servicio{ font-size:0.78rem; color:#666; margin-bottom:0.4rem; }
+.cita-montos  { display:flex; gap:0.6rem; flex-wrap:wrap; font-size:0.75rem; }
 .monto-item   { display:flex; flex-direction:column; }
-.monto-lbl    { color:#aaa; font-size:0.72rem; }
+.monto-lbl    { color:#aaa; font-size:0.65rem; }
 .monto-val    { font-weight:700; color:#1a1a1a; }
 .monto-val.saldo{ color:#c41e3a; }
 .cita-card-footer {
-    padding:0.7rem 1rem; border-top:1px solid #f0f0f0;
-    display:flex; gap:0.5rem; flex-wrap:wrap;
+    padding:0.5rem 0.8rem; border-top:1px solid #f0f0f0;
+    display:flex; gap:0.4rem; flex-wrap:wrap;
 }
 .btn-atencion {
     flex:1; background:#fef3c7; color:#d97706;
-    border:1.5px solid #fde68a; border-radius:8px;
-    padding:0.5rem 0.8rem; font-size:0.82rem; font-weight:700;
+    border:1.5px solid #fde68a; border-radius:7px;
+    padding:0.4rem 0.5rem; font-size:0.75rem; font-weight:700;
     cursor:pointer; transition:all 0.2s;
 }
 .btn-atencion:hover { background:#fde68a; }
 .btn-liquidar {
     flex:1; background:linear-gradient(135deg,#10b981,#059669);
-    color:white; border:none; border-radius:8px;
-    padding:0.5rem 0.8rem; font-size:0.82rem; font-weight:700;
+    color:white; border:none; border-radius:7px;
+    padding:0.4rem 0.5rem; font-size:0.75rem; font-weight:700;
     cursor:pointer; transition:all 0.2s;
 }
-.btn-liquidar:hover { opacity:0.88; transform:translateY(-1px); }
+.btn-liquidar:hover { opacity:0.88; }
 .btn-no-asistio {
     flex:1; background:#fff1f2; color:#dc2626;
-    border:1.5px solid #fecdd3; border-radius:8px;
-    padding:0.5rem 0.8rem; font-size:0.82rem; font-weight:700;
+    border:1.5px solid #fecdd3; border-radius:7px;
+    padding:0.4rem 0.5rem; font-size:0.75rem; font-weight:700;
     cursor:pointer; transition:all 0.2s;
 }
 .btn-no-asistio:hover { background:#fee2e2; }
-.ep-no_asistio { background:#fee2e2; color:#991b1b; }
 
 /* ── Modal liquidar ── */
 .modal-overlay {
