@@ -61,10 +61,11 @@ document.addEventListener('DOMContentLoaded', function(){
     const page = {{ page or 1 }};
     const total = {{ total_pages or 1 }};
     const container = document.createElement('div');
-    container.style.marginTop = '1rem';
-    container.style.display = 'flex';
+    container.style.marginTop    = '1.5rem';
+    container.style.marginBottom = '1rem';
+    container.style.display      = 'flex';
     container.style.justifyContent = 'center';
-    container.style.gap = '0.5rem';
+    container.style.gap          = '0.5rem';
 
     function makeLink(p, label){
         const a = document.createElement('a');
@@ -79,6 +80,7 @@ document.addEventListener('DOMContentLoaded', function(){
     if (page < total) container.appendChild(makeLink(page+1, 'Siguiente'));
 
     document.querySelector('.r-card').appendChild(container);
+    document.querySelector('.r-card').style.marginBottom = '2rem';
 });
 </script>
 {% endblock %}
