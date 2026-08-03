@@ -109,41 +109,33 @@
     {% endif %}
 </div>
 
-<!-- Modal confirmación -->
-<div id="modalEliminar" class="modal-eliminar">
-    <div class="modal-inner">
-        <h3 class="modal-title">Confirmar Eliminación</h3>
-        <p id="modalMsg" class="modal-msg"></p>
-        <div class="modal-actions">
-            <button onclick="cerrarModal()" class="btn-secondary-r">Cancelar</button>
-            <button id="btnConfirmarEliminar" class="btn-rossmix btn-danger-gradient">
-                <i class="bi bi-trash3"></i> Eliminar
-            </button>
-        </div>
-    </div>
-</div>
+<!-- Modal eliminado — se usa rossmixConfirm() de base.html -->
 
 <script>
-let clienteId = null;
-function confirmarEliminar(id, nombre) {
-    clienteId = id;
-    document.getElementById('modalMsg').textContent = `¿Eliminar al cliente "${nombre}"? Esta acción no se puede deshacer.`;
-    document.getElementById('modalEliminar').style.display = 'flex';
+async function confirmarEliminar(id, nombre) {
+    const ok = await rossmixConfirm({
+        titulo:  'Eliminar cliente',
+        mensaje: `¿Eliminar a "${nombre}"?\n\nEsta acción no se puede deshacer.`,
+        tipo:    'danger',
+        okText:  'Sí, eliminar'
+    });
+    if (!ok) return;
+    try {
+        const res  = await fetch(`/admin/clientes/eliminar/${id}`, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+            document.getElementById(`cliente-${id}`)?.remove();
+        } else {
+            await rossmixConfirm({
+                titulo:  'No se pudo eliminar',
+                mensaje: data.message,
+                tipo:    'warning',
+                okText:  'Cerrar'
+            });
+        }
+    } catch(e) {
+        await rossmixConfirm({ titulo:'Error', mensaje:'Error de conexión.', tipo:'danger', okText:'Cerrar' });
+    }
 }
-function cerrarModal() { document.getElementById('modalEliminar').style.display = 'none'; }
-
-document.getElementById('btnConfirmarEliminar').addEventListener('click', function() {
-    if (!clienteId) return;
-    fetch(`/admin/clientes/eliminar/${clienteId}`, { method:'POST' })
-        .then(r => r.json())
-        .then(d => {
-            cerrarModal();
-            if (d.success) {
-                document.getElementById(`cliente-${clienteId}`)?.remove();
-            } else {
-                alert(d.message);
-            }
-        });
-});
 </script>
 {% endblock %}
