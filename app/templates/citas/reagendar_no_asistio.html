@@ -289,7 +289,13 @@ function seleccionarSlot(slot, empId, empNombre, btn) {
 
 async function confirmarReagendar() {
     if (!slotSeleccionado) return;
-    if (!confirm(`¿Confirmar reagendamiento para el ${slotSeleccionado}?\n\nTu crédito se aplicará automáticamente.`)) return;
+    const ok = await rossmixConfirm({
+        titulo:  'Confirmar reagendamiento',
+        mensaje: `¿Confirmar reagendamiento para el ${slotSeleccionado}?\n\nTu crédito de $5.000 COP se aplicará automáticamente.`,
+        tipo:    'success',
+        okText:  'Sí, reagendar'
+    });
+    if (!ok) return;
 
     const btn = document.getElementById('btnConfirmar');
     btn.disabled = true;

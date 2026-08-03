@@ -157,17 +157,35 @@
 
 <script>
 async function confirmarCancelacion(idCita) {
-    if (!confirm('¿Estás segura de cancelar tu cita?\nSe procesará el reembolso de $5.000 COP.')) return;
+    const ok = await rossmixConfirm({
+        titulo:  'Cancelar cita',
+        mensaje: '¿Estás segura de cancelar tu cita?\nSe procesará el reembolso de $5.000 COP.',
+        tipo:    'danger',
+        okText:  'Sí, cancelar cita'
+    });
+    if (!ok) return;
     try {
         const res  = await fetch(`/citas/cancelar/${idCita}`, { method:'POST' });
         const data = await res.json();
         if (data.success) {
-            alert('✅ Cita cancelada. ' + (data.reembolso ? 'Reembolso procesado.' : 'Reembolso pendiente.'));
+            await rossmixConfirm({
+                titulo:  data.reembolso ? '✅ Cita cancelada' : '⚠️ Cita cancelada',
+                mensaje: data.reembolso ? 'Reembolso de $5.000 COP procesado exitosamente.' : 'Reembolso pendiente — el administrador te contactará.',
+                tipo:    data.reembolso ? 'success' : 'warning',
+                okText:  'Aceptar'
+            });
             window.location.href = '/';
         } else {
-            alert('❌ ' + (data.error || 'No se pudo cancelar.'));
+            await rossmixConfirm({
+                titulo:  'No se pudo cancelar',
+                mensaje: data.error || 'Ocurrió un error.',
+                tipo:    'danger',
+                okText:  'Cerrar'
+            });
         }
-    } catch(e) { alert('❌ Error de conexión.'); }
+    } catch(e) {
+        await rossmixConfirm({ titulo:'Error', mensaje:'Error de conexión.', tipo:'danger', okText:'Cerrar' });
+    }
 }
 </script>
 {% endblock %}

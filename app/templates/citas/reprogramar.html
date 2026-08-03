@@ -261,7 +261,13 @@ function seleccionarSlot(slot, empId, empNombre, btn) {
 
 async function confirmarReprogramacion() {
     if (!slotSeleccionado) return;
-    if (!confirm(`¿Confirmar reprogramación para el ${slotSeleccionado}?`)) return;
+    const ok = await rossmixConfirm({
+        titulo:  'Confirmar reprogramación',
+        mensaje: `¿Confirmar reprogramación para el ${slotSeleccionado}?\n\nTu abono de $5.000 COP se mantiene.`,
+        tipo:    'info',
+        okText:  'Sí, reprogramar'
+    });
+    if (!ok) return;
 
     document.getElementById('btnConfirmar').disabled = true;
     document.getElementById('btnConfirmar').textContent = 'Procesando...';

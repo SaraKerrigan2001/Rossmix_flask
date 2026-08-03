@@ -562,9 +562,13 @@
     }
 
     async function cancelarCita(idCita, nombreServicio) {
-        if (!confirm(`¿Estás seguro de cancelar tu cita de ${nombreServicio}?\n\nSe procesará el reembolso de $5.000 COP de tu abono.`)) {
-            return;
-        }
+        const ok = await rossmixConfirm({
+            titulo:  'Cancelar cita',
+            mensaje: `¿Estás segura de cancelar tu cita de ${nombreServicio}?\n\nSe procesará el reembolso de $5.000 COP de tu abono.`,
+            tipo:    'danger',
+            okText:  'Sí, cancelar cita'
+        });
+        if (!ok) return;
 
         try {
             const response = await fetch(`{{ url_for('cancelar_cita', id_cita=0) }}`.replace('0', idCita), {
@@ -575,18 +579,21 @@
             const data = await response.json();
 
             if (response.ok && data.success) {
-                // Mostrar mensaje con estado del reembolso
-                const icono    = data.reembolso ? '✅' : '⚠️';
                 const reembolsoMsg = data.reembolso
                     ? 'El reembolso de $5.000 COP fue procesado exitosamente.'
                     : 'El reembolso está pendiente — el administrador te contactará.';
-                alert(`${icono} Cita cancelada\n\n${reembolsoMsg}`);
+                await rossmixConfirm({
+                    titulo:  'Cita cancelada',
+                    mensaje: reembolsoMsg,
+                    tipo:    data.reembolso ? 'success' : 'warning',
+                    okText:  'Aceptar'
+                });
                 location.reload();
             } else {
-                alert('❌ ' + (data.error || 'No se pudo cancelar la cita.'));
+                await rossmixConfirm({ titulo: 'No se pudo cancelar', mensaje: data.error || 'Ocurrió un error.', tipo: 'danger', okText: 'Cerrar' });
             }
         } catch (error) {
-            alert('❌ Error de conexión. Intenta de nuevo.');
+            await rossmixConfirm({ titulo: 'Error de conexión', mensaje: 'Intenta de nuevo.', tipo: 'danger', okText: 'Cerrar' });
             console.error('Error:', error);
         }
     }

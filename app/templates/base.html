@@ -614,6 +614,102 @@ const IG_SVG = `<path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.6
 </script>
 {% endif %}
 
+<!-- MODAL GLOBAL DE CONFIRMACIÓN (reemplaza confirm() del navegador) -->
+<div id="rmxConfirmModal" style="display:none;position:fixed;inset:0;
+     background:rgba(0,0,0,0.5);z-index:9998;align-items:center;justify-content:center;padding:1rem;">
+    <div style="background:white;border-radius:20px;padding:2rem;max-width:420px;width:100%;
+                box-shadow:0 20px 60px rgba(0,0,0,0.2);animation:rmxPopIn 0.25s ease;">
+        <div style="display:flex;align-items:flex-start;gap:1rem;margin-bottom:1.2rem;">
+            <div id="rmxConfirmIcon" style="width:44px;height:44px;border-radius:50%;flex-shrink:0;
+                 display:flex;align-items:center;justify-content:center;font-size:1.3rem;"></div>
+            <div>
+                <h3 id="rmxConfirmTitle" style="margin:0 0 0.4rem;font-size:1.1rem;font-weight:700;color:#1a1a1a;"></h3>
+                <p  id="rmxConfirmMsg"   style="margin:0;font-size:0.9rem;color:#555;line-height:1.6;white-space:pre-line;"></p>
+            </div>
+        </div>
+        <div style="display:flex;gap:0.8rem;justify-content:flex-end;flex-wrap:wrap;">
+            <button id="rmxConfirmCancel"
+                    style="background:white;color:#555;border:1.5px solid #e5e7eb;
+                           padding:0.65rem 1.4rem;border-radius:10px;font-weight:600;
+                           font-size:0.9rem;cursor:pointer;transition:all 0.2s;"
+                    onmouseover="this.style.borderColor='#c41e3a';this.style.color='#c41e3a';"
+                    onmouseout="this.style.borderColor='#e5e7eb';this.style.color='#555';">
+                Cancelar
+            </button>
+            <button id="rmxConfirmOk"
+                    style="color:white;border:none;padding:0.65rem 1.6rem;
+                           border-radius:10px;font-weight:700;font-size:0.9rem;
+                           cursor:pointer;transition:all 0.2s;">
+                Confirmar
+            </button>
+        </div>
+    </div>
+</div>
+<style>
+@keyframes rmxPopIn {
+    from { transform:scale(0.85); opacity:0; }
+    to   { transform:scale(1);    opacity:1; }
+}
+</style>
+<script>
+/**
+ * rossmixConfirm(opciones) — reemplaza confirm() del navegador
+ *
+ * Uso:
+ *   rossmixConfirm({
+ *     titulo:  'Confirmar acción',
+ *     mensaje: '¿Estás segura?',
+ *     tipo:    'danger' | 'warning' | 'info' | 'success',  // opcional
+ *     okText:  'Sí, eliminar',                              // opcional
+ *   }).then(confirmado => {
+ *     if (confirmado) { ... }
+ *   });
+ */
+function rossmixConfirm({ titulo = 'Confirmar', mensaje = '', tipo = 'danger', okText = 'Confirmar' } = {}) {
+    return new Promise(resolve => {
+        const modal  = document.getElementById('rmxConfirmModal');
+        const icon   = document.getElementById('rmxConfirmIcon');
+        const title  = document.getElementById('rmxConfirmTitle');
+        const msg    = document.getElementById('rmxConfirmMsg');
+        const btnOk  = document.getElementById('rmxConfirmOk');
+        const btnCan = document.getElementById('rmxConfirmCancel');
+
+        const estilos = {
+            danger:  { bg:'#fee2e2', color:'#dc2626', grad:'linear-gradient(135deg,#dc2626,#ef4444)', emoji:'🗑️' },
+            warning: { bg:'#fff7ed', color:'#d97706', grad:'linear-gradient(135deg,#f59e0b,#d97706)', emoji:'⚠️' },
+            info:    { bg:'#eff6ff', color:'#2563eb', grad:'linear-gradient(135deg,#2563eb,#3b82f6)', emoji:'ℹ️' },
+            success: { bg:'#f0fdf4', color:'#16a34a', grad:'linear-gradient(135deg,#10b981,#059669)', emoji:'✅' },
+        };
+        const e = estilos[tipo] || estilos.danger;
+
+        icon.style.background = e.bg;
+        icon.style.color      = e.color;
+        icon.textContent      = e.emoji;
+        title.textContent     = titulo;
+        msg.textContent       = mensaje;
+        btnOk.style.background = e.grad;
+        btnOk.textContent     = okText;
+
+        modal.style.display = 'flex';
+
+        function cleanup(result) {
+            modal.style.display = 'none';
+            btnOk.removeEventListener('click', onOk);
+            btnCan.removeEventListener('click', onCancel);
+            modal.removeEventListener('click', onOutside);
+            resolve(result);
+        }
+        const onOk      = () => cleanup(true);
+        const onCancel  = () => cleanup(false);
+        const onOutside = (e) => { if (e.target === modal) cleanup(false); };
+
+        btnOk.addEventListener('click',  onOk);
+        btnCan.addEventListener('click', onCancel);
+        modal.addEventListener('click',  onOutside);
+    });
+}
+</script>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     // Auto-ocultar mensajes flash

@@ -244,7 +244,13 @@
 
 <script>
 async function aceptarPago(idCita, btn) {
-    if (!confirm('¿Confirmar que el pago fue recibido y activar la cita?')) return;
+    const ok = await rossmixConfirm({
+        titulo:  'Confirmar pago recibido',
+        mensaje: '¿Confirmar que el pago fue recibido y activar la cita?\n\nLa clienta recibirá una notificación de confirmación.',
+        tipo:    'success',
+        okText:  'Sí, confirmar pago'
+    });
+    if (!ok) return;
 
     btn.disabled = true;
     btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Procesando...';

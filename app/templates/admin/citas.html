@@ -97,7 +97,23 @@
                     <td><code style="background:#f8f8f8;padding:0.2rem 0.5rem;border-radius:6px;font-size:0.82rem;">{{ cita.codigo_reserva }}</code></td>
                     <td><strong>{{ usuario.nombre }}</strong><br><small style="color:#9ca3af;">{{ usuario.email }}</small></td>
                     <td>{{ servicio.nombre_servicio }}</td>
-                    <td>{{ empleado.nombre if empleado else '—' }}</td>
+                    <td>
+                        {% if empleado %}
+                            {{ empleado.nombre }}
+                        {% else %}
+                            <span style="color:#dc2626;font-weight:700;">— Sin asignar</span>
+                            {% if cita.estado in ['pendiente_pago','confirmada'] %}
+                            <br>
+                            <button onclick="abrirReasignar({{ cita.id_cita }})"
+                                    style="margin-top:0.3rem;background:#eff6ff;color:#2563eb;
+                                           border:1.5px solid #bfdbfe;border-radius:8px;
+                                           padding:0.25rem 0.7rem;font-size:0.78rem;font-weight:700;
+                                           cursor:pointer;white-space:nowrap;">
+                                <i class="bi bi-person-plus"></i> Reasignar
+                            </button>
+                            {% endif %}
+                        {% endif %}
+                    </td>
                     <td>{{ cita.fecha_hora_inicio.strftime('%d/%m/%Y') }}</td>
                     <td>{{ cita.fecha_hora_inicio.strftime('%H:%M') }} – {{ cita.fecha_hora_fin.strftime('%H:%M') }}</td>
                     <td><strong style="color:#c41e3a;">${{ "{:,.0f}".format(cita.monto_total) }}</strong></td>
@@ -141,21 +157,195 @@
     {% endif %}
 </div>
 
+<!-- Modal Reasignar Empleado -->
+<div id="modalReasignar" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);
+     z-index:3000;align-items:center;justify-content:center;padding:1rem;">
+    <div style="background:white;border-radius:20px;padding:2rem;max-width:480px;width:100%;
+                box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+        <div style="display:flex;align-items:center;gap:0.8rem;margin-bottom:1.2rem;">
+            <div style="width:44px;height:44px;border-radius:50%;background:#eff6ff;
+                        display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <i class="bi bi-person-plus-fill" style="color:#2563eb;font-size:1.2rem;"></i>
+            </div>
+            <div>
+                <h3 style="margin:0;font-size:1.1rem;font-weight:700;color:#1a1a1a;">
+                    Reasignar Especialista
+                </h3>
+                <p id="reasignarInfo" style="margin:0;font-size:0.85rem;color:#888;"></p>
+            </div>
+        </div>
+
+        <div id="reasignarLoading" style="text-align:center;padding:1rem;color:#888;">
+            <i class="bi bi-hourglass-split"></i> Cargando disponibilidad...
+        </div>
+
+        <div id="reasignarLista" style="display:none;">
+            <p style="font-size:0.88rem;font-weight:600;color:#444;margin-bottom:0.7rem;">
+                Especialistas disponibles para este servicio:
+            </p>
+            <div id="empleadosGrid"
+                 style="display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;
+                        max-height:280px;overflow-y:auto;margin-bottom:1.2rem;"></div>
+        </div>
+
+        <div id="reasignarSinEmpleados" style="display:none;
+             background:#fef3c7;border:1.5px solid #fde68a;border-radius:10px;
+             padding:0.9rem;font-size:0.88rem;color:#92400e;margin-bottom:1.2rem;">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            No hay especialistas activas disponibles para este servicio.
+        </div>
+
+        <div style="display:flex;gap:0.8rem;justify-content:flex-end;">
+            <button onclick="cerrarReasignar()"
+                    style="background:white;color:#555;border:1.5px solid #e5e7eb;
+                           padding:0.6rem 1.3rem;border-radius:10px;font-weight:600;
+                           font-size:0.9rem;cursor:pointer;">
+                Cancelar
+            </button>
+            <button id="btnReasignarConfirmar" onclick="confirmarReasignar()" disabled
+                    style="background:linear-gradient(135deg,#2563eb,#3b82f6);color:white;
+                           border:none;padding:0.6rem 1.5rem;border-radius:10px;
+                           font-weight:700;font-size:0.9rem;cursor:pointer;
+                           display:inline-flex;align-items:center;gap:0.4rem;">
+                <i class="bi bi-check-circle-fill"></i>
+                <span id="btnReasignarTexto">Selecciona una especialista</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="toastCitas" style="position:fixed;bottom:28px;left:50%;
+     transform:translateX(-50%) translateY(80px);padding:0.85rem 2rem;
+     border-radius:30px;color:white;font-weight:700;font-size:0.95rem;
+     box-shadow:0 8px 30px rgba(0,0,0,0.2);transition:transform 0.4s ease;z-index:9999;"></div>
+
 <script>
+// ── Cambiar estado ────────────────────────────────────────────────────────────
 document.querySelectorAll('.estado-select').forEach(sel => {
     const original = sel.value;
     sel.addEventListener('change', function() {
-        const id = this.dataset.citaId;
+        const id    = this.dataset.citaId;
         const nuevo = this.value;
-        const fd = new FormData();
+        const fd    = new FormData();
         fd.append('estado', nuevo);
         fetch(`/admin/citas/cambiar-estado/${id}`, { method:'POST', body:fd })
             .then(r => r.json())
-            .then(d => {
-                if (!d.success) { this.value = original; alert(d.message); }
-            })
+            .then(d => { if (!d.success) { this.value = original; } })
             .catch(() => { this.value = original; });
     });
 });
+
+// ── Reasignar empleado ────────────────────────────────────────────────────────
+let citaReasignarId      = null;
+let empleadoReasignarId  = null;
+
+async function abrirReasignar(idCita) {
+    citaReasignarId     = idCita;
+    empleadoReasignarId = null;
+
+    document.getElementById('reasignarLoading').style.display     = 'block';
+    document.getElementById('reasignarLista').style.display       = 'none';
+    document.getElementById('reasignarSinEmpleados').style.display = 'none';
+    document.getElementById('btnReasignarConfirmar').disabled     = true;
+    document.getElementById('btnReasignarTexto').textContent      = 'Selecciona una especialista';
+    document.getElementById('modalReasignar').style.display       = 'flex';
+
+    try {
+        const res  = await fetch(`/admin/citas/reasignar-empleado/${idCita}`);
+        const data = await res.json();
+
+        document.getElementById('reasignarInfo').textContent =
+            `${data.cliente} — ${data.servicio} — ${data.fecha}`;
+        document.getElementById('reasignarLoading').style.display = 'none';
+
+        if (!data.empleados || data.empleados.length === 0) {
+            document.getElementById('reasignarSinEmpleados').style.display = 'block';
+            return;
+        }
+
+        document.getElementById('reasignarLista').style.display = 'block';
+        const grid = document.getElementById('empleadosGrid');
+        grid.innerHTML = '';
+        data.empleados.forEach(emp => {
+            grid.innerHTML += `
+                <div class="emp-card" data-id="${emp.id}" onclick="seleccionarEmpleado(${emp.id}, '${emp.nombre}', this)"
+                     style="border:2px solid #e5e7eb;border-radius:12px;padding:0.8rem;
+                            cursor:pointer;transition:all 0.2s;">
+                    <div style="font-weight:700;font-size:0.9rem;color:#1a1a1a;">${emp.nombre}</div>
+                    <div style="font-size:0.78rem;color:#888;margin-top:0.2rem;">${emp.especialidad}</div>
+                </div>`;
+        });
+    } catch(e) {
+        document.getElementById('reasignarLoading').innerHTML =
+            '<i class="bi bi-exclamation-triangle" style="color:#dc2626;"></i> Error al cargar.';
+    }
+}
+
+function seleccionarEmpleado(id, nombre, el) {
+    document.querySelectorAll('.emp-card').forEach(c => {
+        c.style.borderColor  = '#e5e7eb';
+        c.style.background   = 'white';
+    });
+    el.style.borderColor = '#2563eb';
+    el.style.background  = '#eff6ff';
+    empleadoReasignarId  = id;
+    document.getElementById('btnReasignarConfirmar').disabled = false;
+    document.getElementById('btnReasignarTexto').textContent  = `Asignar a ${nombre}`;
+}
+
+async function confirmarReasignar() {
+    if (!citaReasignarId || !empleadoReasignarId) return;
+
+    const ok = await rossmixConfirm({
+        titulo:  'Confirmar reasignación',
+        mensaje: `¿Reasignar la especialista seleccionada a esta cita?\n\nLa cita cambiará a estado Confirmada y la clienta será notificada.`,
+        tipo:    'info',
+        okText:  'Sí, reasignar'
+    });
+    if (!ok) return;
+
+    const btn = document.getElementById('btnReasignarConfirmar');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Procesando...';
+
+    const form = new FormData();
+    form.append('id_empleado', empleadoReasignarId);
+
+    try {
+        const res  = await fetch(`/admin/citas/reasignar-empleado/${citaReasignarId}`, {
+            method: 'POST', body: form
+        });
+        const data = await res.json();
+
+        cerrarReasignar();
+        if (data.success) {
+            mostrarToastCitas(`✅ ${data.message}`, '#10b981');
+            setTimeout(() => location.reload(), 1800);
+        } else {
+            mostrarToastCitas('❌ ' + data.message, '#dc2626');
+        }
+    } catch(e) {
+        mostrarToastCitas('❌ Error de conexión', '#dc2626');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> <span id="btnReasignarTexto">Reintentar</span>';
+    }
+}
+
+function cerrarReasignar() {
+    document.getElementById('modalReasignar').style.display = 'none';
+    citaReasignarId = null; empleadoReasignarId = null;
+}
+
+document.getElementById('modalReasignar').addEventListener('click', function(e) {
+    if (e.target === this) cerrarReasignar();
+});
+
+function mostrarToastCitas(msg, color) {
+    const t = document.getElementById('toastCitas');
+    t.textContent       = msg;
+    t.style.background  = color;
+    t.style.transform   = 'translateX(-50%) translateY(0)';
+    setTimeout(() => t.style.transform = 'translateX(-50%) translateY(80px)', 3500);
+}
 </script>
 {% endblock %}

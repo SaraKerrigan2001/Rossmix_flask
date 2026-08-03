@@ -373,11 +373,13 @@ let metodoSeleccionado = null;
 
 // ── No se presentó ───────────────────────────────────────────────────────────
 async function marcarNoAsistio(idCita, nombreCliente) {
-    if (!confirm(
-        `¿Confirmar que ${nombreCliente} NO se presentó a su cita?\n\n` +
-        `⚠️ El abono de $5.000 COP NO será reembolsable.\n` +
-        `La clienta recibirá notificación para reagendar.`
-    )) return;
+    const ok = await rossmixConfirm({
+        titulo:  'No se presentó',
+        mensaje: `¿Confirmar que ${nombreCliente} NO se presentó a su cita?\n\nEl abono de $5.000 COP NO será reembolsable. La clienta recibirá notificación para reagendar.`,
+        tipo:    'warning',
+        okText:  'Sí, marcar como No Asistió'
+    });
+    if (!ok) return;
     try {
         const res  = await fetch(`/admin/agenda-diaria/no-asistio/${idCita}`, { method: 'POST' });
         const data = await res.json();
@@ -399,7 +401,13 @@ async function marcarNoAsistio(idCita, nombreCliente) {
 }
 
 async function marcarEnAtencion(idCita, nombreCliente) {
-    if (!confirm(`¿Confirmar que ${nombreCliente} llegó a su cita?`)) return;
+    const ok = await rossmixConfirm({
+        titulo:  'Cliente en camino',
+        mensaje: `¿Confirmar que ${nombreCliente} llegó a su cita?`,
+        tipo:    'success',
+        okText:  'Sí, está en atención'
+    });
+    if (!ok) return;
     try {
         const res  = await fetch(`/admin/agenda-diaria/en-atencion/${idCita}`, { method: 'POST' });
         const data = await res.json();

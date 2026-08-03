@@ -2238,6 +2238,75 @@ def admin_citas_cambiar_estado(id_cita):
         'message': f'Estado de cita actualizado a {nuevo_estado}'
     })
 
+
+@app.route('/admin/citas/reasignar-empleado/<int:id_cita>', methods=['GET', 'POST'])
+@admin_required
+def admin_citas_reasignar_empleado(id_cita):
+    """
+    GET  — devuelve la lista de empleados disponibles para el servicio de la cita.
+    POST — asigna el nuevo empleado y confirma la cita.
+    """
+    cita     = Cita.query.get_or_404(id_cita)
+    servicio = Servicio.query.get(cita.id_servicio)
+
+    if request.method == 'GET':
+        # Empleados que realizan este servicio
+        empleados_ids = db.session.query(EmpleadoServicio.id_empleado)\
+            .filter_by(id_servicio=cita.id_servicio).all()
+        empleados_ids = [e[0] for e in empleados_ids]
+        empleados = Empleado.query.filter(
+            Empleado.id_empleado.in_(empleados_ids),
+            Empleado.activo == True
+        ).order_by(Empleado.nombre).all()
+        return jsonify({
+            'id_cita':  id_cita,
+            'servicio': servicio.nombre_servicio if servicio else 'N/A',
+            'cliente':  cita.cliente.nombre if cita.cliente else 'N/A',
+            'fecha':    cita.fecha_hora_inicio.strftime('%d/%m/%Y a las %H:%M'),
+            'empleados': [
+                {'id': e.id_empleado, 'nombre': e.nombre, 'especialidad': e.especialidad or ''}
+                for e in empleados
+            ]
+        })
+
+    # POST — reasignar
+    nuevo_empleado_id = request.form.get('id_empleado', type=int)
+    if not nuevo_empleado_id:
+        return jsonify({'success': False, 'message': 'Selecciona un empleado'}), 400
+
+    empleado = Empleado.query.get(nuevo_empleado_id)
+    if not empleado:
+        return jsonify({'success': False, 'message': 'Empleado no encontrado'}), 404
+
+    cita.id_empleado = nuevo_empleado_id
+    cita.estado      = 'confirmada'
+    db.session.commit()
+
+    logging.info(
+        f"[REASIGNAR] Cita #{id_cita} reasignada a {empleado.nombre} — "
+        f"estado → confirmada."
+    )
+
+    # Notificar al cliente
+    try:
+        add_notificacion(
+            cita.id_cliente,
+            '✅ Tu cita fue reasignada y confirmada',
+            f'Tu cita de {servicio.nombre_servicio if servicio else "servicio"} '
+            f'del {cita.fecha_hora_inicio.strftime("%d/%m/%Y a las %H:%M")} '
+            f'fue asignada a {empleado.nombre}. ¡Te esperamos!',
+            target=url_for('mis_citas')
+        )
+    except Exception:
+        pass
+
+    return jsonify({
+        'success':         True,
+        'message':         f'Cita #{id_cita} reasignada a {empleado.nombre} y confirmada.',
+        'empleado_nombre': empleado.nombre,
+        'nuevo_estado':    'confirmada'
+    })
+
 # ============================================================================
 # RUTAS PANEL ADMIN - GESTIÓN DE PAGOS
 # ============================================================================
