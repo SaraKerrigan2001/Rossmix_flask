@@ -122,11 +122,14 @@
     cursor:pointer; transition:all 0.2s;
 }
 .btn-liquidar:hover { opacity:0.88; transform:translateY(-1px); }
-.btn-disabled {
-    flex:1; background:#f3f4f6; color:#9ca3af;
-    border:1.5px solid #e5e7eb; border-radius:8px;
-    padding:0.5rem 0.8rem; font-size:0.82rem; font-weight:600; cursor:default;
+.btn-no-asistio {
+    flex:1; background:#fff1f2; color:#dc2626;
+    border:1.5px solid #fecdd3; border-radius:8px;
+    padding:0.5rem 0.8rem; font-size:0.82rem; font-weight:700;
+    cursor:pointer; transition:all 0.2s;
 }
+.btn-no-asistio:hover { background:#fee2e2; }
+.ep-no_asistio { background:#fee2e2; color:#991b1b; }
 
 /* ── Modal liquidar ── */
 .modal-overlay {
@@ -300,6 +303,13 @@
                                 onclick="marcarEnAtencion({{ c.id_cita }}, '{{ c.cliente }}')">
                             <i class="bi bi-play-circle"></i> En Atención
                         </button>
+                        {# Si ya pasó la hora de la cita y no llegó, mostrar opción #}
+                        {% if c.hora <= fecha.strftime('%H:%M') %}
+                        <button class="btn-no-asistio"
+                                onclick="marcarNoAsistio({{ c.id_cita }}, '{{ c.cliente }}')">
+                            <i class="bi bi-person-x"></i> No se presentó
+                        </button>
+                        {% endif %}
                     {% elif c.estado_key == 'EN_ATENCION' %}
                         <button class="btn-disabled"><i class="bi bi-play-circle-fill"></i> En Atención</button>
                         <button class="btn-liquidar"
@@ -308,8 +318,10 @@
                         </button>
                     {% elif c.estado_key == 'COMPLETADA' %}
                         <span class="btn-disabled" style="text-align:center;">✅ Completada</span>
-                    {% else %}
+                    {% elif c.estado_key == 'CANCELADA' %}
                         <span class="btn-disabled" style="text-align:center;">❌ Cancelada</span>
+                    {% else %}
+                        <span class="btn-disabled" style="text-align:center;color:#dc2626;">⏭️ No Asistió — Abono no reembolsable</span>
                     {% endif %}
                 </div>
             </div>
@@ -359,7 +371,33 @@
 let citaActivaId   = null;
 let metodoSeleccionado = null;
 
-// ── Paso 3: Marcar en atención ──────────────────────────────────────────────
+// ── No se presentó ───────────────────────────────────────────────────────────
+async function marcarNoAsistio(idCita, nombreCliente) {
+    if (!confirm(
+        `¿Confirmar que ${nombreCliente} NO se presentó a su cita?\n\n` +
+        `⚠️ El abono de $5.000 COP NO será reembolsable.\n` +
+        `La clienta recibirá notificación para reagendar.`
+    )) return;
+    try {
+        const res  = await fetch(`/admin/agenda-diaria/no-asistio/${idCita}`, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+            document.getElementById(`pill-${idCita}`).className = 'estado-pill ep-no_asistio';
+            document.getElementById(`pill-${idCita}`).innerHTML = '⏭️ No Asistió';
+            document.getElementById(`footer-${idCita}`).innerHTML =
+                `<span class="btn-disabled" style="text-align:center;color:#dc2626;width:100%;">
+                    ⏭️ No Asistió — Abono no reembolsable
+                 </span>`;
+            mostrarToast(
+                `⚠️ ${nombreCliente} marcada como No Asistió. Abono $${(data.abono||5000).toLocaleString('es-CO')} COP no reembolsable.`,
+                'warning'
+            );
+        } else {
+            mostrarToast('❌ ' + data.message, 'error');
+        }
+    } catch(e) { mostrarToast('❌ Error de conexión', 'error'); }
+}
+
 async function marcarEnAtencion(idCita, nombreCliente) {
     if (!confirm(`¿Confirmar que ${nombreCliente} llegó a su cita?`)) return;
     try {

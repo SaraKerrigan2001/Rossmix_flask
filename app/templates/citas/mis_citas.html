@@ -475,6 +475,16 @@
                         </div>
                     </div>
 
+                    {% if cita.estado == 'no_asistio' %}
+                    <div style="background:#fff7ed;border:1.5px solid #fed7aa;border-radius:12px;
+                                padding:1rem;margin:0.8rem 0;font-size:0.88rem;color:#92400e;">
+                        <strong>⚠️ No registramos tu asistencia.</strong><br>
+                        El abono de <strong>${{ '{:,.0f}'.format(cita.monto_abono or 5000) }} COP</strong>
+                        no es reembolsable según nuestra política.<br>
+                        Puedes reagendar y el abono se aplicará como crédito en tu nueva cita.
+                    </div>
+                    {% endif %}
+
                     <div class="cita-info">
                         <div class="info-item">
                             <span class="info-icon">📅</span>
@@ -483,19 +493,17 @@
                                 <div class="info-valor">{{ cita.fecha_hora_inicio.strftime('%d/%m/%Y') }}</div>
                             </div>
                         </div>
-
                         <div class="info-item">
                             <span class="info-icon">👤</span>
                             <div>
                                 <div class="info-text">Especialista</div>
-                                <div class="info-valor">{{ empleado.nombre }}</div>
+                                <div class="info-valor">{{ empleado.nombre if empleado else 'Sin asignar' }}</div>
                             </div>
                         </div>
-
                         <div class="info-item">
                             <span class="info-icon">💰</span>
                             <div>
-                                <div class="info-text">Total Pagado</div>
+                                <div class="info-text">Total</div>
                                 <div class="info-valor">${{ '{:,.0f}'.format(cita.monto_total) }}</div>
                             </div>
                         </div>
@@ -508,7 +516,15 @@
                         </div>
                     </div>
                     <div class="cita-acciones">
-                        <a href="{{ url_for('descargar_cita_pdf', id_cita=cita.id_cita) }}" class="btn" style="background:linear-gradient(135deg,#c41e3a,#ff1493);color:white;">
+                        {% if cita.estado == 'no_asistio' %}
+                        <a href="{{ url_for('reagendar_no_asistio', id_cita=cita.id_cita) }}"
+                           class="btn" style="background:linear-gradient(135deg,#f59e0b,#d97706);
+                                              color:white;font-weight:700;">
+                            📅 Reagendar con crédito de ${{ '{:,.0f}'.format(cita.monto_abono or 5000) }}
+                        </a>
+                        {% endif %}
+                        <a href="{{ url_for('descargar_cita_pdf', id_cita=cita.id_cita) }}"
+                           class="btn" style="background:linear-gradient(135deg,#c41e3a,#ff1493);color:white;">
                             📄 Descargar PDF
                         </a>
                     </div>

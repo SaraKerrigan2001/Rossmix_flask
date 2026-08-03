@@ -2863,6 +2863,190 @@ def admin_liquidar_cita(id_cita: int):
 
 
 # ============================================================================
+# RUTA: MARCAR CITA COMO "NO_ASISTIO" — Abono no reembolsable
+# ============================================================================
+
+@app.route('/admin/agenda-diaria/no-asistio/<int:id_cita>', methods=['POST'])
+@admin_required
+def admin_marcar_no_asistio(id_cita: int):
+    """
+    El admin marca la cita como 'no_asistio' una vez pasada la hora.
+    - Estado cambia a 'no_asistio'
+    - El abono de $5.000 COP NO es reembolsable
+    - Se notifica al cliente con la opción de reagendar
+    """
+    cita = Cita.query.get_or_404(id_cita)
+
+    estados_validos = ['confirmada', 'pendiente_pago', 'en_atencion']
+    if cita.estado not in estados_validos:
+        return jsonify({
+            'success': False,
+            'message': f'La cita ya está en estado: {cita.estado}'
+        }), 400
+
+    # Validar que la hora ya pasó
+    if cita.fecha_hora_inicio > datetime.now():
+        return jsonify({
+            'success': False,
+            'message': 'La cita aún no ha comenzado. No se puede marcar como no asistió.'
+        }), 400
+
+    cita.estado      = 'no_asistio'
+    cita.reembolsado = False   # Abono no reembolsable
+    db.session.commit()
+
+    logging.info(
+        f"[NO ASISTIO] Cita #{id_cita} — Cliente: "
+        f"{cita.cliente.nombre if cita.cliente else 'N/A'} — "
+        f"Abono ${float(cita.monto_abono or 5000):,.0f} COP NO reembolsable."
+    )
+
+    # Notificar al cliente con opción de reagendar
+    try:
+        link_reagendar = url_for('reagendar_no_asistio', id_cita=id_cita, _external=False)
+        add_notificacion(
+            cita.id_cliente,
+            '⚠️ No asististe a tu cita',
+            f'No registramos tu asistencia a la cita del '
+            f'{cita.fecha_hora_inicio.strftime("%d/%m/%Y a las %H:%M")} '
+            f'({cita.servicio.nombre_servicio if cita.servicio else "servicio"}). '
+            f'El abono de $5.000 COP no es reembolsable según nuestra política. '
+            f'Puedes reagendar tu cita y el abono se aplicará como crédito.',
+            target=link_reagendar
+        )
+    except Exception as e:
+        logging.error(f"[NO ASISTIO] Error al notificar: {e}")
+
+    # Notificar admins
+    try:
+        admins = Usuario.query.filter_by(tipo_usuario='admin').all()
+        for a in admins:
+            add_notificacion(
+                a.id,
+                f'📋 Cita #{id_cita} marcada como No Asistió',
+                f'Cliente: {cita.cliente.nombre if cita.cliente else "N/A"} — '
+                f'Servicio: {cita.servicio.nombre_servicio if cita.servicio else "N/A"} — '
+                f'Abono $5.000 COP no reembolsable.',
+                target=url_for('admin_citas') + '?estado=no_asistio'
+            )
+    except Exception:
+        pass
+
+    return jsonify({
+        'success': True,
+        'message': f'Cita #{id_cita} marcada como No Asistió. Abono no reembolsable.',
+        'estado':  'no_asistio',
+        'abono':   float(cita.monto_abono or 5000)
+    })
+
+
+@app.route('/citas/reagendar-no-asistio/<int:id_cita>', methods=['GET', 'POST'])
+def reagendar_no_asistio(id_cita: int):
+    """
+    El cliente puede reagendar una cita 'no_asistio'.
+    El abono previo ($5.000 COP) se aplica como crédito a la nueva cita.
+    """
+    if 'usuario_id' not in session:
+        flash('Debes iniciar sesión', 'error')
+        return redirect(url_for('login'))
+
+    cita_original = Cita.query.filter_by(
+        id_cita=id_cita, id_cliente=session['usuario_id']
+    ).first_or_404()
+
+    if cita_original.estado != 'no_asistio':
+        flash('Esta cita no está disponible para reagendar.', 'error')
+        return redirect(url_for('mis_citas'))
+
+    servicio = Servicio.query.get(cita_original.id_servicio)
+
+    if request.method == 'GET':
+        # Mostrar disponibilidad para reagendar
+        disponibilidad = SistemaGestionCitas.obtener_agenda_disponible(
+            id_servicio        = cita_original.id_servicio,
+            id_empleado_actual = cita_original.id_empleado
+        )
+        return render_template(
+            'citas/reagendar_no_asistio.html',
+            cita_original = cita_original,
+            servicio      = servicio,
+            disponibilidad= disponibilidad,
+            abono_credito = float(cita_original.monto_abono or 5000)
+        )
+
+    # POST — confirmar reagendamiento
+    nueva_fecha_str = request.form.get('nueva_fecha')
+    nuevo_empleado  = request.form.get('id_empleado', type=int)
+
+    if not nueva_fecha_str:
+        return jsonify({'success': False, 'message': 'Selecciona una fecha'}), 400
+
+    try:
+        nueva_fecha = datetime.strptime(nueva_fecha_str, '%Y-%m-%d %H:%M')
+    except ValueError:
+        return jsonify({'success': False, 'message': 'Formato de fecha inválido'}), 400
+
+    empleado_id = nuevo_empleado or cita_original.id_empleado
+    empleado    = Empleado.query.get(empleado_id) if empleado_id else None
+    fecha_fin   = nueva_fecha + timedelta(
+        minutes=servicio.duracion_minutos if servicio else 60
+    )
+    abono_credito = float(cita_original.monto_abono or 5000)
+    token_nuevo   = secrets.token_urlsafe(16)
+
+    # Crear nueva cita con el abono aplicado como crédito
+    nueva_cita = Cita(
+        id_cliente        = session['usuario_id'],
+        id_empleado       = empleado_id,
+        id_servicio       = cita_original.id_servicio,
+        fecha_hora_inicio = nueva_fecha,
+        fecha_hora_fin    = fecha_fin,
+        monto_total       = cita_original.monto_total,
+        monto_abono       = Decimal(str(abono_credito)),   # Crédito del abono anterior
+        saldo_pendiente   = (cita_original.monto_total or Decimal('0')) - Decimal(str(abono_credito)),
+        estado            = 'pendiente_pago',
+        reembolsado       = False,
+        codigo_reserva    = f"RE-{secrets.token_urlsafe(4).upper()}",
+        token_gestion     = token_nuevo,
+        notas             = f"Reagendada desde cita #{id_cita} (no asistió). "
+                            f"Abono ${abono_credito:,.0f} COP aplicado como crédito.",
+        fecha_creacion    = datetime.now()
+    )
+
+    try:
+        db.session.add(nueva_cita)
+        db.session.commit()
+
+        logging.info(
+            f"[REAGENDAR] Nueva cita #{nueva_cita.id_cita} creada desde cita #{id_cita} "
+            f"— Abono ${abono_credito:,.0f} COP aplicado como crédito."
+        )
+
+        # Notificar al cliente
+        add_notificacion(
+            session['usuario_id'],
+            '📅 Cita reagendada con crédito aplicado',
+            f'Tu nueva cita de {servicio.nombre_servicio if servicio else "servicio"} '
+            f'para el {nueva_fecha.strftime("%d/%m/%Y a las %H:%M")} fue registrada. '
+            f'Se aplicó un crédito de ${abono_credito:,.0f} COP de tu abono anterior.',
+            target=url_for('mis_citas')
+        )
+
+        return jsonify({
+            'success':       True,
+            'message':       '¡Cita reagendada exitosamente con tu crédito aplicado!',
+            'nueva_cita_id': nueva_cita.id_cita,
+            'codigo':        nueva_cita.codigo_reserva,
+            'abono_credito': abono_credito
+        })
+
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"[REAGENDAR] Error: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+# ============================================================================
 # API: ESTADO DE CITA (para polling en tiempo real)
 # ============================================================================
 

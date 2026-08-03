@@ -1,0 +1,330 @@
+{% extends 'base.html' %}
+{% block title %}Reagendar Cita - Rossmix{% endblock %}
+
+{% block extra_css %}
+<style>
+.reagendar-wrap { max-width:900px; margin:2rem auto; }
+.reagendar-header { margin-bottom:1.5rem; }
+.reagendar-header h1 { font-size:1.8rem; font-weight:700; color:#1a1a1a; }
+
+/* Banner de crédito */
+.credito-banner {
+    background:linear-gradient(135deg,#fff7ed,#fef3c7);
+    border:2px solid #f59e0b;
+    border-radius:16px; padding:1.2rem 1.5rem;
+    display:flex; align-items:center; gap:1rem;
+    margin-bottom:1.5rem;
+}
+.credito-icon {
+    width:50px; height:50px; border-radius:50%;
+    background:linear-gradient(135deg,#f59e0b,#d97706);
+    color:white; display:flex; align-items:center;
+    justify-content:center; font-size:1.4rem; flex-shrink:0;
+}
+.credito-texto h3 { font-size:1rem; font-weight:700; color:#92400e; margin:0 0 0.2rem; }
+.credito-texto p  { font-size:0.88rem; color:#92400e; margin:0; }
+.credito-monto {
+    margin-left:auto; font-size:1.6rem; font-weight:800;
+    color:#d97706; white-space:nowrap;
+}
+
+/* Grid principal */
+.reagendar-grid { display:grid; grid-template-columns:1fr 1.4fr; gap:1.5rem; }
+@media(max-width:768px){ .reagendar-grid{ grid-template-columns:1fr; } }
+
+/* Cita original */
+.cita-original {
+    background:white; border-radius:16px; padding:1.5rem;
+    border:1.5px solid #fecdd3;
+    box-shadow:0 4px 16px rgba(0,0,0,0.06);
+}
+.cita-original h3 {
+    font-size:1rem; font-weight:700; color:#dc2626;
+    margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem;
+}
+.det-row {
+    display:flex; flex-direction:column; padding:0.5rem 0;
+    border-bottom:1px solid #f5f5f5; font-size:0.88rem;
+}
+.det-row:last-child { border-bottom:none; }
+.det-row .lbl { color:#aaa; font-size:0.78rem; margin-bottom:0.1rem; }
+.det-row .val { font-weight:600; color:#1a1a1a; }
+
+/* Resumen de costo */
+.costo-box {
+    background:#f0fdf4; border:1.5px solid #86efac;
+    border-radius:12px; padding:1rem; margin-top:1rem;
+}
+.costo-row { display:flex; justify-content:space-between;
+             font-size:0.88rem; padding:0.25rem 0; }
+.costo-row .lbl { color:#555; }
+.costo-row .val { font-weight:700; }
+.costo-row.total { border-top:1.5px solid #86efac; margin-top:0.4rem;
+                   padding-top:0.5rem; font-size:1rem; }
+.costo-row.total .val { color:#16a34a; font-size:1.2rem; }
+
+/* Selector de disponibilidad */
+.selector-card {
+    background:white; border-radius:16px; padding:1.5rem;
+    border:1.5px solid #f0e8ff;
+    box-shadow:0 4px 16px rgba(0,0,0,0.06);
+}
+.selector-card h3 {
+    font-size:1rem; font-weight:700; color:#1a1a1a;
+    margin-bottom:1.2rem; display:flex; align-items:center; gap:0.5rem;
+}
+.profesional-tabs { display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:1.2rem; }
+.prof-tab {
+    padding:0.45rem 1rem; border-radius:20px; font-size:0.82rem;
+    font-weight:600; cursor:pointer; transition:all 0.2s;
+    border:1.5px solid #e5e7eb; background:white; color:#555;
+}
+.prof-tab.active, .prof-tab:hover {
+    background:linear-gradient(135deg,#f59e0b,#d97706);
+    color:white; border-color:transparent;
+}
+.slots-grid {
+    display:grid; grid-template-columns:repeat(3,1fr);
+    gap:0.5rem; max-height:300px; overflow-y:auto; padding-right:4px;
+}
+.slots-grid::-webkit-scrollbar { width:4px; }
+.slots-grid::-webkit-scrollbar-thumb { background:#fde68a; border-radius:4px; }
+.slot-btn {
+    border:1.5px solid #e5e7eb; border-radius:10px;
+    padding:0.6rem 0.4rem; text-align:center;
+    font-size:0.82rem; font-weight:600; color:#555;
+    cursor:pointer; background:white; transition:all 0.2s;
+}
+.slot-btn:hover { border-color:#f59e0b; color:#d97706; background:#fff7ed; }
+.slot-btn.selected {
+    background:linear-gradient(135deg,#f59e0b,#d97706);
+    color:white; border-color:transparent;
+}
+.slot-fecha { font-size:0.7rem; color:inherit; display:block; }
+.no-slots { text-align:center; padding:2rem; color:#aaa; font-size:0.9rem; }
+.seleccion-actual {
+    background:#fff7ed; border:1.5px solid #fde68a;
+    border-radius:10px; padding:0.8rem 1rem;
+    font-size:0.88rem; color:#d97706; font-weight:600;
+    margin-top:1rem; display:none;
+}
+.btn-confirmar-reagendar {
+    width:100%; margin-top:1.2rem;
+    background:linear-gradient(135deg,#f59e0b,#d97706);
+    color:white; border:none; border-radius:12px;
+    padding:0.9rem; font-size:1rem; font-weight:700;
+    cursor:pointer; transition:all 0.25s;
+}
+.btn-confirmar-reagendar:hover { opacity:0.88; transform:translateY(-2px); }
+.btn-confirmar-reagendar:disabled {
+    background:#e5e7eb; color:#9ca3af;
+    cursor:not-allowed; transform:none;
+}
+.btn-volver {
+    display:inline-flex; align-items:center; gap:0.4rem;
+    color:#888; text-decoration:none; font-size:0.9rem;
+    margin-bottom:1rem; transition:color 0.2s;
+}
+.btn-volver:hover { color:#c41e3a; }
+
+/* Toast */
+#toastReagendar {
+    position:fixed; bottom:28px; left:50%;
+    transform:translateX(-50%) translateY(80px);
+    padding:0.85rem 2rem; border-radius:30px; color:white;
+    font-weight:700; font-size:0.95rem;
+    box-shadow:0 8px 30px rgba(0,0,0,0.2);
+    transition:transform 0.4s ease; z-index:9999;
+}
+#toastReagendar.show    { transform:translateX(-50%) translateY(0); }
+#toastReagendar.success { background:#10b981; }
+#toastReagendar.error   { background:#dc2626; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="reagendar-wrap">
+    <a href="{{ url_for('mis_citas') }}" class="btn-volver">
+        <i class="bi bi-arrow-left"></i> Volver a Mis Citas
+    </a>
+    <div class="reagendar-header">
+        <h1><i class="bi bi-calendar-plus" style="color:#f59e0b;"></i> Reagendar Cita</h1>
+        <p style="color:#888;font-size:0.9rem;margin-top:0.3rem;">
+            Tu abono previo se aplica como crédito en la nueva cita.
+        </p>
+    </div>
+
+    <!-- Banner de crédito -->
+    <div class="credito-banner">
+        <div class="credito-icon">💰</div>
+        <div class="credito-texto">
+            <h3>Tienes un crédito disponible</h3>
+            <p>El abono de tu cita anterior se aplicará automáticamente al nuevo agendamiento.</p>
+        </div>
+        <div class="credito-monto">${{ '{:,.0f}'.format(abono_credito) }} COP</div>
+    </div>
+
+    <div class="reagendar-grid">
+        <!-- Columna izquierda: resumen cita original -->
+        <div class="cita-original">
+            <h3><i class="bi bi-calendar-x"></i> Cita No Asistida</h3>
+            <div class="det-row">
+                <span class="lbl">Servicio</span>
+                <span class="val">{{ servicio.nombre_servicio if servicio else 'N/A' }}</span>
+            </div>
+            <div class="det-row">
+                <span class="lbl">Fecha original</span>
+                <span class="val" style="color:#dc2626;">
+                    {{ cita_original.fecha_hora_inicio.strftime('%d/%m/%Y a las %H:%M') }}
+                </span>
+            </div>
+            <div class="det-row">
+                <span class="lbl">Código</span>
+                <span class="val" style="font-family:monospace;letter-spacing:2px;">
+                    {{ cita_original.codigo_reserva }}
+                </span>
+            </div>
+
+            <!-- Resumen de costos -->
+            <div class="costo-box">
+                <div class="costo-row">
+                    <span class="lbl">Valor del servicio</span>
+                    <span class="val">${{ '{:,.0f}'.format(cita_original.monto_total or 0) }} COP</span>
+                </div>
+                <div class="costo-row">
+                    <span class="lbl">Crédito aplicado</span>
+                    <span class="val" style="color:#16a34a;">- ${{ '{:,.0f}'.format(abono_credito) }} COP</span>
+                </div>
+                <div class="costo-row total">
+                    <span class="lbl"><strong>Saldo a pagar</strong></span>
+                    <span class="val">
+                        ${{ '{:,.0f}'.format((cita_original.monto_total or 0) - abono_credito) }} COP
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna derecha: selector de disponibilidad -->
+        <div class="selector-card">
+            <h3><i class="bi bi-clock"></i> Elige Nueva Fecha y Especialista</h3>
+
+            {% if disponibilidad %}
+            <div class="profesional-tabs">
+                {% for emp_id, info in disponibilidad.items() %}
+                <button class="prof-tab {% if loop.first %}active{% endif %}"
+                        onclick="mostrarSlots('{{ emp_id }}', this)"
+                        data-empid="{{ emp_id }}">
+                    {{ info.nombre }}
+                    {% if info.actual %}<span style="font-size:0.7rem;"> ★</span>{% endif %}
+                </button>
+                {% endfor %}
+            </div>
+
+            <div class="slots-container">
+                {% for emp_id, info in disponibilidad.items() %}
+                <div class="slots-grid" id="slots-{{ emp_id }}"
+                     style="{{ 'display:grid' if loop.first else 'display:none' }}">
+                    {% for slot in info.slots %}
+                    {% set partes = slot.split(' ') %}
+                    <button class="slot-btn"
+                            onclick="seleccionarSlot('{{ slot }}', '{{ emp_id }}', '{{ info.nombre }}', this)">
+                        <span class="slot-fecha">{{ partes[0] }}</span>
+                        {{ partes[1] }}
+                    </button>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="seleccion-actual" id="seleccionActual">
+                <i class="bi bi-check2-circle"></i>
+                <span id="seleccionTexto"></span>
+            </div>
+
+            <button class="btn-confirmar-reagendar" id="btnConfirmar"
+                    onclick="confirmarReagendar()" disabled>
+                <i class="bi bi-calendar-check"></i> Confirmar Reagendamiento
+            </button>
+
+            {% else %}
+            <div class="no-slots">
+                <i class="bi bi-calendar-x" style="font-size:2.5rem;color:#e9d5ff;display:block;margin-bottom:0.8rem;"></i>
+                No hay horarios disponibles en los próximos 7 días.<br>
+                Comunícate por <a href="https://api.whatsapp.com/send?phone=573173824030" target="_blank" style="color:#25D366;font-weight:600;">WhatsApp</a>.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div id="toastReagendar"></div>
+
+<script>
+const CITA_ID = {{ cita_original.id_cita }};
+let slotSeleccionado     = null;
+let empleadoSeleccionado = null;
+
+function mostrarSlots(empId, tabBtn) {
+    document.querySelectorAll('.slots-grid').forEach(g => g.style.display = 'none');
+    document.querySelectorAll('.prof-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(`slots-${empId}`).style.display = 'grid';
+    tabBtn.classList.add('active');
+    slotSeleccionado = null; empleadoSeleccionado = null;
+    document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));
+    document.getElementById('seleccionActual').style.display = 'none';
+    document.getElementById('btnConfirmar').disabled = true;
+}
+
+function seleccionarSlot(slot, empId, empNombre, btn) {
+    document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    slotSeleccionado     = slot;
+    empleadoSeleccionado = empId;
+    const [fecha, hora]  = slot.split(' ');
+    document.getElementById('seleccionTexto').textContent =
+        `${fecha} a las ${hora} con ${empNombre}`;
+    document.getElementById('seleccionActual').style.display = 'block';
+    document.getElementById('btnConfirmar').disabled = false;
+}
+
+async function confirmarReagendar() {
+    if (!slotSeleccionado) return;
+    if (!confirm(`¿Confirmar reagendamiento para el ${slotSeleccionado}?\n\nTu crédito se aplicará automáticamente.`)) return;
+
+    const btn = document.getElementById('btnConfirmar');
+    btn.disabled = true;
+    btn.textContent = 'Procesando...';
+
+    const form = new FormData();
+    form.append('nueva_fecha',  slotSeleccionado);
+    form.append('id_empleado',  empleadoSeleccionado);
+
+    try {
+        const res  = await fetch(`/citas/reagendar-no-asistio/${CITA_ID}`, {
+            method: 'POST', body: form
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            mostrarToast(`✅ ¡Reagendada! Código: ${data.codigo}. Crédito de $${data.abono_credito.toLocaleString('es-CO')} COP aplicado.`, 'success');
+            setTimeout(() => window.location.href = '/citas/mis-citas', 2500);
+        } else {
+            mostrarToast('❌ ' + data.message, 'error');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-calendar-check"></i> Confirmar Reagendamiento';
+        }
+    } catch(e) {
+        mostrarToast('❌ Error de conexión. Intenta de nuevo.', 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-calendar-check"></i> Confirmar Reagendamiento';
+    }
+}
+
+function mostrarToast(msg, tipo) {
+    const t = document.getElementById('toastReagendar');
+    t.textContent = msg;
+    t.className   = `show ${tipo}`;
+    setTimeout(() => t.className = '', 4000);
+}
+</script>
+{% endblock %}
