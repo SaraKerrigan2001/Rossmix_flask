@@ -2812,17 +2812,26 @@ def admin_agenda_diaria(fecha_str: str = None):
 
     metodos_pago = [m.value for m in MetodoPagoSaldo]
 
+    # Fechas de navegación del calendario (mes anterior y siguiente)
+    if primer_dia_mes.month == 1:
+        mes_anterior = primer_dia_mes.replace(year=primer_dia_mes.year-1, month=12, day=1)
+    else:
+        mes_anterior = primer_dia_mes.replace(month=primer_dia_mes.month-1, day=1)
+    mes_siguiente = (ultimo_dia_mes + timedelta(days=1))
+
     return render_template(
         'admin/agenda_diaria.html',
-        cuadricula    = cuadricula,
-        fecha         = fecha,
-        fecha_prev    = fecha_prev,
-        fecha_next    = fecha_next,
-        stats_dia     = stats_dia,
-        metodos_pago  = metodos_pago,
+        cuadricula     = cuadricula,
+        fecha          = fecha,
+        fecha_prev     = fecha_prev,
+        fecha_next     = fecha_next,
+        stats_dia      = stats_dia,
+        metodos_pago   = metodos_pago,
         dias_con_citas = dias_con_citas,
         primer_dia_mes = primer_dia_mes,
         ultimo_dia_mes = ultimo_dia_mes,
+        mes_anterior   = mes_anterior,
+        mes_siguiente  = mes_siguiente,
     )
 
 

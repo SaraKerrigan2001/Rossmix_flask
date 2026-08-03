@@ -285,12 +285,12 @@
 <!-- CALENDARIO MENSUAL -->
 <div class="cal-wrap">
     <div class="cal-header">
-        <a href="{{ url_for('admin_agenda_diaria', fecha_str=(primer_dia_mes - timedelta(days=1)).strftime('%Y-%m-%d')) }}"
+        <a href="{{ url_for('admin_agenda_diaria', fecha_str=mes_anterior.strftime('%Y-%m-%d')) }}"
            class="cal-nav-btn"><i class="bi bi-chevron-left"></i></a>
         <span class="cal-mes-titulo">
             {{ primer_dia_mes.strftime('%B %Y').capitalize() }}
         </span>
-        <a href="{{ url_for('admin_agenda_diaria', fecha_str=(ultimo_dia_mes + timedelta(days=1)).strftime('%Y-%m-%d')) }}"
+        <a href="{{ url_for('admin_agenda_diaria', fecha_str=mes_siguiente.strftime('%Y-%m-%d')) }}"
            class="cal-nav-btn"><i class="bi bi-chevron-right"></i></a>
     </div>
     <div class="cal-grid">
