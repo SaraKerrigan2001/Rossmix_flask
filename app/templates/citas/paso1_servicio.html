@@ -162,22 +162,29 @@
     }
 
     .service-header {
-        background: linear-gradient(135deg, #ffe5f3 0%, #fff5fa 100%);
-        padding: 2.5rem 2rem;
-        text-align: center;
         position: relative;
+        padding: 0;
     }
 
     .service-icon {
-        font-size: 5rem;
-        margin-bottom: 1rem;
-        filter: drop-shadow(3px 3px 10px rgba(255, 105, 180, 0.3));
-        display: inline-block;
-        transition: transform 0.3s;
+        width: 100%;
+        height: 180px;
+        overflow: hidden;
+        border-radius: 16px 16px 0 0;
+        position: relative;
     }
-
-    .service-card:hover .service-icon {
-        transform: scale(1.15) rotate(5deg);
+    .service-icon img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.4s ease;
+    }
+    .service-card:hover .service-icon img {
+        transform: scale(1.08);
+    }
+    .service-icon-overlay {
+        position: absolute; inset: 0;
+        background: linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.35) 100%);
     }
 
     .service-body {
@@ -231,16 +238,17 @@
     /* Badge Categoría */
     .category-badge {
         position: absolute;
-        top: 15px;
-        right: 15px;
-        background: linear-gradient(135deg, #ffd700, #ffed4e);
-        color: #8b008b;
-        padding: 0.5rem 1rem;
+        top: 10px;
+        left: 10px;
+        z-index: 2;
+        background: rgba(255,255,255,0.92);
+        color: #c41e3a;
+        padding: 0.25rem 0.7rem;
         border-radius: 20px;
         font-weight: 700;
-        font-size: 0.85rem;
-        box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
-        border: 2px solid #ff69b4;
+        font-size: 0.72rem;
+        backdrop-filter: blur(4px);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.12);
     }
 
     /* Botón Seleccionar */
@@ -349,22 +357,63 @@
     <a href="{{ url_for('agendar_paso2', id_servicio=servicio.id_servicio) }}" class="service-card">
         <div class="service-header">
             <div class="category-badge">
-                {% if 'Uña' in servicio.nombre_servicio %}💅 Uñas
-                {% elif 'Cabello' in servicio.nombre_servicio or 'Pelo' in servicio.nombre_servicio %}💇 Cabello
+                {% if 'Uña' in servicio.nombre_servicio or 'Manicure' in servicio.nombre_servicio or 'Pedicure' in servicio.nombre_servicio %}💅 Uñas
+                {% elif 'Corte' in servicio.nombre_servicio or 'Tinte' in servicio.nombre_servicio or 'Mecha' in servicio.nombre_servicio or 'Keratina' in servicio.nombre_servicio or 'Brushing' in servicio.nombre_servicio %}💇 Cabello
                 {% elif 'Ceja' in servicio.nombre_servicio or 'Pestaña' in servicio.nombre_servicio %}👁️ Cejas
-                {% elif 'Depilación' in servicio.nombre_servicio or 'Láser' in servicio.nombre_servicio %}✨ Depilación
+                {% elif 'Depilación' in servicio.nombre_servicio %}✨ Depilación
+                {% elif 'Facial' in servicio.nombre_servicio or 'Limpieza' in servicio.nombre_servicio %}🌿 Facial
                 {% else %}💖 Beauty
                 {% endif %}
             </div>
-            <div class="service-icon">
-                {% if 'Uña' in servicio.nombre_servicio %}💅
-                {% elif 'Cabello' in servicio.nombre_servicio or 'Pelo' in servicio.nombre_servicio %}💇
-                {% elif 'Ceja' in servicio.nombre_servicio or 'Pestaña' in servicio.nombre_servicio %}👁️
-                {% elif 'Depilación' in servicio.nombre_servicio or 'Láser' in servicio.nombre_servicio %}✨
-                {% else %}💖
-                {% endif %}
-            </div>
         </div>
+
+        <!-- Imagen del servicio -->
+        <div class="service-icon">
+            {% set n = servicio.nombre_servicio %}
+            {% if 'Manicure Clásico' in n %}
+                <img src="{{ url_for('static', filename='images/servicios/manicure_clasico.jpg') }}" alt="{{ n }}" onerror="this.parentElement.style.background='linear-gradient(135deg,#ffe5f3,#ffc8e3)'">
+            {% elif 'Gel' in n and ('Manicure' in n or 'Uña' in n) %}
+                <img src="{{ url_for('static', filename='images/servicios/manicure_gel.jpg') }}" alt="{{ n }}" onerror="this.parentElement.style.background='linear-gradient(135deg,#f5e5ff,#e8d0ff)'">
+            {% elif 'Pedicure' in n %}
+                <img src="{{ url_for('static', filename='images/servicios/pedicure_spa.jpg') }}" alt="{{ n }}" onerror="this.parentElement.style.background='linear-gradient(135deg,#d4f0ff,#b8e3ff)'">
+            {% elif 'Acrílica' in n or 'Acrilica' in n %}
+                <img src="{{ url_for('static', filename='images/servicios/unas_acrilicas.jpg') }}" alt="{{ n }}" onerror="this.parentElement.style.background='linear-gradient(135deg,#ffe8cc,#ffd4a3)'">
+            {% elif 'Decoración' in n %}
+                <img src="{{ url_for('static', filename='images/servicios/decoracion_unas.jpg') }}" alt="{{ n }}" onerror="this.parentElement.style.background='linear-gradient(135deg,#ffe5f3,#ffc8e3)'">
+            {% elif 'Corte Dama' in n %}
+                <img src="{{ url_for('static', filename='images/servicios/corte_dama.jpg') }}" alt="{{ n }}" onerror="this.parentElement.style.background='linear-gradient(135deg,#dcfce7,#bbf7d0)'">
+            {% elif 'Corte Caballero' in n %}
+                <img src="{{ url_for('static', filename='images/servicios/corte_caballero.jpg') }}" alt="{{ n }}" onerror="this.parentElement.style.background='linear-gradient(135deg,#dbeafe,#bfdbfe)'">
+            {% elif 'Tinte' in n %}
+                <img src="{{ url_for('static', filename='images/servicios/tinte_completo.jpg') }}" alt="{{ n }}" onerror="this.parentElement.style.background='linear-gradient(135deg,#fef3c7,#fde68a)'">
+            {% elif 'Balayage' in n or 'Mecha' in n %}
+                <img src="{{ url_for('static', filename='images/servicios/mechas_balayage.jpg') }}" alt="{{ n }}" onerror="this.parentElement.style.background='linear-gradient(135deg,#ffe5f3,#ffc8e3)'">
+            {% elif 'Keratina' in n or 'Alisado' in n %}
+                <img src="{{ url_for('static', filename='images/servicios/keratina_alisado.jpg') }}" alt="{{ n }}" onerror="this.parentElement.style.background='linear-gradient(135deg,#f5e5ff,#e8d0ff)'">
+            {% elif 'Brushing' in n or 'Peinado' in n %}
+                <img src="{{ url_for('static', filename='images/servicios/brushing_peinado.jpg') }}" alt="{{ n }}" onerror="this.parentElement.style.background='linear-gradient(135deg,#d4f0ff,#b8e3ff)'">
+            {% elif 'Pierna' in n %}
+                <img src="{{ url_for('static', filename='images/servicios/depilacion_piernas.jpg') }}" alt="{{ n }}" onerror="this.parentElement.style.background='linear-gradient(135deg,#dcfce7,#bbf7d0)'">
+            {% elif 'Axila' in n %}
+                <img src="{{ url_for('static', filename='images/servicios/depilacion_axilas.jpg') }}" alt="{{ n }}" onerror="this.parentElement.style.background='linear-gradient(135deg,#ffe8cc,#ffd4a3)'">
+            {% elif 'Facial' in n and 'Depilación' in n %}
+                <img src="{{ url_for('static', filename='images/servicios/depilacion_facial.jpg') }}" alt="{{ n }}" onerror="this.parentElement.style.background='linear-gradient(135deg,#fef3c7,#fde68a)'">
+            {% elif 'Diseño' in n and 'Ceja' in n %}
+                <img src="{{ url_for('static', filename='images/servicios/diseno_cejas.jpg') }}" alt="{{ n }}" onerror="this.parentElement.style.background='linear-gradient(135deg,#dbeafe,#bfdbfe)'">
+            {% elif 'Laminado' in n %}
+                <img src="{{ url_for('static', filename='images/servicios/laminado_cejas.jpg') }}" alt="{{ n }}" onerror="this.parentElement.style.background='linear-gradient(135deg,#ffe5f3,#ffc8e3)'">
+            {% elif 'Extensión' in n or 'Extension' in n %}
+                <img src="{{ url_for('static', filename='images/servicios/extensiones_pestanas.jpg') }}" alt="{{ n }}" onerror="this.parentElement.style.background='linear-gradient(135deg,#f5e5ff,#e8d0ff)'">
+            {% elif 'Lifting' in n %}
+                <img src="{{ url_for('static', filename='images/servicios/lifting_pestanas.jpg') }}" alt="{{ n }}" onerror="this.parentElement.style.background='linear-gradient(135deg,#d4f0ff,#b8e3ff)'">
+            {% elif 'Limpieza' in n or ('Facial' in n and 'Limpieza' in n) %}
+                <img src="{{ url_for('static', filename='images/servicios/limpieza_facial.jpg') }}" alt="{{ n }}" onerror="this.parentElement.style.background='linear-gradient(135deg,#dcfce7,#bbf7d0)'">
+            {% else %}
+                <img src="{{ url_for('static', filename='images/nails/manicure_clasico.jpg') }}" alt="{{ n }}" onerror="this.parentElement.style.background='linear-gradient(135deg,#ffe5f3,#ffc8e3)'">
+            {% endif %}
+            <div class="service-icon-overlay"></div>
+        </div>
+
         <div class="service-body">
             <h3 class="service-title">{{ servicio.nombre_servicio }}</h3>
             <p class="service-description">
