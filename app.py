@@ -497,7 +497,8 @@ class SistemaGestionCitas:
             f"desde {fecha_desde.strftime('%d/%m/%Y %H:%M')}..."
         )
         # Obtener empleados que realizan este servicio
-        from app import db, EmpleadoServicio, Empleado, HorarioEmpleado, Cita as CitaModel
+        # Usar los modelos ya definidos en este mismo archivo
+        CitaModel = Cita
         empleados_ids = db.session.query(EmpleadoServicio.id_empleado)\
             .filter_by(id_servicio=id_servicio).all()
         empleados_ids = [e[0] for e in empleados_ids]
@@ -559,7 +560,6 @@ class SistemaGestionCitas:
         cita_orm.id_empleado       = profesional_id
         cita_orm.estado            = 'confirmada'   # Reprogramada → vuelve a confirmada
 
-        from app import db
         db.session.commit()
 
         profesional_nombre = empleado.nombre if empleado else 'Sin asignar'
