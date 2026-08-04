@@ -1,6 +1,85 @@
 {% extends 'base.html' %}
 {% block title %}Gestión de Clientes - Rossmix{% endblock %}
 
+{% block extra_css %}
+<style>
+/* ── Botones de acción ── */
+.actions-row {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+.action-btn {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 0.85rem; text-decoration: none;
+    border: none; cursor: pointer;
+    transition: all 0.2s;
+}
+.action-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+
+/* Editar — amarillo */
+.edit-action {
+    background: #fef3c7; color: #d97706;
+}
+.edit-action:hover { background: #fde68a; color: #b45309; }
+
+/* Historial — azul */
+.history-action {
+    background: #eff6ff; color: #2563eb;
+}
+.history-action:hover { background: #dbeafe; color: #1d4ed8; }
+
+/* Eliminar — rojo */
+.delete-action {
+    background: #fee2e2; color: #dc2626;
+}
+.delete-action:hover { background: #fecaca; color: #b91c1c; }
+
+/* ── Estilos extra tabla ── */
+.filter-btn-group {
+    display: flex; gap: 0.3rem;
+}
+.btn-filter {
+    padding: 0.4rem 1rem; border-radius: 20px;
+    font-size: 0.85rem; font-weight: 600;
+    text-decoration: none; color: #666;
+    background: #f3f4f6; border: 1.5px solid #e5e7eb;
+    transition: all 0.2s;
+}
+.btn-filter.active, .btn-filter:hover {
+    background: linear-gradient(135deg, #c41e3a, #ff1493);
+    color: white; border-color: transparent;
+}
+.meta-badge {
+    background: #fff0f6; color: #c41e3a;
+    border: 1.5px solid #ffd6e8; border-radius: 20px;
+    padding: 0.35rem 0.9rem; font-size: 0.82rem; font-weight: 600;
+}
+.cancel-count-link {
+    color: #2563eb; font-size: 0.82rem; text-decoration: none;
+    font-weight: 600;
+}
+.cancel-count-link:hover { text-decoration: underline; }
+.pill-count {
+    background: #f0f4ff; color: #2563eb;
+    border-radius: 20px; padding: 0.15rem 0.65rem;
+    font-size: 0.8rem; font-weight: 700;
+}
+.avatar-circle {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: linear-gradient(135deg, #fff0f6, #ffd6e8);
+    color: #c41e3a; display: flex; align-items: center;
+    justify-content: center; font-weight: 800;
+    font-size: 0.85rem; flex-shrink: 0;
+}
+.row-flex { display: flex; align-items: center; gap: 0.6rem; }
+.cell-muted { color: #9ca3af; font-size: 0.82rem; }
+.small-muted { color: #6b7280; font-size: 0.85rem; }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="page-header">
     <div>
@@ -85,14 +164,17 @@
                     </td>
                     <td>
                         <div class="actions-row">
-                            <a href="{{ url_for('admin_clientes_editar', id_cliente=cliente.id) }}" class="edit-action" title="Editar">
-                                <i class="bi bi-pencil"></i>
+                            <a href="{{ url_for('admin_clientes_editar', id_cliente=cliente.id) }}"
+                               class="action-btn edit-action" title="Editar cliente">
+                                <i class="bi bi-pencil-fill"></i>
                             </a>
-                            <a href="{{ url_for('admin_citas') }}?cliente_id={{ cliente.id }}" class="history-action" title="Historial de Citas">
-                                <i class="bi bi-clock"></i>
+                            <a href="{{ url_for('admin_citas') }}?cliente_id={{ cliente.id }}"
+                               class="action-btn history-action" title="Historial de citas">
+                                <i class="bi bi-clock-history"></i>
                             </a>
-                            <button onclick="confirmarEliminar({{ cliente.id }}, '{{ cliente.nombre }}')" class="delete-action" title="Eliminar">
-                                <i class="bi bi-trash3"></i>
+                            <button onclick="confirmarEliminar({{ cliente.id }}, '{{ cliente.nombre }}')"
+                                    class="action-btn delete-action" title="Eliminar cliente">
+                                <i class="bi bi-trash3-fill"></i>
                             </button>
                         </div>
                     </td>
