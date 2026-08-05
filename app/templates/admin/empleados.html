@@ -107,75 +107,110 @@
 </div>
 
 <!-- Modal Eliminar con lista de clientes afectados -->
-<div id="modalEliminar" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55);
-     z-index:3000; align-items:center; justify-content:center; padding:1rem;">
-    <div style="background:white; border-radius:20px; padding:2rem; max-width:560px; width:100%;
-                box-shadow:0 20px 60px rgba(0,0,0,0.25); max-height:90vh; overflow-y:auto;">
+<div id="modalEliminar" style="display:none;position:fixed;inset:0;
+     background:rgba(15,15,35,0.65);z-index:3000;align-items:center;
+     justify-content:center;padding:1rem;backdrop-filter:blur(5px);">
+    <div style="background:white;border-radius:24px;padding:0;max-width:560px;width:100%;
+                box-shadow:0 32px 80px rgba(0,0,0,0.28);overflow:hidden;
+                max-height:92vh;display:flex;flex-direction:column;
+                animation:rmxPopIn 0.35s cubic-bezier(0.34,1.56,0.64,1);">
 
         <!-- Paso 1: Confirmación inicial -->
-        <div id="paso1">
-            <div style="display:flex; align-items:center; gap:0.8rem; margin-bottom:1rem;">
-                <div style="width:44px;height:44px;border-radius:50%;background:#fee2e2;
-                            display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                    <i class="bi bi-person-x-fill" style="color:#dc2626;font-size:1.2rem;"></i>
-                </div>
+        <div id="paso1" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
+            <!-- Header rojo -->
+            <div style="background:linear-gradient(135deg,#dc2626,#ef4444);
+                        padding:1.4rem 1.8rem;display:flex;align-items:center;
+                        gap:1rem;flex-shrink:0;">
+                <div style="width:46px;height:46px;border-radius:14px;
+                            background:rgba(255,255,255,0.2);flex-shrink:0;
+                            display:flex;align-items:center;justify-content:center;
+                            font-size:1.5rem;">🗑️</div>
                 <div>
-                    <h3 style="margin:0;font-size:1.15rem;font-weight:700;color:#1a1a1a;">
+                    <h3 style="margin:0;color:white;font-size:1.05rem;font-weight:800;">
                         Eliminar Empleado
                     </h3>
-                    <p id="modalNombre" style="margin:0;font-size:0.88rem;color:#888;"></p>
+                    <p id="modalNombre" style="margin:0;color:rgba(255,255,255,0.85);
+                       font-size:0.82rem;"></p>
                 </div>
             </div>
-            <div id="loadingMsg" style="text-align:center;padding:1.5rem;color:#888;font-size:0.9rem;">
-                <i class="bi bi-hourglass-split"></i> Verificando citas afectadas...
-            </div>
-            <div id="sinCitas" style="display:none;">
-                <div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:12px;
-                            padding:1rem;margin-bottom:1.2rem;color:#166534;font-size:0.9rem;">
-                    <i class="bi bi-check-circle-fill"></i>
-                    Este empleado no tiene citas futuras pendientes. Se puede eliminar sin impacto.
+
+            <!-- Body scrollable -->
+            <div style="padding:1.4rem 1.8rem;overflow-y:auto;flex:1;">
+                <div id="loadingMsg" style="text-align:center;padding:1.5rem;color:#888;">
+                    <div style="font-size:2rem;margin-bottom:0.5rem;">⏳</div>
+                    Verificando citas afectadas...
+                </div>
+                <div id="sinCitas" style="display:none;">
+                    <div style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);
+                                border:1.5px solid #86efac;border-radius:14px;
+                                padding:1.1rem;color:#166534;font-size:0.9rem;">
+                        <i class="bi bi-check-circle-fill"></i>
+                        Sin citas futuras pendientes. Se puede eliminar sin impacto.
+                    </div>
+                </div>
+                <div id="conCitas" style="display:none;">
+                    <div style="background:linear-gradient(135deg,#fffbeb,#fef3c7);
+                                border:1.5px solid #fde68a;border-radius:14px;
+                                padding:1rem;margin-bottom:0.8rem;color:#92400e;
+                                font-size:0.88rem;display:flex;align-items:center;gap:0.5rem;">
+                        <i class="bi bi-exclamation-triangle-fill" style="font-size:1.1rem;"></i>
+                        <div>
+                            <strong>Clientas con citas afectadas:</strong>
+                            <span id="totalAfectados"
+                                  style="background:#dc2626;color:white;border-radius:10px;
+                                         padding:0.1rem 0.55rem;font-size:0.78rem;
+                                         font-weight:700;margin-left:0.4rem;"></span>
+                        </div>
+                    </div>
+                    <div style="border:1.5px solid #f0e8ff;border-radius:12px;
+                                overflow:hidden;max-height:220px;overflow-y:auto;
+                                margin-bottom:0.8rem;">
+                        <table style="width:100%;border-collapse:collapse;font-size:0.84rem;">
+                            <thead>
+                                <tr style="background:linear-gradient(135deg,#fee2e2,#fecaca);
+                                           position:sticky;top:0;">
+                                    <th style="padding:0.6rem 0.9rem;text-align:left;
+                                               color:#991b1b;font-weight:700;">Clienta</th>
+                                    <th style="padding:0.6rem 0.9rem;text-align:left;
+                                               color:#991b1b;font-weight:700;">Servicio</th>
+                                    <th style="padding:0.6rem 0.9rem;text-align:left;
+                                               color:#991b1b;font-weight:700;">Fecha</th>
+                                    <th style="padding:0.6rem 0.9rem;text-align:left;
+                                               color:#991b1b;font-weight:700;">Tel.</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaAfectados"></tbody>
+                        </table>
+                    </div>
+                    <div style="background:linear-gradient(135deg,#fff1f2,#ffe4e6);
+                                border:1.5px solid #fecdd3;border-radius:12px;
+                                padding:0.85rem;font-size:0.84rem;color:#9f1239;">
+                        <i class="bi bi-info-circle-fill"></i>
+                        Las citas quedarán <strong>sin especialista</strong> y las clientas
+                        serán notificadas. Reasígnalas desde <strong>Gestión de Citas</strong>.
+                    </div>
                 </div>
             </div>
-            <div id="conCitas" style="display:none;">
-                <div style="background:#fff7ed;border:1.5px solid #fed7aa;border-radius:12px;
-                            padding:1rem;margin-bottom:1rem;color:#92400e;font-size:0.9rem;">
-                    <strong><i class="bi bi-exclamation-triangle-fill"></i>
-                    Las siguientes clientas tienen citas con este empleado:</strong>
-                    <span id="totalAfectados" style="margin-left:0.5rem;background:#dc2626;color:white;
-                          border-radius:12px;padding:0.1rem 0.55rem;font-size:0.8rem;font-weight:700;"></span>
-                </div>
-                <!-- Tabla de clientes afectados -->
-                <div style="border:1.5px solid #f0e8ff;border-radius:12px;overflow:hidden;
-                            margin-bottom:1rem;max-height:240px;overflow-y:auto;">
-                    <table style="width:100%;border-collapse:collapse;font-size:0.85rem;">
-                        <thead>
-                            <tr style="background:linear-gradient(135deg,#fee2e2,#fecaca);">
-                                <th style="padding:0.6rem 0.9rem;text-align:left;color:#991b1b;font-weight:700;">Clienta</th>
-                                <th style="padding:0.6rem 0.9rem;text-align:left;color:#991b1b;font-weight:700;">Servicio</th>
-                                <th style="padding:0.6rem 0.9rem;text-align:left;color:#991b1b;font-weight:700;">Fecha</th>
-                                <th style="padding:0.6rem 0.9rem;text-align:left;color:#991b1b;font-weight:700;">Teléfono</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tablaAfectados"></tbody>
-                    </table>
-                </div>
-                <div style="background:#fff1f2;border:1.5px solid #fecdd3;border-radius:10px;
-                            padding:0.85rem;font-size:0.85rem;color:#9f1239;margin-bottom:1rem;">
-                    <i class="bi bi-info-circle-fill"></i>
-                    Al confirmar: las citas quedarán <strong>sin especialista asignada</strong>
-                    y las clientas serán notificadas para reprogramación manual.
-                    Deberás reasignarlas desde <strong>Gestión de Citas</strong>.
-                </div>
-            </div>
-            <div id="botonesConfirmar" style="display:none;gap:1rem;justify-content:flex-end;flex-wrap:wrap;">
-                <button onclick="cerrarModal()" class="btn-secondary-r">
-                    <i class="bi bi-x"></i> Cancelar
+
+            <!-- Botones -->
+            <div id="botonesConfirmar"
+                 style="display:none;gap:0.8rem;padding:1rem 1.8rem 1.6rem;
+                        border-top:1.5px solid #f5f5f5;background:#fafafa;flex-shrink:0;">
+                <button onclick="cerrarModal()"
+                        style="flex:1;background:white;color:#555;border:1.5px solid #e9ecef;
+                               padding:0.75rem;border-radius:12px;font-weight:600;
+                               font-size:0.9rem;cursor:pointer;transition:all 0.2s;"
+                        onmouseover="this.style.borderColor='#dc2626';this.style.color='#dc2626';"
+                        onmouseout="this.style.borderColor='#e9ecef';this.style.color='#555';">
+                    Cancelar
                 </button>
                 <button id="btnConfirmar" onclick="ejecutarEliminar()"
-                        style="background:linear-gradient(135deg,#dc2626,#ef4444);color:white;
-                               border:none;padding:0.65rem 1.5rem;border-radius:10px;
+                        style="flex:2;background:linear-gradient(135deg,#dc2626,#ef4444);
+                               color:white;border:none;padding:0.75rem;border-radius:12px;
                                font-weight:700;font-size:0.9rem;cursor:pointer;
-                               display:inline-flex;align-items:center;gap:0.5rem;">
+                               transition:all 0.2s;
+                               box-shadow:0 6px 20px rgba(220,38,38,0.4);
+                               display:flex;align-items:center;justify-content:center;gap:0.5rem;">
                     <i class="bi bi-trash3-fill"></i>
                     <span id="btnConfirmarTexto">Eliminar</span>
                 </button>
@@ -183,11 +218,16 @@
         </div>
 
         <!-- Resultado final -->
-        <div id="pasoResultado" style="display:none;text-align:center;padding:1rem 0;">
-            <div id="resultadoIcono" style="font-size:3rem;margin-bottom:0.8rem;"></div>
-            <h3 id="resultadoTitulo" style="margin-bottom:0.5rem;"></h3>
-            <p id="resultadoMsg" style="color:#666;font-size:0.9rem;margin-bottom:1.5rem;"></p>
-            <button onclick="cerrarModal()" class="btn-rossmix">Cerrar</button>
+        <div id="pasoResultado"
+             style="display:none;text-align:center;padding:2.5rem 2rem;">
+            <div id="resultadoIcono" style="font-size:3.5rem;margin-bottom:1rem;"></div>
+            <h3 id="resultadoTitulo"
+                style="margin-bottom:0.5rem;font-size:1.2rem;font-weight:800;"></h3>
+            <p id="resultadoMsg"
+               style="color:#666;font-size:0.9rem;margin-bottom:1.5rem;line-height:1.6;"></p>
+            <button onclick="cerrarModal()" class="btn-rossmix">
+                <i class="bi bi-check-lg"></i> Listo
+            </button>
         </div>
     </div>
 </div>

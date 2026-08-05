@@ -158,55 +158,68 @@
 </div>
 
 <!-- Modal Reasignar Empleado -->
-<div id="modalReasignar" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);
-     z-index:3000;align-items:center;justify-content:center;padding:1rem;">
-    <div style="background:white;border-radius:20px;padding:2rem;max-width:480px;width:100%;
-                box-shadow:0 20px 60px rgba(0,0,0,0.2);">
-        <div style="display:flex;align-items:center;gap:0.8rem;margin-bottom:1.2rem;">
-            <div style="width:44px;height:44px;border-radius:50%;background:#eff6ff;
-                        display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                <i class="bi bi-person-plus-fill" style="color:#2563eb;font-size:1.2rem;"></i>
-            </div>
+<div id="modalReasignar" style="display:none;position:fixed;inset:0;
+     background:rgba(15,15,35,0.65);z-index:3000;align-items:center;
+     justify-content:center;padding:1rem;backdrop-filter:blur(5px);">
+    <div style="background:white;border-radius:24px;padding:0;max-width:500px;width:100%;
+                box-shadow:0 32px 80px rgba(0,0,0,0.28);overflow:hidden;
+                animation:rmxPopIn 0.35s cubic-bezier(0.34,1.56,0.64,1);">
+        <!-- Header azul -->
+        <div style="background:linear-gradient(135deg,#1d4ed8,#3b82f6);
+                    padding:1.4rem 1.8rem;display:flex;align-items:center;gap:1rem;">
+            <div style="width:46px;height:46px;border-radius:14px;
+                        background:rgba(255,255,255,0.2);
+                        display:flex;align-items:center;justify-content:center;
+                        font-size:1.5rem;">👩‍🎨</div>
             <div>
-                <h3 style="margin:0;font-size:1.1rem;font-weight:700;color:#1a1a1a;">
+                <h3 style="margin:0;color:white;font-size:1.05rem;font-weight:800;">
                     Reasignar Especialista
                 </h3>
-                <p id="reasignarInfo" style="margin:0;font-size:0.85rem;color:#888;"></p>
+                <p id="reasignarInfo" style="margin:0;color:rgba(255,255,255,0.85);
+                   font-size:0.82rem;"></p>
             </div>
         </div>
-
-        <div id="reasignarLoading" style="text-align:center;padding:1rem;color:#888;">
-            <i class="bi bi-hourglass-split"></i> Cargando disponibilidad...
+        <!-- Cuerpo -->
+        <div style="padding:1.4rem 1.8rem;max-height:55vh;overflow-y:auto;">
+            <div id="reasignarLoading" style="text-align:center;padding:1.5rem;color:#888;">
+                <div style="font-size:2rem;margin-bottom:0.5rem;">⏳</div>
+                Cargando especialistas disponibles...
+            </div>
+            <div id="reasignarLista" style="display:none;">
+                <p style="font-size:0.8rem;font-weight:700;color:#444;
+                          text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.7rem;">
+                    Especialistas disponibles:
+                </p>
+                <div id="empleadosGrid"
+                     style="display:grid;grid-template-columns:1fr 1fr;
+                            gap:0.6rem;"></div>
+            </div>
+            <div id="reasignarSinEmpleados" style="display:none;
+                 background:linear-gradient(135deg,#fffbeb,#fef3c7);
+                 border:1.5px solid #fde68a;border-radius:12px;
+                 padding:1rem;font-size:0.88rem;color:#92400e;">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                No hay especialistas disponibles para este servicio.
+            </div>
         </div>
-
-        <div id="reasignarLista" style="display:none;">
-            <p style="font-size:0.88rem;font-weight:600;color:#444;margin-bottom:0.7rem;">
-                Especialistas disponibles para este servicio:
-            </p>
-            <div id="empleadosGrid"
-                 style="display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;
-                        max-height:280px;overflow-y:auto;margin-bottom:1.2rem;"></div>
-        </div>
-
-        <div id="reasignarSinEmpleados" style="display:none;
-             background:#fef3c7;border:1.5px solid #fde68a;border-radius:10px;
-             padding:0.9rem;font-size:0.88rem;color:#92400e;margin-bottom:1.2rem;">
-            <i class="bi bi-exclamation-triangle-fill"></i>
-            No hay especialistas activas disponibles para este servicio.
-        </div>
-
-        <div style="display:flex;gap:0.8rem;justify-content:flex-end;">
+        <!-- Botones -->
+        <div style="padding:1rem 1.8rem 1.6rem;display:flex;gap:0.8rem;
+                    border-top:1.5px solid #f0f0f0;background:#fafafa;">
             <button onclick="cerrarReasignar()"
-                    style="background:white;color:#555;border:1.5px solid #e5e7eb;
-                           padding:0.6rem 1.3rem;border-radius:10px;font-weight:600;
-                           font-size:0.9rem;cursor:pointer;">
+                    style="flex:1;background:white;color:#555;border:1.5px solid #e9ecef;
+                           padding:0.75rem;border-radius:12px;font-weight:600;
+                           font-size:0.9rem;cursor:pointer;transition:all 0.2s;"
+                    onmouseover="this.style.borderColor='#dc2626';this.style.color='#dc2626';"
+                    onmouseout="this.style.borderColor='#e9ecef';this.style.color='#555';">
                 Cancelar
             </button>
             <button id="btnReasignarConfirmar" onclick="confirmarReasignar()" disabled
-                    style="background:linear-gradient(135deg,#2563eb,#3b82f6);color:white;
-                           border:none;padding:0.6rem 1.5rem;border-radius:10px;
+                    style="flex:2;background:linear-gradient(135deg,#1d4ed8,#3b82f6);
+                           color:white;border:none;padding:0.75rem;border-radius:12px;
                            font-weight:700;font-size:0.9rem;cursor:pointer;
-                           display:inline-flex;align-items:center;gap:0.4rem;">
+                           transition:all 0.2s;opacity:0.5;
+                           display:flex;align-items:center;justify-content:center;gap:0.4rem;
+                           box-shadow:0 6px 20px rgba(29,78,216,0.35);">
                 <i class="bi bi-check-circle-fill"></i>
                 <span id="btnReasignarTexto">Selecciona una especialista</span>
             </button>
