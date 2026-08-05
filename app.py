@@ -1669,41 +1669,54 @@ def admin_empleados():
 
 
 @app.route('/admin/empleados/crear', methods=['GET', 'POST'])
+@app.route('/admin/empleados/crear', methods=['GET', 'POST'])
 @admin_required
 def admin_empleados_crear():
-    """Crear nuevo empleado"""
+    """Crear nuevo empleado — soporta JSON (modal) y form normal"""
     if request.method == 'POST':
-        nombre = request.form.get('nombre')
+        # Detectar si viene del modal (JSON) o del formulario tradicional
+        es_modal = request.headers.get('X-Requested-With') == 'modal' or \
+                   request.content_type == 'application/json'
+
+        nombre       = request.form.get('nombre')
         especialidad = request.form.get('especialidad')
         servicios_ids = request.form.getlist('servicios')
 
         if not nombre:
+            if es_modal:
+                return jsonify({'success': False, 'message': 'El nombre es obligatorio'}), 400
             flash('El nombre es obligatorio', 'error')
             return redirect(url_for('admin_empleados_crear'))
 
-        # Crear empleado
-        nuevo_empleado = Empleado(
-            nombre=nombre,
-            especialidad=especialidad,
-            activo=True
-        )
+        if not servicios_ids:
+            if es_modal:
+                return jsonify({'success': False, 'message': 'Debes seleccionar al menos un servicio'}), 400
+            flash('Debes seleccionar al menos un servicio', 'error')
+            return redirect(url_for('admin_empleados_crear'))
 
+        nuevo_empleado = Empleado(nombre=nombre, especialidad=especialidad, activo=True)
         db.session.add(nuevo_empleado)
-        db.session.flush()  # Para obtener el ID
+        db.session.flush()
 
-        # Asignar servicios
         for id_servicio in servicios_ids:
-            empleado_servicio = EmpleadoServicio(
+            db.session.add(EmpleadoServicio(
                 id_empleado=nuevo_empleado.id_empleado,
                 id_servicio=int(id_servicio)
-            )
-            db.session.add(empleado_servicio)
+            ))
 
         db.session.commit()
+        logging.info(f"[EMPLEADO] Creado: {nombre} con {len(servicios_ids)} servicio(s)")
+
+        if es_modal:
+            return jsonify({
+                'success': True,
+                'message': f'Empleado {nombre} creado exitosamente',
+                'empleado': {'id': nuevo_empleado.id_empleado, 'nombre': nombre}
+            })
+
         flash(f'Empleado {nombre} creado exitosamente', 'success')
         return redirect(url_for('admin_empleados'))
 
-    # GET: Mostrar formulario
     servicios = Servicio.query.filter_by(activo=True).all()
     return render_template('admin/empleados_form.html', empleado=None, servicios=servicios)
 
@@ -1881,18 +1894,21 @@ def admin_servicios():
 @app.route('/admin/servicios/crear', methods=['GET', 'POST'])
 @admin_required
 def admin_servicios_crear():
-    """Crear nuevo servicio"""
+    """Crear nuevo servicio — soporta JSON (modal) y form normal"""
     if request.method == 'POST':
-        nombre = request.form.get('nombre_servicio')
+        es_modal = request.headers.get('X-Requested-With') == 'modal'
+
+        nombre    = request.form.get('nombre_servicio')
         descripcion = request.form.get('descripcion')
-        precio = request.form.get('precio_total')
-        duracion = request.form.get('duracion_minutos')
+        precio    = request.form.get('precio_total')
+        duracion  = request.form.get('duracion_minutos')
 
         if not all([nombre, precio, duracion]):
+            if es_modal:
+                return jsonify({'success': False, 'message': 'Todos los campos son obligatorios'}), 400
             flash('Todos los campos son obligatorios', 'error')
             return redirect(url_for('admin_servicios_crear'))
 
-        # Crear servicio
         nuevo_servicio = Servicio(
             nombre_servicio=nombre,
             descripcion=descripcion,
@@ -1900,9 +1916,16 @@ def admin_servicios_crear():
             duracion_minutos=int(duracion),
             activo=True
         )
-
         db.session.add(nuevo_servicio)
         db.session.commit()
+        logging.info(f"[SERVICIO] Creado: {nombre} ${precio} COP {duracion}min")
+
+        if es_modal:
+            return jsonify({
+                'success': True,
+                'message': f'Servicio {nombre} creado exitosamente',
+                'servicio': {'id': nuevo_servicio.id_servicio, 'nombre': nombre}
+            })
 
         flash(f'Servicio {nombre} creado exitosamente', 'success')
         return redirect(url_for('admin_servicios'))

@@ -310,18 +310,21 @@
     }
 
     .employee-avatar {
-        width: 120px;
-        height: 120px;
+        width: 100px;
+        height: 100px;
         border-radius: 50%;
-        background: linear-gradient(135deg, #ff69b4, #ff1493);
+        background: linear-gradient(135deg, #c41e3a, #ff1493);
         display: flex;
         align-items: center;
         justify-content: center;
         margin: 0 auto 1rem auto;
-        font-size: 4rem;
-        box-shadow: 0 8px 25px rgba(255, 105, 180, 0.4);
-        border: 5px solid white;
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: white;
+        box-shadow: 0 8px 25px rgba(196, 30, 58, 0.35);
+        border: 4px solid white;
         transition: transform 0.3s;
+        font-family: 'Cormorant Garamond', serif;
     }
 
     .employee-card:hover .employee-avatar {
@@ -480,12 +483,20 @@
     {% for empleado in empleados %}
     <a href="{{ url_for('agendar_paso3', id_servicio=servicio.id_servicio, id_empleado=empleado.id_empleado) }}" class="employee-card">
         <div class="employee-header">
-            <div class="employee-avatar">👩</div>
+            <div class="employee-avatar">{{ empleado.nombre[0].upper() }}</div>
         </div>
         <div class="employee-body">
             <h3 class="employee-name">{{ empleado.nombre }}</h3>
             <p class="employee-specialty">{{ empleado.especialidad if empleado.especialidad else 'Especialista en Belleza' }}</p>
-            <button class="btn-select-employee">Seleccionar →</button>
+            <div style="display:flex;align-items:center;justify-content:center;gap:0.5rem;
+                        margin-bottom:1rem;font-size:0.85rem;color:#888;">
+                {% set num_servicios = empleado.servicios|length %}
+                <i class="bi bi-scissors" style="color:#c41e3a;"></i>
+                {{ num_servicios }} servicio{{ 's' if num_servicios != 1 }}
+            </div>
+            <button class="btn-select-employee">
+                <i class="bi bi-calendar-plus"></i> Elegir especialista
+            </button>
         </div>
     </a>
     {% endfor %}
