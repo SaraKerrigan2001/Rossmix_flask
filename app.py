@@ -798,7 +798,7 @@ def admin_required(f):
     def decorated_function(*args, **kwargs):
         if 'usuario_id' not in session:
             flash('Debes iniciar sesión', 'error')
-            return redirect(url_for('login'))
+            return redirect(url_for('auth.login'))
         if session.get('tipo_usuario') != 'admin':
             flash('No tienes permisos para acceder a esta sección', 'error')
             return redirect(url_for('dashboard_cliente'))
@@ -845,7 +845,7 @@ def inject_notificaciones():
 def notificaciones():
     if 'usuario_id' not in session:
         flash('Debes iniciar sesión', 'error')
-        return redirect(url_for('login'))
+        return redirect(url_for('auth.login'))
     # Paginación simple
     page = request.args.get('page', 1, type=int)
     per_page = 20
@@ -861,33 +861,7 @@ def test_image():
     return render_template('test_image.html')
 
 
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        email = request.form.get('email')
-        password = request.form.get('password')
-
-        usuario = Usuario.query.filter_by(email=email).first()
-
-        if usuario and check_password_hash(usuario.password, password):
-            if not usuario.activo:
-                flash('Tu cuenta está desactivada. Contacta al administrador.', 'error')
-                return redirect(url_for('login'))
-
-            session['usuario_id'] = usuario.id
-            session['nombre'] = usuario.nombre
-            session['email'] = usuario.email
-            session['tipo_usuario'] = usuario.tipo_usuario
-            flash(f'¡Bienvenido/a {usuario.nombre}!', 'success')
-
-            if usuario.tipo_usuario == 'admin':
-                return redirect(url_for('dashboard_admin'))
-            else:
-                return redirect(url_for('dashboard_cliente'))
-        else:
-            flash('Email o contraseña incorrectos', 'error')
-
-    return render_template('login.html')
+# `login` manejado por el blueprint `auth_bp` en app/views/auth.py
 
 
 @app.route('/registro', methods=['GET', 'POST'])
@@ -955,7 +929,7 @@ def registro():
             logging.error(f"[NUEVO USUARIO] Error al notificar admins: {e}")
 
         flash('¡Registro exitoso! Ya puedes iniciar sesión', 'success')
-        return redirect(url_for('login'))
+        return redirect(url_for('auth.login'))
 
     return render_template('registro.html')
 
@@ -1001,7 +975,7 @@ def dashboard_admin():
 def dashboard_cliente():
     if 'usuario_id' not in session or session.get('tipo_usuario') != 'cliente':
         flash('Debes iniciar sesión como cliente', 'error')
-        return redirect(url_for('login'))
+        return redirect(url_for('auth.login'))
 
     id_cliente = session['usuario_id']
 
@@ -1083,7 +1057,7 @@ def agendar_paso1():
     """Paso 1: Seleccionar servicio"""
     if 'usuario_id' not in session:
         flash('Debes iniciar sesión para agendar una cita', 'error')
-        return redirect(url_for('login'))
+        return redirect(url_for('auth.login'))
 
     # Obtener todos los servicios activos
     servicios = Servicio.query.filter_by(activo=True).order_by(Servicio.nombre_servicio).all()
@@ -1096,7 +1070,7 @@ def agendar_paso2(id_servicio):
     """Paso 2: Seleccionar empleado o aleatorio"""
     if 'usuario_id' not in session:
         flash('Debes iniciar sesión para agendar una cita', 'error')
-        return redirect(url_for('login'))
+        return redirect(url_for('auth.login'))
 
     # Obtener servicio seleccionado
     servicio = Servicio.query.get_or_404(id_servicio)
@@ -1118,7 +1092,7 @@ def agendar_paso3(id_servicio, id_empleado):
     """Paso 3: Seleccionar fecha y hora"""
     if 'usuario_id' not in session:
         flash('Debes iniciar sesión para agendar una cita', 'error')
-        return redirect(url_for('login'))
+        return redirect(url_for('auth.login'))
 
     servicio = Servicio.query.get_or_404(id_servicio)
     empleado = Empleado.query.get_or_404(id_empleado) if id_empleado > 0 else None
@@ -1209,7 +1183,7 @@ def agendar_paso4():
     """Paso 4: Confirmación y pago"""
     if 'usuario_id' not in session:
         flash('Debes iniciar sesión para agendar una cita', 'error')
-        return redirect(url_for('login'))
+        return redirect(url_for('auth.login'))
 
     # Obtener datos del formulario
     id_servicio = request.form.get('id_servicio', type=int)
@@ -1399,7 +1373,7 @@ def cita_confirmada(codigo):
     """Mostrar detalles de cita confirmada"""
     if 'usuario_id' not in session:
         flash('Debes iniciar sesión', 'error')
-        return redirect(url_for('login'))
+        return redirect(url_for('auth.login'))
 
     cita = Cita.query.filter_by(codigo_reserva=codigo, id_cliente=session['usuario_id']).first_or_404()
     servicio = Servicio.query.get(cita.id_servicio)
@@ -1413,7 +1387,7 @@ def mis_citas():
     """Ver mis citas agendadas"""
     if 'usuario_id' not in session:
         flash('Debes iniciar sesión', 'error')
-        return redirect(url_for('login'))
+        return redirect(url_for('auth.login'))
 
     # Obtener citas futuras
     citas_futuras = db.session.query(Cita, Servicio, Empleado).join(
@@ -1578,7 +1552,7 @@ def cliente_pagos_registrar(id_cita):
     """Registrar pago para una cita por el cliente"""
     if 'usuario_id' not in session:
         flash('Debes iniciar sesión para realizar un pago', 'error')
-        return redirect(url_for('login'))
+        return redirect(url_for('auth.login'))
 
     cita = Cita.query.get_or_404(id_cita)
     

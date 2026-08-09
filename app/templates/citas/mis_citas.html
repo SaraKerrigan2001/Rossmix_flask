@@ -370,7 +370,19 @@
                             <span class="info-icon">👤</span>
                             <div>
                                 <div class="info-text">Especialista</div>
+                                {% if empleado %}
                                 <div class="info-valor">{{ empleado.nombre }}</div>
+                                {% else %}
+                                <div style="display:flex;align-items:center;gap:0.4rem;">
+                                    <span style="background:#fef9c3;color:#854d0e;padding:0.2rem 0.7rem;
+                                                 border-radius:20px;font-size:0.82rem;font-weight:700;">
+                                        ⏳ Por asignar
+                                    </span>
+                                </div>
+                                <div style="font-size:0.75rem;color:#888;margin-top:0.2rem;">
+                                    Te notificaremos cuando se asigne una especialista
+                                </div>
+                                {% endif %}
                             </div>
                         </div>
 

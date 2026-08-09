@@ -1,15 +1,35 @@
 """Funciones auxiliares compartidas."""
-from flask import session
-from app.extensions import db
+from flask import session, current_app
+from threading import Thread
+from flask_mail import Message
+from app.extensions import db, mail
 from app.models.notificacion import Notificacion
+from app.models.usuario import Usuario
 
+def send_async_email(app, msg):
+    with app.app_context():
+        try:
+            mail.send(msg)
+        except Exception as e:
+            print('Error al enviar correo asíncrono:', e)
 
 def add_notificacion(id_usuario, titulo, mensaje=None, target=None):
-    """Crear una notificación para un usuario."""
+    """Crear una notificación para un usuario y opcionalmente enviar email."""
     try:
         n = Notificacion(id_usuario=id_usuario, titulo=titulo, mensaje=mensaje, target=target)
         db.session.add(n)
         db.session.commit()
+
+        # Enviar correo electrónico
+        usuario = Usuario.query.get(id_usuario)
+        if usuario and usuario.email and '@' in usuario.email:
+            msg = Message(
+                subject=f"Rossmix - {titulo}",
+                recipients=[usuario.email],
+                body=f"Hola {usuario.nombre},\n\n{mensaje or titulo}\n\nRevisa tu portal para más detalles."
+            )
+            Thread(target=send_async_email, args=(current_app._get_current_object(), msg)).start()
+            
     except Exception as e:
         db.session.rollback()
         print('Error al crear notificacion:', e)

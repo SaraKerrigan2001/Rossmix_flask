@@ -1,0 +1,369 @@
+{% extends 'base.html' %}
+{% block title %}Distribución de Citas — Admin Rossmix{% endblock %}
+
+{% block extra_css %}
+<style>
+@keyframes rmxSlideUp{from{opacity:0;transform:translateY(30px);}to{opacity:1;transform:translateY(0);}}
+.rmx-toast{position:fixed;bottom:2rem;right:2rem;z-index:9999;padding:0.9rem 1.4rem;border-radius:14px;font-weight:600;font-size:0.9rem;display:flex;align-items:center;gap:0.6rem;box-shadow:0 8px 30px rgba(0,0,0,0.18);animation:toastIn 0.35s ease;pointer-events:none;}
+.rmx-toast.success{background:#ecfdf5;color:#166534;border:1.5px solid #86efac;}
+.rmx-toast.error{background:#fef2f2;color:#991b1b;border:1.5px solid #fca5a5;}
+@keyframes toastIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+
+/* Fila de asignación */
+.asig-row{display:grid;grid-template-columns:1fr auto 220px auto;gap:0.8rem;align-items:center;
+          padding:0.9rem 1.2rem;border-bottom:1px solid #f5f5f5;transition:background 0.15s;}
+.asig-row:hover{background:#fafafa;}
+.asig-row.asignada{background:#f0fdf4;opacity:0.7;}
+
+/* Selector de especialista */
+.esp-select{width:100%;padding:0.5rem 0.8rem;border:1.5px solid #e5e7eb;border-radius:10px;
+            font-size:0.88rem;font-weight:600;color:#333;background:white;
+            transition:border-color 0.2s;}
+.esp-select:focus{outline:none;border-color:#c41e3a;box-shadow:0 0 0 3px rgba(196,30,58,0.1);}
+.esp-select.seleccionado{border-color:#059669;background:#f0fdf4;}
+
+/* Tarjeta de carga por especialista */
+.carga-card{background:white;border-radius:14px;padding:1rem 1.2rem;
+            border:2px solid #f0f0f0;transition:all 0.2s;}
+.carga-bar{height:8px;border-radius:4px;background:#f0f0f0;overflow:hidden;margin-top:0.4rem;}
+.carga-bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#059669,#34d399);
+                transition:width 0.5s ease;}
+.carga-bar-fill.media{background:linear-gradient(90deg,#f59e0b,#fbbf24);}
+.carga-bar-fill.alta{background:linear-gradient(90deg,#dc2626,#ef4444);}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Distribución de Citas</h1>
+        <div class="breadcrumb-r">
+            <a href="{{ url_for('dashboard_admin') }}">Panel Admin</a>
+            <i class="bi bi-chevron-right"></i>
+            <a href="{{ url_for('admin_citas') }}">Citas</a>
+            <i class="bi bi-chevron-right"></i>
+            <span>Distribución</span>
+        </div>
+    </div>
+    <a href="{{ url_for('admin_citas') }}" class="btn-secondary-r">
+        <i class="bi bi-arrow-left"></i> Volver a Citas
+    </a>
+</div>
+
+<!-- Resumen de carga por especialista -->
+<div class="r-card" style="margin-bottom:1.5rem;">
+    <div class="r-card-header">
+        <h2><i class="bi bi-bar-chart-fill" style="color:#7c3aed;"></i> Carga Actual por Especialista</h2>
+        <span style="font-size:0.85rem;color:#888;">Citas futuras activas asignadas</span>
+    </div>
+    <div style="padding:1.2rem 1.4rem;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:0.8rem;">
+        {% for emp in empleados %}
+        {% set c = carga.get(emp.id_empleado, 0) %}
+        <div class="carga-card" id="carga-{{ emp.id_empleado }}">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+                <div style="display:flex;align-items:center;gap:0.6rem;">
+                    <div style="width:34px;height:34px;border-radius:50%;
+                                background:linear-gradient(135deg,#ede9ff,#d4caff);
+                                color:#7c3aed;display:flex;align-items:center;
+                                justify-content:center;font-weight:800;font-size:0.9rem;flex-shrink:0;">
+                        {{ emp.nombre[0].upper() }}
+                    </div>
+                    <div>
+                        <div style="font-weight:700;font-size:0.88rem;">{{ emp.nombre.split()[0] }}</div>
+                        <div style="font-size:0.72rem;color:#888;">{{ emp.especialidad or '—' }}</div>
+                    </div>
+                </div>
+                <span id="badge-{{ emp.id_empleado }}"
+                      style="background:{% if c == 0 %}#f0fdf4;color:#166534{% elif c <= 3 %}#dbeafe;color:#1e40af{% elif c <= 6 %}#fef9c3;color:#854d0e{% else %}#fee2e2;color:#991b1b{% endif %};
+                             padding:0.2rem 0.6rem;border-radius:12px;font-size:0.8rem;font-weight:700;">
+                    {{ c }} cita(s)
+                </span>
+            </div>
+            <div class="carga-bar">
+                <div class="carga-bar-fill {% if c > 6 %}alta{% elif c > 3 %}media{% endif %}"
+                     id="bar-{{ emp.id_empleado }}"
+                     style="width:{{ [c * 12, 100]|min }}%;"></div>
+            </div>
+        </div>
+        {% else %}
+        <p style="color:#9ca3af;">No hay especialistas activas.</p>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Panel de asignación -->
+<div class="r-card">
+    <div class="r-card-header">
+        <div>
+            <h2><i class="bi bi-person-lines-fill" style="color:#c41e3a;"></i> Citas Sin Especialista</h2>
+            <span style="font-size:0.85rem;color:#888;">{{ sin_asignar|length }} cita(s) pendientes de asignación</span>
+        </div>
+        {% if sin_asignar %}
+        <div style="display:flex;gap:0.8rem;align-items:center;flex-wrap:wrap;">
+            <button onclick="autoDistribuir()"
+                    style="background:linear-gradient(135deg,#7c3aed,#a855f7);color:white;border:none;
+                           padding:0.55rem 1.3rem;border-radius:10px;font-weight:700;font-size:0.88rem;
+                           cursor:pointer;display:flex;align-items:center;gap:0.4rem;">
+                <i class="bi bi-magic"></i> Auto-distribuir
+            </button>
+            <button onclick="guardarTodo()" id="btnGuardarTodo"
+                    style="background:linear-gradient(135deg,#059669,#10b981);color:white;border:none;
+                           padding:0.55rem 1.3rem;border-radius:10px;font-weight:700;font-size:0.88rem;
+                           cursor:pointer;display:flex;align-items:center;gap:0.4rem;">
+                <i class="bi bi-check-all"></i> Guardar Asignaciones
+            </button>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if sin_asignar %}
+    <!-- Cabecera tabla -->
+    <div style="display:grid;grid-template-columns:1fr auto 220px auto;gap:0.8rem;
+                padding:0.6rem 1.2rem;background:#f8f9fa;font-size:0.78rem;
+                font-weight:700;color:#666;text-transform:uppercase;letter-spacing:0.4px;">
+        <span>Cita</span>
+        <span>Fecha / Hora</span>
+        <span>Asignar a</span>
+        <span></span>
+    </div>
+
+    <div id="listaAsignaciones">
+        {% for cita, cliente, servicio in sin_asignar %}
+        <div class="asig-row" id="asig-row-{{ cita.id_cita }}" data-cita="{{ cita.id_cita }}">
+            <!-- Info cita -->
+            <div>
+                <div style="font-weight:700;font-size:0.9rem;">{{ servicio.nombre_servicio }}</div>
+                <div style="font-size:0.78rem;color:#888;">
+                    <i class="bi bi-person" style="color:#c41e3a;"></i> {{ cliente.nombre }}
+                    <span style="margin-left:0.5rem;font-family:monospace;color:#bbb;">{{ cita.codigo_reserva }}</span>
+                </div>
+            </div>
+
+            <!-- Fecha -->
+            <div style="text-align:center;white-space:nowrap;">
+                <div style="font-weight:700;font-size:0.88rem;color:#1a1a1a;">{{ cita.fecha_hora_inicio.strftime('%d/%m/%Y') }}</div>
+                <div style="font-size:0.78rem;color:#2563eb;font-weight:600;">{{ cita.fecha_hora_inicio.strftime('%H:%M') }}</div>
+            </div>
+
+            <!-- Selector especialista -->
+            <select class="esp-select" id="esp-{{ cita.id_cita }}"
+                    onchange="marcarSeleccion({{ cita.id_cita }}, this)">
+                <option value="">— Seleccionar —</option>
+                {% for emp in empleados %}
+                <option value="{{ emp.id_empleado }}">
+                    {{ emp.nombre }}{% if emp.especialidad %} ({{ emp.especialidad }}){% endif %}
+                    · {{ carga.get(emp.id_empleado, 0) }} cita(s)
+                </option>
+                {% endfor %}
+            </select>
+
+            <!-- Botón individual -->
+            <button onclick="asignarIndividual({{ cita.id_cita }})"
+                    id="btn-ind-{{ cita.id_cita }}"
+                    style="background:#eff6ff;color:#2563eb;border:1.5px solid #bfdbfe;
+                           padding:0.45rem 0.9rem;border-radius:10px;font-weight:700;
+                           font-size:0.82rem;cursor:pointer;white-space:nowrap;transition:all 0.2s;"
+                    onmouseover="this.style.background='#dbeafe'"
+                    onmouseout="this.style.background='#eff6ff'">
+                <i class="bi bi-person-check"></i>
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Botón guardar todo (fijo abajo) -->
+    <div style="padding:1rem 1.4rem;border-top:2px solid #f5f5f5;background:#fafafa;
+                display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.8rem;">
+        <span style="font-size:0.85rem;color:#888;">
+            <span id="countAsignadas">0</span> de {{ sin_asignar|length }} asignadas
+        </span>
+        <button onclick="guardarTodo()" id="btnGuardarTodo2"
+                style="background:linear-gradient(135deg,#059669,#10b981);color:white;border:none;
+                       padding:0.7rem 2rem;border-radius:12px;font-weight:700;font-size:0.9rem;
+                       cursor:pointer;display:flex;align-items:center;gap:0.5rem;
+                       box-shadow:0 4px 16px rgba(5,150,105,0.3);">
+            <i class="bi bi-check-all"></i> Guardar Todas las Asignaciones
+        </button>
+    </div>
+
+    {% else %}
+    <div style="text-align:center;padding:3.5rem;color:#9ca3af;">
+        <div style="font-size:3rem;margin-bottom:1rem;">🎉</div>
+        <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:#1a1a1a;margin-bottom:0.5rem;">
+            ¡Todo asignado!
+        </h3>
+        <p>No hay citas pendientes de especialista.</p>
+        <a href="{{ url_for('admin_citas') }}" class="btn-rossmix" style="margin-top:1rem;">
+            <i class="bi bi-calendar3"></i> Ver todas las citas
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<div id="rmxToast" class="rmx-toast" style="display:none;"></div>
+
+<script>
+function showToast(msg, tipo='success') {
+    const t = document.getElementById('rmxToast');
+    t.className = `rmx-toast ${tipo}`;
+    t.innerHTML = `<i class="bi bi-${tipo==='success'?'check-circle-fill':'x-circle-fill'}"></i> ${msg}`;
+    t.style.display = 'flex';
+    setTimeout(() => t.style.display = 'none', 4000);
+}
+
+// Opciones de especialistas con su carga actual (para auto-distribuir)
+const empleados = [
+    {% for emp in empleados %}
+    { id: {{ emp.id_empleado }}, nombre: '{{ emp.nombre }}', carga: {{ carga.get(emp.id_empleado, 0) }} },
+    {% endfor %}
+];
+
+let asignacionLocal = {}; // { id_cita: id_empleado }
+
+function marcarSeleccion(idCita, sel) {
+    const val = parseInt(sel.value);
+    if (val) {
+        asignacionLocal[idCita] = val;
+        sel.classList.add('seleccionado');
+    } else {
+        delete asignacionLocal[idCita];
+        sel.classList.remove('seleccionado');
+    }
+    actualizarContador();
+}
+
+function actualizarContador() {
+    const n = Object.keys(asignacionLocal).length;
+    document.getElementById('countAsignadas').textContent = n;
+}
+
+/* Auto-distribuir: asigna la especialista con menos carga a cada fila sin asignar */
+function autoDistribuir() {
+    if (empleados.length === 0) { showToast('No hay especialistas activas', 'error'); return; }
+
+    // copia mutable de cargas
+    const cargas = {};
+    empleados.forEach(e => cargas[e.id] = e.carga + Object.values(asignacionLocal).filter(v => v === e.id).length);
+
+    document.querySelectorAll('.asig-row:not(.asignada)').forEach(row => {
+        const idCita = parseInt(row.dataset.cita);
+        if (asignacionLocal[idCita]) return; // ya tiene asignación manual
+
+        // Elegir la que tiene menos carga
+        const menosOcupada = Object.entries(cargas).sort((a,b) => a[1]-b[1])[0];
+        const idEmp = parseInt(menosOcupada[0]);
+        cargas[idEmp]++;
+
+        const sel = document.getElementById(`esp-${idCita}`);
+        sel.value = idEmp;
+        sel.classList.add('seleccionado');
+        asignacionLocal[idCita] = idEmp;
+    });
+
+    actualizarContador();
+    showToast(`Auto-distribuidas ${Object.keys(asignacionLocal).length} citas`, 'success');
+}
+
+/* Asignar individualmente una cita */
+async function asignarIndividual(idCita) {
+    const idEmp = asignacionLocal[idCita];
+    if (!idEmp) { showToast('Selecciona una especialista primero', 'error'); return; }
+
+    const btn = document.getElementById(`btn-ind-${idCita}`);
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-hourglass-split"></i>';
+
+    try {
+        const res  = await fetch('/admin/citas/asignar-batch', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify([{ id_cita: idCita, id_empleado: idEmp }])
+        });
+        const data = await res.json();
+        if (data.success && data.asignadas > 0) {
+            const row = document.getElementById(`asig-row-${idCita}`);
+            row.classList.add('asignada');
+            row.querySelector('.esp-select').disabled = true;
+            btn.innerHTML = '<i class="bi bi-check-circle-fill" style="color:#059669;"></i>';
+            actualizarCargaBadge(idEmp, 1);
+            showToast('Cita asignada y clienta notificada', 'success');
+        } else {
+            showToast(data.errores?.[0] || 'Error', 'error');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-person-check"></i>';
+        }
+    } catch(e) {
+        showToast('Error de conexión', 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-person-check"></i>';
+    }
+}
+
+/* Guardar todas las asignaciones pendientes */
+async function guardarTodo() {
+    const payload = Object.entries(asignacionLocal)
+        .filter(([idCita]) => {
+            const row = document.getElementById(`asig-row-${idCita}`);
+            return row && !row.classList.contains('asignada');
+        })
+        .map(([idCita, idEmp]) => ({ id_cita: parseInt(idCita), id_empleado: idEmp }));
+
+    if (payload.length === 0) { showToast('Nada nuevo por asignar', 'error'); return; }
+
+    ['btnGuardarTodo','btnGuardarTodo2'].forEach(id => {
+        const b = document.getElementById(id);
+        if (b) { b.disabled = true; b.innerHTML = '<i class="bi bi-hourglass-split"></i> Guardando...'; }
+    });
+
+    try {
+        const res  = await fetch('/admin/citas/asignar-batch', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success) {
+            // Marcar filas como asignadas
+            payload.forEach(item => {
+                const row = document.getElementById(`asig-row-${item.id_cita}`);
+                if (row) {
+                    row.classList.add('asignada');
+                    row.querySelector('.esp-select').disabled = true;
+                    const btn = document.getElementById(`btn-ind-${item.id_cita}`);
+                    if (btn) btn.innerHTML = '<i class="bi bi-check-circle-fill" style="color:#059669;"></i>';
+                    actualizarCargaBadge(item.id_empleado, 1);
+                }
+            });
+            asignacionLocal = {};
+            actualizarContador();
+            showToast(`${data.asignadas} cita(s) asignadas. Clientas notificadas.`, 'success');
+        } else {
+            showToast('Error al guardar', 'error');
+        }
+    } catch(e) {
+        showToast('Error de conexión', 'error');
+    } finally {
+        ['btnGuardarTodo','btnGuardarTodo2'].forEach(id => {
+            const b = document.getElementById(id);
+            if (b) { b.disabled = false; b.innerHTML = '<i class="bi bi-check-all"></i> Guardar Asignaciones'; }
+        });
+    }
+}
+
+/* Actualiza visualmente el badge de carga de una especialista */
+function actualizarCargaBadge(idEmp, delta) {
+    const badge = document.getElementById(`badge-${idEmp}`);
+    const bar   = document.getElementById(`bar-${idEmp}`);
+    if (!badge) return;
+    const match = badge.textContent.match(/(\d+)/);
+    if (!match) return;
+    const nuevo = parseInt(match[1]) + delta;
+    badge.textContent = `${nuevo} cita(s)`;
+    if (bar) {
+        const w = Math.min(nuevo * 12, 100);
+        bar.style.width = `${w}%`;
+        bar.className = `carga-bar-fill${nuevo > 6 ? ' alta' : nuevo > 3 ? ' media' : ''}`;
+    }
+}
+</script>
+{% endblock %}

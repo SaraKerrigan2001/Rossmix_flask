@@ -1,156 +1,355 @@
 {% extends 'base.html' %}
+{% block title %}Gestión de Horarios - Rossmix{% endblock %}
 
-{% block title %}Gestión de Horarios - Admin Rossmix{% endblock %}
+{% block extra_css %}
+<style>
+.rmx-modal-overlay{display:none;position:fixed;inset:0;background:rgba(10,10,30,0.6);z-index:4000;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(6px);}
+.rmx-modal-overlay.open{display:flex;}
+.rmx-modal{background:white;border-radius:24px;width:100%;max-width:520px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,0.3);animation:rmxSlideUp 0.3s cubic-bezier(0.34,1.56,0.64,1);}
+@keyframes rmxSlideUp{from{opacity:0;transform:translateY(40px) scale(0.96);}to{opacity:1;transform:translateY(0) scale(1);}}
+.rmx-modal-header{padding:1.4rem 1.8rem;background:linear-gradient(135deg,#2563eb,#3b82f6);display:flex;align-items:center;gap:1rem;flex-shrink:0;}
+.rmx-modal-header .icon-wrap{width:48px;height:48px;border-radius:14px;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;}
+.rmx-modal-header h3{margin:0;color:white;font-size:1.1rem;font-weight:800;}
+.rmx-modal-header p{margin:0;color:rgba(255,255,255,0.8);font-size:0.82rem;}
+.rmx-modal-close{margin-left:auto;background:rgba(255,255,255,0.2);border:none;color:white;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center;transition:background 0.2s;flex-shrink:0;}
+.rmx-modal-close:hover{background:rgba(255,255,255,0.35);}
+.rmx-modal-body{padding:1.6rem 1.8rem;overflow-y:auto;flex:1;}
+.rmx-modal-footer{padding:1rem 1.8rem 1.6rem;border-top:1.5px solid #f0f0f0;background:#fafafa;display:flex;gap:0.8rem;flex-shrink:0;}
+.rmx-toast{position:fixed;bottom:2rem;right:2rem;z-index:9999;padding:0.9rem 1.4rem;border-radius:14px;font-weight:600;font-size:0.9rem;display:flex;align-items:center;gap:0.6rem;box-shadow:0 8px 30px rgba(0,0,0,0.18);animation:toastIn 0.35s ease;pointer-events:none;}
+.rmx-toast.success{background:#ecfdf5;color:#166534;border:1.5px solid #86efac;}
+.rmx-toast.error{background:#fef2f2;color:#991b1b;border:1.5px solid #fca5a5;}
+@keyframes toastIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+.emp-card{border-radius:16px;overflow:hidden;margin-bottom:1.5rem;box-shadow:0 2px 12px rgba(0,0,0,0.07);}
+.emp-card-header{padding:1rem 1.4rem;background:linear-gradient(135deg,#c41e3a,#ff1493);color:white;display:flex;align-items:center;justify-content:space-between;}
+.emp-card-body{padding:0;}
+.horario-row{display:grid;grid-template-columns:1fr 1fr 1fr auto;align-items:center;gap:0.5rem;padding:0.85rem 1.4rem;border-bottom:1px solid #f5f5f5;}
+.horario-row:last-child{border-bottom:none;}
+.horario-row:hover{background:#fafafa;}
+.dia-badge{background:#f0f4ff;color:#2563eb;padding:0.25rem 0.8rem;border-radius:20px;font-size:0.82rem;font-weight:700;}
+.hora-text{font-size:0.9rem;font-weight:600;color:#1a1a1a;}
+.dur-text{font-size:0.82rem;color:#888;}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 style="color: #c41e3a; font-family: 'Playfair Display', serif;">Gestión de Horarios</h2>
-        <div class="dropdown">
-            <button class="btn-rossmix dropdown-toggle" type="button" id="exportHorariosDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="background:#059669;">
-                <i class="bi bi-file-earmark-excel"></i> Exportar a Excel
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="exportHorariosDropdown">
-                <li><a class="dropdown-item" href="{{ url_for('admin_exportar_excel', tipo='horarios', periodo='diario') }}">Diario (Hoy)</a></li>
-                <li><a class="dropdown-item" href="{{ url_for('admin_exportar_excel', tipo='horarios', periodo='semana') }}">Semanal</a></li>
-                <li><a class="dropdown-item" href="{{ url_for('admin_exportar_excel', tipo='horarios', periodo='mes') }}">Mensual</a></li>
-                <li><a class="dropdown-item" href="{{ url_for('admin_exportar_excel', tipo='horarios', periodo='ano') }}">Anual</a></li>
-            </ul>
+<div class="page-header">
+    <div>
+        <h1>Gestión de Horarios</h1>
+        <div class="breadcrumb-r">
+            <a href="{{ url_for('dashboard_admin') }}">Panel Admin</a>
+            <i class="bi bi-chevron-right"></i> <span>Horarios</span>
         </div>
     </div>
+    <div class="dropdown">
+        <button class="btn-rossmix dropdown-toggle" type="button" id="exportHorariosDropdown"
+                data-bs-toggle="dropdown" aria-expanded="false" style="background:#059669;">
+            <i class="bi bi-file-earmark-excel"></i> Exportar
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="exportHorariosDropdown">
+            <li><a class="dropdown-item" href="{{ url_for('admin_exportar_excel', tipo='horarios', periodo='diario') }}">Diario</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('admin_exportar_excel', tipo='horarios', periodo='semana') }}">Semanal</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('admin_exportar_excel', tipo='horarios', periodo='mes') }}">Mensual</a></li>
+            <li><a class="dropdown-item" href="{{ url_for('admin_exportar_excel', tipo='horarios', periodo='ano') }}">Anual</a></li>
+        </ul>
+    </div>
+</div>
 
-    {% if empleados %}
-        {% for empleado in empleados %}
-        <div class="card shadow-sm mb-4">
-            <div class="card-header d-flex justify-content-between align-items-center" 
-                 style="background: linear-gradient(135deg, #c41e3a, #ff1493); color: white;">
-                <h5 class="mb-0">{{ empleado.nombre }} - {{ empleado.especialidad or 'Sin especialidad' }}</h5>
-                <a href="{{ url_for('admin_horarios_crear', id_empleado=empleado.id_empleado) }}" 
-                   class="btn btn-light btn-sm">
-                    <i class="bi bi-plus-circle"></i> Agregar Horario
-                </a>
-            </div>
-            <div class="card-body">
-                {% if empleado.horarios %}
-                <div class="table-responsive">
-                    <table class="table table-sm table-hover">
-                        <thead>
-                            <tr>
-                                <th>Día</th>
-                                <th>Hora Inicio</th>
-                                <th>Hora Fin</th>
-                                <th>Duración</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for horario in empleado.horarios|sort(attribute='dia_semana') %}
-                            <tr id="horario-{{ horario.id_horario }}">
-                                <td><strong>{{ dias_semana[horario.dia_semana] }}</strong></td>
-                                <td>{{ horario.hora_inicio.strftime('%H:%M') }}</td>
-                                <td>{{ horario.hora_fin.strftime('%H:%M') }}</td>
-                                <td class="text-muted">
-                                    {% set horas = ((horario.hora_fin.hour * 60 + horario.hora_fin.minute) - (horario.hora_inicio.hour * 60 + horario.hora_inicio.minute)) // 60 %}
-                                    {% set minutos = ((horario.hora_fin.hour * 60 + horario.hora_fin.minute) - (horario.hora_inicio.hour * 60 + horario.hora_inicio.minute)) % 60 %}
-                                    {{ horas }}h {{ minutos }}min
-                                </td>
-                                <td>
-                                    <a href="{{ url_for('admin_horarios_editar', id_horario=horario.id_horario) }}" 
-                                       class="btn btn-sm btn-warning" title="Editar">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
-                                    <button onclick="eliminarHorario({{ horario.id_horario }})" 
-                                            class="btn btn-sm btn-danger" title="Eliminar">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+{% if empleados %}
+    {% for empleado in empleados %}
+    <div class="emp-card">
+        <div class="emp-card-header">
+            <div style="display:flex;align-items:center;gap:0.8rem;">
+                <div style="width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,0.25);
+                            display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1rem;">
+                    {{ empleado.nombre[0].upper() }}
                 </div>
-                {% else %}
-                <p class="text-muted mb-0">Sin horarios configurados. 
-                   <a href="{{ url_for('admin_horarios_crear', id_empleado=empleado.id_empleado) }}">Agregar el primero</a>
-                </p>
-                {% endif %}
+                <div>
+                    <div style="font-weight:800;font-size:1rem;">{{ empleado.nombre }}</div>
+                    <div style="font-size:0.78rem;opacity:0.85;">{{ empleado.especialidad or 'Sin especialidad' }} ·
+                        <span style="background:rgba(255,255,255,0.2);padding:0.1rem 0.5rem;border-radius:10px;">
+                            {{ empleado.horarios|length }} horario(s)
+                        </span>
+                    </div>
+                </div>
             </div>
+            <button onclick="abrirModalCrear({{ empleado.id_empleado }}, '{{ empleado.nombre }}')"
+                    style="background:rgba(255,255,255,0.2);border:1.5px solid rgba(255,255,255,0.4);
+                           color:white;padding:0.45rem 1rem;border-radius:10px;font-weight:700;
+                           font-size:0.84rem;cursor:pointer;transition:all 0.2s;display:flex;
+                           align-items:center;gap:0.4rem;"
+                    onmouseover="this.style.background='rgba(255,255,255,0.35)'"
+                    onmouseout="this.style.background='rgba(255,255,255,0.2)'">
+                <i class="bi bi-plus-circle-fill"></i> Agregar Horario
+            </button>
         </div>
-        {% endfor %}
-    {% else %}
-    <div class="alert alert-info">
-        <i class="bi bi-info-circle"></i> No hay empleados activos. 
-        <a href="{{ url_for('admin_empleados_crear') }}">Crear empleado</a>
+        <div class="emp-card-body">
+            {% if empleado.horarios %}
+                {% for horario in empleado.horarios|sort(attribute='dia_semana') %}
+                <div class="horario-row" id="horario-{{ horario.id_horario }}">
+                    <div><span class="dia-badge">{{ dias_semana[horario.dia_semana] }}</span></div>
+                    <div class="hora-text">
+                        <i class="bi bi-clock" style="color:#2563eb;font-size:0.9rem;"></i>
+                        {{ horario.hora_inicio.strftime('%H:%M') }} — {{ horario.hora_fin.strftime('%H:%M') }}
+                    </div>
+                    <div class="dur-text">
+                        {% set mins = ((horario.hora_fin.hour * 60 + horario.hora_fin.minute) - (horario.hora_inicio.hour * 60 + horario.hora_inicio.minute)) %}
+                        {{ mins // 60 }}h {{ mins % 60 }}min
+                    </div>
+                    <div style="display:flex;gap:0.35rem;">
+                        <button onclick="abrirModalEditar({{ horario.id_horario }}, '{{ empleado.nombre }}', '{{ horario.hora_inicio.strftime('%H:%M') }}', '{{ horario.hora_fin.strftime('%H:%M') }}')"
+                                style="background:#fef3c7;color:#d97706;border:none;padding:0.4rem 0.7rem;
+                                       border-radius:8px;font-size:0.82rem;cursor:pointer;transition:all 0.2s;"
+                                onmouseover="this.style.background='#fde68a'" onmouseout="this.style.background='#fef3c7'"
+                                title="Editar">
+                            <i class="bi bi-pencil-fill"></i>
+                        </button>
+                        <button onclick="confirmarEliminarHorario({{ horario.id_horario }})"
+                                style="background:#fee2e2;color:#dc2626;border:none;padding:0.4rem 0.7rem;
+                                       border-radius:8px;font-size:0.82rem;cursor:pointer;transition:all 0.2s;"
+                                onmouseover="this.style.background='#fecaca'" onmouseout="this.style.background='#fee2e2'"
+                                title="Eliminar">
+                            <i class="bi bi-trash3-fill"></i>
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+            <div style="padding:1.5rem 1.4rem;text-align:center;color:#9ca3af;font-size:0.9rem;">
+                Sin horarios configurados.
+                <button onclick="abrirModalCrear({{ empleado.id_empleado }}, '{{ empleado.nombre }}')"
+                        style="color:#2563eb;font-weight:600;background:none;border:none;cursor:pointer;">
+                    Agregar el primero
+                </button>
+            </div>
+            {% endif %}
+        </div>
     </div>
-    {% endif %}
+    {% endfor %}
+{% else %}
+<div class="r-card r-card-body" style="text-align:center;padding:3rem;color:#9ca3af;">
+    <i class="bi bi-clock" style="font-size:2.5rem;display:block;margin-bottom:0.8rem;"></i>
+    No hay empleados activos.
+    <a href="{{ url_for('admin_empleados_crear') }}" style="color:#c41e3a;font-weight:600;">Crear empleado</a>
+</div>
+{% endif %}
+
+<!-- ══════════ MODAL CREAR / EDITAR HORARIO ══════════ -->
+<div id="modalHorario" class="rmx-modal-overlay" role="dialog" aria-modal="true">
+    <div class="rmx-modal">
+        <div class="rmx-modal-header">
+            <div class="icon-wrap">🕐</div>
+            <div>
+                <h3 id="modalHorTitulo">Nuevo Horario</h3>
+                <p id="modalHorSub">Configura el turno</p>
+            </div>
+            <button class="rmx-modal-close" onclick="cerrarModalHorario()" aria-label="Cerrar">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div class="rmx-modal-body">
+            <form id="formHorario" novalidate>
+                <input type="hidden" id="horIdHidden" value="">
+                <input type="hidden" id="horEmpIdHidden" value="">
+
+                <div id="wrapDia" class="mb-3">
+                    <label class="r-form-label">Día de la Semana *</label>
+                    <select class="r-form-control" id="horDia" name="dia_semana" required>
+                        <option value="">Seleccionar día...</option>
+                        <option value="1">Lunes</option>
+                        <option value="2">Martes</option>
+                        <option value="3">Miércoles</option>
+                        <option value="4">Jueves</option>
+                        <option value="5">Viernes</option>
+                        <option value="6">Sábado</option>
+                        <option value="0">Domingo</option>
+                    </select>
+                </div>
+
+                <div id="infoDia" style="display:none;margin-bottom:1rem;">
+                    <div style="background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:10px;
+                                padding:0.7rem 1rem;font-size:0.88rem;color:#1e40af;">
+                        <i class="bi bi-info-circle-fill"></i>
+                        No se puede cambiar el día. Elimina y crea un nuevo horario si necesitas modificarlo.
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-6">
+                        <label class="r-form-label">Hora de Inicio *</label>
+                        <input type="time" class="r-form-control" id="horInicio" name="hora_inicio" required>
+                    </div>
+                    <div class="col-6">
+                        <label class="r-form-label">Hora de Fin *</label>
+                        <input type="time" class="r-form-control" id="horFin" name="hora_fin" required>
+                    </div>
+                </div>
+
+                <div style="background:#f0f9ff;border:1.5px solid #bae6fd;border-radius:10px;
+                            padding:0.8rem 1rem;margin-top:1rem;font-size:0.85rem;color:#0369a1;">
+                    <i class="bi bi-lightbulb-fill"></i>
+                    <strong>Duración calculada:</strong>
+                    <span id="durCalc" style="font-weight:700;">—</span>
+                </div>
+            </form>
+        </div>
+        <div class="rmx-modal-footer">
+            <button type="button" onclick="cerrarModalHorario()" class="btn-secondary-r" style="flex:1;">
+                <i class="bi bi-x-lg"></i> Cancelar
+            </button>
+            <button type="button" onclick="guardarHorario()" id="btnGuardarHor"
+                    class="btn-rossmix" style="flex:2;background:linear-gradient(135deg,#2563eb,#3b82f6);justify-content:center;">
+                <i class="bi bi-check-lg"></i> Guardar Horario
+            </button>
+        </div>
+    </div>
 </div>
 
-<!-- Modal de confirmación -->
-<div class="modal fade" id="confirmModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Confirmar Eliminación</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>¿Estás seguro de eliminar este horario?</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Eliminar</button>
+<!-- ══════════ MODAL ELIMINAR HORARIO ══════════ -->
+<div id="modalElimHorario" style="display:none;position:fixed;inset:0;background:rgba(10,10,30,0.6);
+     z-index:4000;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(6px);">
+    <div style="background:white;border-radius:24px;max-width:420px;width:100%;overflow:hidden;
+                box-shadow:0 32px 80px rgba(0,0,0,0.3);animation:rmxSlideUp 0.3s cubic-bezier(0.34,1.56,0.64,1);">
+        <div style="background:linear-gradient(135deg,#dc2626,#ef4444);padding:1.2rem 1.6rem;
+                    display:flex;align-items:center;gap:0.8rem;">
+            <span style="font-size:1.5rem;">🗑️</span>
+            <h3 style="margin:0;color:white;font-size:1rem;font-weight:800;">Eliminar Horario</h3>
+            <button onclick="cerrarModalElimHorario()" style="margin-left:auto;background:rgba(255,255,255,0.2);
+                    border:none;color:white;width:30px;height:30px;border-radius:50%;cursor:pointer;
+                    font-size:0.9rem;display:flex;align-items:center;justify-content:center;">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div style="padding:1.4rem 1.6rem;">
+            <p style="color:#374151;margin-bottom:1.2rem;">¿Confirmas la eliminación de este horario?</p>
+            <div style="display:flex;gap:0.8rem;">
+                <button onclick="cerrarModalElimHorario()" class="btn-secondary-r" style="flex:1;">Cancelar</button>
+                <button id="btnConfirmarHor" onclick="ejecutarEliminarHorario()"
+                        style="flex:2;background:linear-gradient(135deg,#dc2626,#ef4444);color:white;
+                               border:none;padding:0.7rem;border-radius:12px;font-weight:700;
+                               font-size:0.9rem;cursor:pointer;display:flex;align-items:center;
+                               justify-content:center;gap:0.5rem;">
+                    <i class="bi bi-trash3-fill"></i> Eliminar
+                </button>
             </div>
         </div>
     </div>
 </div>
+
+<div id="rmxToast" class="rmx-toast" style="display:none;"></div>
 
 <script>
-let horarioAEliminar = null;
-
-function eliminarHorario(id) {
-    horarioAEliminar = id;
-    const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
-    modal.show();
+function showToast(msg, tipo='success') {
+    const t = document.getElementById('rmxToast');
+    t.className = `rmx-toast ${tipo}`;
+    t.innerHTML = `<i class="bi bi-${tipo==='success'?'check-circle-fill':'x-circle-fill'}"></i> ${msg}`;
+    t.style.display = 'flex';
+    setTimeout(() => t.style.display='none', 3500);
 }
 
-document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
-    if (horarioAEliminar) {
-        fetch(`/admin/horarios/eliminar/${horarioAEliminar}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                const row = document.getElementById(`horario-${horarioAEliminar}`);
-                if (row) row.remove();
-                
-                const modal = bootstrap.Modal.getInstance(document.getElementById('confirmModal'));
-                modal.hide();
-                
-                mostrarAlerta('success', data.message);
-            } else {
-                mostrarAlerta('danger', data.message);
-            }
-        })
-        .catch(error => {
-            mostrarAlerta('danger', 'Error al eliminar horario');
-        });
-    }
+/* Calcular duración al cambiar horas */
+function calcDur() {
+    const hi = document.getElementById('horInicio').value;
+    const hf = document.getElementById('horFin').value;
+    if (!hi || !hf) { document.getElementById('durCalc').textContent='—'; return; }
+    const [hh, mm] = hi.split(':').map(Number);
+    const [hh2, mm2] = hf.split(':').map(Number);
+    const mins = (hh2*60+mm2) - (hh*60+mm);
+    if (mins <= 0) { document.getElementById('durCalc').textContent='⚠ Hora inválida'; return; }
+    document.getElementById('durCalc').textContent = `${Math.floor(mins/60)}h ${mins%60}min`;
+}
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('horInicio').addEventListener('change', calcDur);
+    document.getElementById('horFin').addEventListener('change', calcDur);
 });
 
-function mostrarAlerta(tipo, mensaje) {
-    const alertDiv = document.createElement('div');
-    alertDiv.className = `alert alert-${tipo} alert-dismissible fade show`;
-    alertDiv.innerHTML = `
-        ${mensaje}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
-    document.querySelector('.container').insertBefore(alertDiv, document.querySelector('.d-flex'));
-    
-    setTimeout(() => alertDiv.remove(), 5000);
+function abrirModalCrear(empId, empNombre) {
+    document.getElementById('modalHorTitulo').textContent = 'Nuevo Horario';
+    document.getElementById('modalHorSub').textContent    = empNombre;
+    document.getElementById('horIdHidden').value    = '';
+    document.getElementById('horEmpIdHidden').value = empId;
+    document.getElementById('horDia').value         = '';
+    document.getElementById('horInicio').value      = '';
+    document.getElementById('horFin').value         = '';
+    document.getElementById('durCalc').textContent  = '—';
+    document.getElementById('horDia').disabled      = false;
+    document.getElementById('wrapDia').style.display  = 'block';
+    document.getElementById('infoDia').style.display  = 'none';
+    document.getElementById('modalHorario').classList.add('open');
 }
+
+function abrirModalEditar(horId, empNombre, horaInicio, horaFin) {
+    document.getElementById('modalHorTitulo').textContent = 'Editar Horario';
+    document.getElementById('modalHorSub').textContent    = empNombre;
+    document.getElementById('horIdHidden').value    = horId;
+    document.getElementById('horEmpIdHidden').value = '';
+    document.getElementById('horInicio').value      = horaInicio;
+    document.getElementById('horFin').value         = horaFin;
+    document.getElementById('horDia').disabled      = true;
+    document.getElementById('wrapDia').style.display  = 'none';
+    document.getElementById('infoDia').style.display  = 'block';
+    calcDur();
+    document.getElementById('modalHorario').classList.add('open');
+}
+
+function cerrarModalHorario() { document.getElementById('modalHorario').classList.remove('open'); }
+
+async function guardarHorario() {
+    const horId = document.getElementById('horIdHidden').value;
+    const empId = document.getElementById('horEmpIdHidden').value;
+    const inicio = document.getElementById('horInicio').value;
+    const fin    = document.getElementById('horFin').value;
+
+    if (!inicio || !fin) { showToast('Las horas son obligatorias', 'error'); return; }
+    if (inicio >= fin)    { showToast('La hora de inicio debe ser menor que la de fin', 'error'); return; }
+    if (!horId && !document.getElementById('horDia').value) {
+        showToast('Selecciona un día', 'error'); return;
+    }
+
+    const btn = document.getElementById('btnGuardarHor');
+    btn.disabled = true; btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Guardando...';
+
+    const form = new FormData(document.getElementById('formHorario'));
+    const url  = horId ? `/admin/horarios/editar/${horId}` : `/admin/horarios/crear/${empId}`;
+    try {
+        const res  = await fetch(url, { method:'POST', body:form, headers:{'X-Requested-With':'XMLHttpRequest'} });
+        const data = await res.json();
+        if (data.success) {
+            cerrarModalHorario();
+            showToast(data.message, 'success');
+            setTimeout(() => location.reload(), 1200);
+        } else { showToast(data.message || 'Error al guardar', 'error'); }
+    } catch(e) { showToast('Error de conexión', 'error'); }
+    finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-check-lg"></i> Guardar Horario';
+    }
+}
+
+let horIdElim = null;
+function confirmarEliminarHorario(id) {
+    horIdElim = id;
+    document.getElementById('modalElimHorario').style.display = 'flex';
+}
+function cerrarModalElimHorario() { document.getElementById('modalElimHorario').style.display='none'; }
+
+async function ejecutarEliminarHorario() {
+    if (!horIdElim) return;
+    const btn = document.getElementById('btnConfirmarHor');
+    btn.disabled = true; btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Eliminando...';
+    try {
+        const res  = await fetch(`/admin/horarios/eliminar/${horIdElim}`, { method:'POST' });
+        const data = await res.json();
+        cerrarModalElimHorario();
+        if (data.success) {
+            document.getElementById(`horario-${horIdElim}`)?.remove();
+            showToast(data.message, 'success');
+        } else { showToast(data.message, 'error'); }
+    } catch(e) { showToast('Error de conexión', 'error'); }
+    finally { btn.disabled=false; btn.innerHTML='<i class="bi bi-trash3-fill"></i> Eliminar'; }
+}
+
+document.getElementById('modalHorario').addEventListener('click', e => { if(e.target===e.currentTarget) cerrarModalHorario(); });
+document.getElementById('modalElimHorario').addEventListener('click', e => { if(e.target===e.currentTarget) cerrarModalElimHorario(); });
+document.addEventListener('keydown', e => { if(e.key==='Escape') { cerrarModalHorario(); cerrarModalElimHorario(); } });
 </script>
 {% endblock %}

@@ -7,6 +7,7 @@ from app.views.cliente import cliente_bp
 from app.views.citas import citas_bp
 from app.views.notificaciones import notif_bp
 from app.views.admin import admin_bp
+from app.views.especialista import especialista_bp
 
 __all__ = [
     'main_bp',
@@ -15,4 +16,5 @@ __all__ = [
     'citas_bp',
     'notif_bp',
     'admin_bp',
+    'especialista_bp',
 ]

@@ -289,17 +289,22 @@
             </div>
         </div>
         <div class="qs-card c-gold">
-            <div class="qs-ico c-gold"><i class="bi bi-star"></i></div>
+            <div class="qs-ico c-gold"><i class="bi bi-award"></i></div>
             <div class="qs-info">
-                <div class="qs-num">4</div>
-                <div class="qs-lbl">Servicios Disponibles</div>
+                <div class="qs-num">{{ usuario.nivel_fidelidad }}</div>
+                <div class="qs-lbl">Nivel Actual</div>
             </div>
         </div>
         <div class="qs-card c-teal">
-            <div class="qs-ico c-teal"><i class="bi bi-shield-check"></i></div>
+            <div class="qs-ico c-teal"><i class="bi bi-star"></i></div>
             <div class="qs-info">
-                <div class="qs-num">2h</div>
-                <div class="qs-lbl">Límite Cancelación</div>
+                {% if usuario.faltantes_siguiente_nivel > 0 %}
+                <div class="qs-num">{{ usuario.faltantes_siguiente_nivel }}</div>
+                <div class="qs-lbl">Citas para el sig. nivel</div>
+                {% else %}
+                <div class="qs-num">¡Oro!</div>
+                <div class="qs-lbl">Nivel Máximo</div>
+                {% endif %}
             </div>
         </div>
     </div>

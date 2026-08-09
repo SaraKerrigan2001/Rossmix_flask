@@ -13,13 +13,28 @@ from app.views.admin import admin_bp
 def clientes():
     """Listar todos los clientes"""
     lista = Usuario.query.filter_by(tipo_usuario='cliente').order_by(Usuario.nombre).all()
-    # Añadir conteo de citas canceladas por cliente
     for c in lista:
         try:
             c.citas_canceladas = Cita.query.filter_by(id_cliente=c.id, estado='cancelada').count()
         except Exception:
             c.citas_canceladas = 0
     return render_template('admin/clientes.html', clientes=lista, filter_label='Todos')
+
+
+@admin_bp.route('/clientes/datos/<int:id_cliente>', methods=['GET'])
+@admin_required
+def clientes_datos(id_cliente):
+    """Retorna datos del cliente para modal AJAX"""
+    cliente = Usuario.query.get_or_404(id_cliente)
+    return jsonify({
+        'id': cliente.id,
+        'nombre': cliente.nombre,
+        'email': cliente.email,
+        'telefono': cliente.telefono or '',
+        'activo': cliente.activo,
+        'fecha_registro': cliente.fecha_registro.strftime('%d/%m/%Y a las %H:%M') if cliente.fecha_registro else 'N/A',
+        'total_citas': len(cliente.citas)
+    })
 
 
 @admin_bp.route('/clientes/hoy')
@@ -45,21 +60,34 @@ def clientes_hoy():
 @admin_bp.route('/clientes/editar/<int:id_cliente>', methods=['GET', 'POST'])
 @admin_required
 def clientes_editar(id_cliente):
-    """Editar cliente"""
+    """Editar cliente — soporta JSON (modal) y form normal"""
     cliente = Usuario.query.get_or_404(id_cliente)
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
 
     if request.method == 'POST':
-        cliente.nombre = request.form.get('nombre')
-        cliente.email = request.form.get('email')
-        cliente.telefono = request.form.get('telefono')
+        cliente.nombre = request.form.get('nombre', '').strip()
+        cliente.email = request.form.get('email', '').strip()
+        cliente.telefono = request.form.get('telefono', '').strip()
         cliente.activo = request.form.get('activo') == 'on'
 
-        # Cambiar contraseña solo si se proporciona una nueva
-        nueva_password = request.form.get('nueva_password')
+        nueva_password = request.form.get('nueva_password', '').strip()
         if nueva_password:
             cliente.password = generate_password_hash(nueva_password)
 
         db.session.commit()
+
+        if is_ajax:
+            return jsonify({
+                'success': True,
+                'message': f'Cliente {cliente.nombre} actualizado exitosamente',
+                'cliente': {
+                    'id': cliente.id,
+                    'nombre': cliente.nombre,
+                    'email': cliente.email,
+                    'telefono': cliente.telefono or '—',
+                    'activo': cliente.activo
+                }
+            })
         flash(f'Cliente {cliente.nombre} actualizado exitosamente', 'success')
         return redirect(url_for('admin.clientes'))
 

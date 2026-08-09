@@ -243,8 +243,36 @@
             <div class="stat-icon green"><i class="bi bi-currency-dollar"></i></div>
             <div class="stat-info">
                 <div class="stat-num">${{ "{:,.0f}".format(stats.ingresos_mes) }}</div>
-                <div class="stat-lbl">Ingresos del Mes</div>
+                <div class="stat-lbl">
+                    Ingresos del Mes
+                    <span style="font-size:0.75rem; font-weight:700; margin-left:0.4rem; color: {% if stats.crecimiento_ingresos >= 0 %}#10b981{% else %}#ef4444{% endif %};">
+                        <i class="bi bi-arrow-{% if stats.crecimiento_ingresos >= 0 %}up{% else %}down{% endif %}-right"></i>
+                        {{ "{:.1f}".format(stats.crecimiento_ingresos|abs if stats.crecimiento_ingresos else 0) }}%
+                    </span>
+                </div>
             </div>
+        </div>
+    </div>
+
+    <!-- TOP ESPECIALISTAS -->
+    <div class="quick-section" style="margin-bottom: 2.5rem;">
+        <h2><i class="bi bi-star-fill" style="color:#f59e0b;"></i> Top Especialistas del Mes</h2>
+        <div style="display:flex; gap:1.5rem; overflow-x:auto; padding-bottom:0.5rem;">
+            {% for esp in stats.top_especialistas %}
+            <div style="min-width: 280px; flex:1; background:linear-gradient(135deg, #fff0f6, #ffe5f3); border-radius:14px; padding:1.2rem; border:1px solid #ffd6e8; display:flex; align-items:center; gap:1rem;">
+                <div style="width:48px; height:48px; border-radius:50%; background:#c41e3a; color:white; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:1.2rem;">
+                    {{ loop.index }}
+                </div>
+                <div>
+                    <h3 style="margin:0 0 0.2rem; font-size:1.1rem; color:#1a1a1a;">{{ esp.nombre }}</h3>
+                    <div style="font-size:0.85rem; color:#666;">
+                        <strong>{{ esp.total_citas }}</strong> citas • <strong style="color:#059669;">${{ "{:,.0f}".format(esp.ingresos_generados) }}</strong>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <p style="color:#888;">No hay datos suficientes este mes.</p>
+            {% endfor %}
         </div>
     </div>
 

@@ -105,8 +105,26 @@ def pagos_registrar(id_cita):
 def pagos_eliminar(id_pago):
     """Eliminar un pago (reembolso)"""
     pago = Pago.query.get_or_404(id_pago)
+    monto = float(pago.monto)
     pago.cita.reembolsado = True
     pago.cita.estado = 'cancelada'
     db.session.delete(pago)
     db.session.commit()
-    return jsonify({'success': True, 'message': 'Pago eliminado y cita marcada como reembolsada'})
+    return jsonify({'success': True, 'message': f'Reembolso de ${monto:,.0f} procesado. Cita cancelada.'})
+
+
+@admin_bp.route('/pagos/confirmar')
+@admin_required
+def pagos_confirmar():
+    """Citas con pago pendiente de confirmación"""
+    citas_pendientes = db.session.query(Cita, Usuario, Servicio)\
+        .join(Usuario, Cita.id_cliente == Usuario.id)\
+        .join(Servicio, Cita.id_servicio == Servicio.id_servicio)\
+        .filter(
+            Cita.estado.in_(['pendiente_pago', 'confirmada']),
+            ~Cita.id_cita.in_(
+                db.session.query(Pago.id_cita).filter(Pago.estado_pago == 'completado')
+            )
+        ).order_by(Cita.fecha_hora_inicio).all()
+
+    return render_template('admin/pagos_confirmar.html', citas=citas_pendientes)

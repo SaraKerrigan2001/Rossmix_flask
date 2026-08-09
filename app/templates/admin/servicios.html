@@ -1,6 +1,30 @@
 {% extends 'base.html' %}
 {% block title %}Gestión de Servicios - Rossmix{% endblock %}
 
+{% block extra_css %}
+<style>
+.rmx-modal-overlay{display:none;position:fixed;inset:0;background:rgba(10,10,30,0.6);z-index:4000;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(6px);}
+.rmx-modal-overlay.open{display:flex;}
+.rmx-modal{background:white;border-radius:24px;width:100%;max-width:620px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,0.3);animation:rmxSlideUp 0.3s cubic-bezier(0.34,1.56,0.64,1);}
+@keyframes rmxSlideUp{from{opacity:0;transform:translateY(40px) scale(0.96);}to{opacity:1;transform:translateY(0) scale(1);}}
+.rmx-modal-header{padding:1.4rem 1.8rem;background:linear-gradient(135deg,#059669,#10b981);display:flex;align-items:center;gap:1rem;flex-shrink:0;}
+.rmx-modal-header .icon-wrap{width:48px;height:48px;border-radius:14px;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;}
+.rmx-modal-header h3{margin:0;color:white;font-size:1.1rem;font-weight:800;}
+.rmx-modal-header p{margin:0;color:rgba(255,255,255,0.8);font-size:0.82rem;}
+.rmx-modal-close{margin-left:auto;background:rgba(255,255,255,0.2);border:none;color:white;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center;transition:background 0.2s;flex-shrink:0;}
+.rmx-modal-close:hover{background:rgba(255,255,255,0.35);}
+.rmx-modal-body{padding:1.6rem 1.8rem;overflow-y:auto;flex:1;}
+.rmx-modal-footer{padding:1rem 1.8rem 1.6rem;border-top:1.5px solid #f0f0f0;background:#fafafa;display:flex;gap:0.8rem;flex-shrink:0;}
+.rmx-toast{position:fixed;bottom:2rem;right:2rem;z-index:9999;padding:0.9rem 1.4rem;border-radius:14px;font-weight:600;font-size:0.9rem;display:flex;align-items:center;gap:0.6rem;box-shadow:0 8px 30px rgba(0,0,0,0.18);animation:toastIn 0.35s ease;pointer-events:none;}
+.rmx-toast.success{background:#ecfdf5;color:#166534;border:1.5px solid #86efac;}
+.rmx-toast.error{background:#fef2f2;color:#991b1b;border:1.5px solid #fca5a5;}
+@keyframes toastIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+.metodo-label{display:flex;align-items:center;gap:0.6rem;padding:0.7rem 0.9rem;border:1.5px solid #e5e7eb;border-radius:10px;cursor:pointer;transition:all 0.15s;}
+.metodo-label:hover{border-color:#6ee7b7;background:#f0fdf4;}
+.metodo-label:has(input:checked){border-color:#059669;background:#ecfdf5;}
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="page-header">
     <div>
@@ -10,23 +34,24 @@
             <i class="bi bi-chevron-right"></i> <span>Servicios</span>
         </div>
     </div>
-    <a href="{{ url_for('admin_servicios_crear') }}" class="btn-rossmix">
+    <button onclick="abrirModalCrear()" class="btn-rossmix" style="background:linear-gradient(135deg,#059669,#10b981);">
         <i class="bi bi-plus-lg"></i> Nuevo Servicio
-    </a>
+    </button>
 </div>
 
 <div class="r-card">
     <div class="r-card-header d-flex justify-content-between align-items-center">
         <div>
             <h2><i class="bi bi-scissors" style="color:#059669;"></i> Servicios</h2>
-            <span style="font-size:0.85rem; color:#888;">{{ servicios|length }} servicio(s)</span>
+            <span style="font-size:0.85rem;color:#888;">{{ servicios|length }} servicio(s)</span>
         </div>
         <div class="dropdown">
-            <button class="btn-rossmix dropdown-toggle" type="button" id="exportServiciosDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="background:#059669;">
-                <i class="bi bi-file-earmark-excel"></i> Exportar a Excel
+            <button class="btn-rossmix dropdown-toggle" type="button" id="exportServiciosDropdown"
+                    data-bs-toggle="dropdown" aria-expanded="false" style="background:#059669;">
+                <i class="bi bi-file-earmark-excel"></i> Exportar
             </button>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="exportServiciosDropdown">
-                <li><a class="dropdown-item" href="{{ url_for('admin_exportar_excel', tipo='servicios', periodo='diario') }}">Diario (Hoy)</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('admin_exportar_excel', tipo='servicios', periodo='diario') }}">Diario</a></li>
                 <li><a class="dropdown-item" href="{{ url_for('admin_exportar_excel', tipo='servicios', periodo='semana') }}">Semanal</a></li>
                 <li><a class="dropdown-item" href="{{ url_for('admin_exportar_excel', tipo='servicios', periodo='mes') }}">Mensual</a></li>
                 <li><a class="dropdown-item" href="{{ url_for('admin_exportar_excel', tipo='servicios', periodo='ano') }}">Anual</a></li>
@@ -37,46 +62,49 @@
     <div style="overflow-x:auto;">
         <table class="r-table">
             <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Nombre</th>
-                    <th>Descripción</th>
-                    <th>Precio</th>
-                    <th>Duración</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
-                </tr>
+                <tr><th>ID</th><th>Nombre</th><th>Descripción</th><th>Precio</th><th>Duración</th><th>Estado</th><th>Acciones</th></tr>
             </thead>
             <tbody>
                 {% for svc in servicios %}
                 <tr id="servicio-{{ svc.id_servicio }}">
-                    <td style="color:#9ca3af; font-size:0.82rem;">#{{ svc.id_servicio }}</td>
-                    <td><strong>{{ svc.nombre_servicio }}</strong></td>
-                    <td style="color:#6b7280; max-width:240px;">
-                        <small>{{ (svc.descripcion[:60] + '…') if svc.descripcion and svc.descripcion|length > 60 else (svc.descripcion or '—') }}</small>
+                    <td style="color:#9ca3af;font-size:0.82rem;">#{{ svc.id_servicio }}</td>
+                    <td>
+                        <div style="display:flex;align-items:center;gap:0.7rem;">
+                            <div style="width:36px;height:36px;border-radius:10px;
+                                        background:linear-gradient(135deg,#d1fae5,#a7f3d0);
+                                        display:flex;align-items:center;justify-content:center;
+                                        font-size:1rem;flex-shrink:0;">✂️</div>
+                            <strong>{{ svc.nombre_servicio }}</strong>
+                        </div>
                     </td>
-                    <td><strong style="color:#c41e3a;">${{ "{:,.0f}".format(svc.precio_total) }}</strong></td>
+                    <td style="color:#6b7280;max-width:220px;">
+                        <small>{{ (svc.descripcion[:55]+'…') if svc.descripcion and svc.descripcion|length>55 else (svc.descripcion or '—') }}</small>
+                    </td>
+                    <td><strong style="color:#059669;">${{ "{:,.0f}".format(svc.precio_total) }}</strong></td>
                     <td>
                         <span style="background:#f0fdf4;color:#166534;padding:0.2rem 0.7rem;border-radius:20px;font-size:0.8rem;font-weight:600;">
                             {{ svc.duracion_minutos }} min
                         </span>
                     </td>
                     <td>
-                        {% if svc.activo %}
-                            <span class="badge-active">Activo</span>
-                        {% else %}
-                            <span class="badge-inactive">Inactivo</span>
-                        {% endif %}
+                        {% if svc.activo %}<span class="badge-active">Activo</span>
+                        {% else %}<span class="badge-inactive">Inactivo</span>{% endif %}
                     </td>
                     <td>
-                        <div style="display:flex; gap:0.4rem;">
-                            <a href="{{ url_for('admin_servicios_editar', id_servicio=svc.id_servicio) }}"
-                               style="background:#fef3c7;color:#d97706;padding:0.4rem 0.7rem;border-radius:8px;font-size:0.82rem;font-weight:600;text-decoration:none;" title="Editar">
-                                <i class="bi bi-pencil"></i>
-                            </a>
+                        <div style="display:flex;gap:0.4rem;">
+                            <button onclick="abrirModalEditar({{ svc.id_servicio }}, '{{ svc.nombre_servicio }}')"
+                                    style="background:#fef3c7;color:#d97706;border:none;padding:0.4rem 0.8rem;
+                                           border-radius:8px;font-size:0.82rem;font-weight:600;cursor:pointer;transition:all 0.2s;"
+                                    title="Editar"
+                                    onmouseover="this.style.background='#fde68a'" onmouseout="this.style.background='#fef3c7'">
+                                <i class="bi bi-pencil-fill"></i>
+                            </button>
                             <button onclick="confirmarEliminar({{ svc.id_servicio }}, '{{ svc.nombre_servicio }}')"
-                                    style="background:#fee2e2;color:#dc2626;border:none;padding:0.4rem 0.7rem;border-radius:8px;font-size:0.82rem;font-weight:600;cursor:pointer;" title="Eliminar">
-                                <i class="bi bi-trash3"></i>
+                                    style="background:#fee2e2;color:#dc2626;border:none;padding:0.4rem 0.8rem;
+                                           border-radius:8px;font-size:0.82rem;font-weight:600;cursor:pointer;transition:all 0.2s;"
+                                    title="Eliminar"
+                                    onmouseover="this.style.background='#fecaca'" onmouseout="this.style.background='#fee2e2'">
+                                <i class="bi bi-trash3-fill"></i>
                             </button>
                         </div>
                     </td>
@@ -86,44 +114,214 @@
         </table>
     </div>
     {% else %}
-    <div class="r-card-body" style="text-align:center; padding:3rem; color:#9ca3af;">
-        <i class="bi bi-scissors" style="font-size:2.5rem; display:block; margin-bottom:0.8rem;"></i>
+    <div class="r-card-body" style="text-align:center;padding:3rem;color:#9ca3af;">
+        <i class="bi bi-scissors" style="font-size:2.5rem;display:block;margin-bottom:0.8rem;"></i>
         No hay servicios registrados.
-        <a href="{{ url_for('admin_servicios_crear') }}" style="color:#c41e3a; font-weight:600;">Crear el primero</a>
+        <button onclick="abrirModalCrear()" style="color:#059669;font-weight:600;background:none;border:none;cursor:pointer;">Crear el primero</button>
     </div>
     {% endif %}
 </div>
 
-<div id="modalEliminar" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:3000; align-items:center; justify-content:center;">
-    <div style="background:white; border-radius:16px; padding:2rem; max-width:420px; width:90%; box-shadow:0 20px 60px rgba(0,0,0,0.2);">
-        <h3 style="font-family:'Playfair Display',serif; margin-bottom:0.8rem;">Confirmar Eliminación</h3>
-        <p id="modalMsg" style="color:#6b7280; margin-bottom:1.5rem; font-size:0.95rem;"></p>
-        <div style="display:flex; gap:1rem; justify-content:flex-end;">
-            <button onclick="cerrarModal()" class="btn-secondary-r">Cancelar</button>
-            <button id="btnConfirmar" class="btn-rossmix" style="background:linear-gradient(135deg,#dc2626,#ef4444);">
-                <i class="bi bi-trash3"></i> Eliminar
+<!-- ══════════ MODAL CREAR / EDITAR SERVICIO ══════════ -->
+<div id="modalServicio" class="rmx-modal-overlay" role="dialog" aria-modal="true">
+    <div class="rmx-modal">
+        <div class="rmx-modal-header">
+            <div class="icon-wrap">✂️</div>
+            <div>
+                <h3 id="modalSvcTitulo">Nuevo Servicio</h3>
+                <p id="modalSvcSub">Completa los datos del servicio</p>
+            </div>
+            <button class="rmx-modal-close" onclick="cerrarModalServicio()" aria-label="Cerrar">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div class="rmx-modal-body">
+            <form id="formServicio" novalidate>
+                <input type="hidden" id="svcIdHidden" value="">
+                <div class="mb-3">
+                    <label class="r-form-label">Nombre del Servicio *</label>
+                    <input type="text" class="r-form-control" id="svcNombre" name="nombre_servicio"
+                           placeholder="Ej: Manicure Clásico, Pedicure Spa..." required>
+                </div>
+                <div class="mb-3">
+                    <label class="r-form-label">Descripción</label>
+                    <textarea class="r-form-control" id="svcDesc" name="descripcion" rows="2"
+                              placeholder="Describe brevemente el servicio..."></textarea>
+                </div>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="r-form-label">Precio (COP) *</label>
+                        <div style="display:flex;align-items:center;gap:0.5rem;">
+                            <span style="font-weight:700;color:#888;">$</span>
+                            <input type="number" class="r-form-control" id="svcPrecio" name="precio_total"
+                                   min="0" step="1000" placeholder="50000" required>
+                        </div>
+                        <p class="r-form-hint">Precio en pesos colombianos</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="r-form-label">Duración *</label>
+                        <div style="display:flex;align-items:center;gap:0.5rem;">
+                            <input type="number" class="r-form-control" id="svcDuracion" name="duracion_minutos"
+                                   min="15" step="15" placeholder="60" required>
+                            <span style="font-weight:600;color:#888;white-space:nowrap;">min</span>
+                        </div>
+                        <p class="r-form-hint">Múltiplo de 15 minutos</p>
+                    </div>
+                </div>
+                <div id="wrapSvcActivo" style="display:none;">
+                    <label style="display:flex;align-items:center;gap:0.7rem;cursor:pointer;">
+                        <input type="checkbox" id="svcActivo" name="activo"
+                               style="width:18px;height:18px;accent-color:#059669;">
+                        <span class="r-form-label" style="margin:0;">Servicio activo (visible para agendar)</span>
+                    </label>
+                </div>
+            </form>
+        </div>
+        <div class="rmx-modal-footer">
+            <button type="button" onclick="cerrarModalServicio()" class="btn-secondary-r" style="flex:1;">
+                <i class="bi bi-x-lg"></i> Cancelar
+            </button>
+            <button type="button" onclick="guardarServicio()" id="btnGuardarSvc"
+                    class="btn-rossmix" style="flex:2;background:linear-gradient(135deg,#059669,#10b981);justify-content:center;">
+                <i class="bi bi-check-lg"></i> Guardar Servicio
             </button>
         </div>
     </div>
 </div>
 
+<!-- ══════════ MODAL ELIMINAR SERVICIO ══════════ -->
+<div id="modalEliminar" style="display:none;position:fixed;inset:0;background:rgba(10,10,30,0.6);
+     z-index:4000;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(6px);">
+    <div style="background:white;border-radius:24px;max-width:440px;width:100%;overflow:hidden;
+                box-shadow:0 32px 80px rgba(0,0,0,0.3);animation:rmxSlideUp 0.3s cubic-bezier(0.34,1.56,0.64,1);">
+        <div style="background:linear-gradient(135deg,#dc2626,#ef4444);padding:1.4rem 1.8rem;
+                    display:flex;align-items:center;gap:1rem;">
+            <div style="width:46px;height:46px;border-radius:14px;background:rgba(255,255,255,0.2);
+                        display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;">🗑️</div>
+            <div style="flex:1;">
+                <h3 style="margin:0;color:white;font-size:1.05rem;font-weight:800;">Eliminar Servicio</h3>
+                <p id="elimNombre" style="margin:0;color:rgba(255,255,255,0.85);font-size:0.82rem;"></p>
+            </div>
+            <button onclick="cerrarModal()" style="background:rgba(255,255,255,0.2);border:none;color:white;
+                    width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:1rem;
+                    display:flex;align-items:center;justify-content:center;">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div style="padding:1.6rem 1.8rem;">
+            <p style="color:#374151;font-size:0.95rem;margin-bottom:1rem;">
+                Esta acción no se puede deshacer. Las citas con este servicio quedarán sin asignación.
+            </p>
+            <div style="display:flex;gap:0.8rem;">
+                <button onclick="cerrarModal()" class="btn-secondary-r" style="flex:1;">Cancelar</button>
+                <button id="btnConfirmar" onclick="ejecutarEliminar()"
+                        style="flex:2;background:linear-gradient(135deg,#dc2626,#ef4444);color:white;
+                               border:none;padding:0.75rem;border-radius:12px;font-weight:700;
+                               font-size:0.9rem;cursor:pointer;display:flex;align-items:center;
+                               justify-content:center;gap:0.5rem;">
+                    <i class="bi bi-trash3-fill"></i> Eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="rmxToast" class="rmx-toast" style="display:none;"></div>
+
 <script>
+function showToast(msg, tipo='success') {
+    const t = document.getElementById('rmxToast');
+    t.className = `rmx-toast ${tipo}`;
+    t.innerHTML = `<i class="bi bi-${tipo==='success'?'check-circle-fill':'x-circle-fill'}"></i> ${msg}`;
+    t.style.display = 'flex';
+    setTimeout(() => t.style.display='none', 3500);
+}
+
+function abrirModalCrear() {
+    document.getElementById('modalSvcTitulo').textContent = 'Nuevo Servicio';
+    document.getElementById('modalSvcSub').textContent    = 'Completa los datos del servicio';
+    document.getElementById('svcIdHidden').value = '';
+    document.getElementById('svcNombre').value   = '';
+    document.getElementById('svcDesc').value     = '';
+    document.getElementById('svcPrecio').value   = '';
+    document.getElementById('svcDuracion').value = '';
+    document.getElementById('wrapSvcActivo').style.display = 'none';
+    document.getElementById('modalServicio').classList.add('open');
+    document.getElementById('svcNombre').focus();
+}
+
+async function abrirModalEditar(id, nombre) {
+    document.getElementById('modalSvcTitulo').textContent = 'Editar Servicio';
+    document.getElementById('modalSvcSub').textContent    = nombre;
+    document.getElementById('svcIdHidden').value = id;
+    document.getElementById('wrapSvcActivo').style.display = 'block';
+    try {
+        const res = await fetch(`/admin/servicios/datos/${id}`);
+        const d   = await res.json();
+        document.getElementById('svcNombre').value   = d.nombre_servicio;
+        document.getElementById('svcDesc').value     = d.descripcion;
+        document.getElementById('svcPrecio').value   = d.precio_total;
+        document.getElementById('svcDuracion').value = d.duracion_minutos;
+        document.getElementById('svcActivo').checked = d.activo;
+    } catch(e) { showToast('Error al cargar datos', 'error'); return; }
+    document.getElementById('modalServicio').classList.add('open');
+}
+
+function cerrarModalServicio() { document.getElementById('modalServicio').classList.remove('open'); }
+
+async function guardarServicio() {
+    const nombre   = document.getElementById('svcNombre').value.trim();
+    const precio   = document.getElementById('svcPrecio').value;
+    const duracion = document.getElementById('svcDuracion').value;
+    if (!nombre || !precio || !duracion) { showToast('Nombre, precio y duración son obligatorios', 'error'); return; }
+
+    const id  = document.getElementById('svcIdHidden').value;
+    const btn = document.getElementById('btnGuardarSvc');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Guardando...';
+
+    const form = new FormData(document.getElementById('formServicio'));
+    const url  = id ? `/admin/servicios/editar/${id}` : '/admin/servicios/crear';
+    try {
+        const res  = await fetch(url, { method:'POST', body:form, headers:{'X-Requested-With':'XMLHttpRequest'} });
+        const data = await res.json();
+        if (data.success) {
+            cerrarModalServicio();
+            showToast(data.message, 'success');
+            setTimeout(() => location.reload(), 1200);
+        } else { showToast(data.message || 'Error al guardar', 'error'); }
+    } catch(e) { showToast('Error de conexión', 'error'); }
+    finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-check-lg"></i> Guardar Servicio';
+    }
+}
+
 let svcId = null;
 function confirmarEliminar(id, nombre) {
     svcId = id;
-    document.getElementById('modalMsg').textContent = `¿Eliminar el servicio "${nombre}"?`;
+    document.getElementById('elimNombre').textContent = nombre;
     document.getElementById('modalEliminar').style.display = 'flex';
 }
-function cerrarModal() { document.getElementById('modalEliminar').style.display = 'none'; }
-document.getElementById('btnConfirmar').addEventListener('click', function() {
+function cerrarModal() { document.getElementById('modalEliminar').style.display='none'; }
+async function ejecutarEliminar() {
     if (!svcId) return;
-    fetch(`/admin/servicios/eliminar/${svcId}`, { method:'POST' })
-        .then(r => r.json())
-        .then(d => {
-            cerrarModal();
-            if (d.success) { document.getElementById(`servicio-${svcId}`)?.remove(); }
-            else { alert(d.message); }
-        });
-});
+    const btn = document.getElementById('btnConfirmar');
+    btn.disabled = true; btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Eliminando...';
+    try {
+        const res  = await fetch(`/admin/servicios/eliminar/${svcId}`, { method:'POST' });
+        const data = await res.json();
+        cerrarModal();
+        if (data.success) {
+            document.getElementById(`servicio-${svcId}`)?.remove();
+            showToast(data.message, 'success');
+        } else { showToast(data.message, 'error'); }
+    } catch(e) { showToast('Error de conexión', 'error'); }
+    finally { btn.disabled=false; btn.innerHTML='<i class="bi bi-trash3-fill"></i> Eliminar'; }
+}
+
+document.getElementById('modalServicio').addEventListener('click', e => { if(e.target===e.currentTarget) cerrarModalServicio(); });
+document.getElementById('modalEliminar').addEventListener('click', e => { if(e.target===e.currentTarget) cerrarModal(); });
+document.addEventListener('keydown', e => { if(e.key==='Escape') { cerrarModalServicio(); cerrarModal(); } });
 </script>
 {% endblock %}

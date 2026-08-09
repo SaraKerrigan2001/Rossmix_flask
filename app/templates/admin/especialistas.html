@@ -1,0 +1,315 @@
+{% extends 'base.html' %}
+{% block title %}Gestión de Especialistas — Rossmix{% endblock %}
+
+{% block extra_css %}
+<style>
+.rmx-modal-overlay{display:none;position:fixed;inset:0;background:rgba(10,10,30,0.6);z-index:4000;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(6px);}
+.rmx-modal-overlay.open{display:flex;}
+.rmx-modal{background:white;border-radius:24px;width:100%;max-width:520px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,0.3);animation:rmxSlideUp 0.3s cubic-bezier(0.34,1.56,0.64,1);}
+@keyframes rmxSlideUp{from{opacity:0;transform:translateY(40px) scale(0.96);}to{opacity:1;transform:translateY(0) scale(1);}}
+.rmx-modal-header{padding:1.4rem 1.8rem;background:linear-gradient(135deg,#c41e3a,#ff1493);display:flex;align-items:center;gap:1rem;flex-shrink:0;}
+.rmx-modal-header .icon-wrap{width:48px;height:48px;border-radius:14px;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;}
+.rmx-modal-header h3{margin:0;color:white;font-size:1.1rem;font-weight:800;}
+.rmx-modal-header p{margin:0;color:rgba(255,255,255,0.8);font-size:0.82rem;}
+.rmx-modal-close{margin-left:auto;background:rgba(255,255,255,0.2);border:none;color:white;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center;transition:background 0.2s;flex-shrink:0;}
+.rmx-modal-close:hover{background:rgba(255,255,255,0.35);}
+.rmx-modal-body{padding:1.6rem 1.8rem;overflow-y:auto;flex:1;}
+.rmx-modal-footer{padding:1rem 1.8rem 1.6rem;border-top:1.5px solid #f0f0f0;background:#fafafa;display:flex;gap:0.8rem;flex-shrink:0;}
+.rmx-toast{position:fixed;bottom:2rem;right:2rem;z-index:9999;padding:0.9rem 1.4rem;border-radius:14px;font-weight:600;font-size:0.9rem;display:flex;align-items:center;gap:0.6rem;box-shadow:0 8px 30px rgba(0,0,0,0.18);animation:toastIn 0.35s ease;pointer-events:none;}
+.rmx-toast.success{background:#ecfdf5;color:#166534;border:1.5px solid #86efac;}
+.rmx-toast.error{background:#fef2f2;color:#991b1b;border:1.5px solid #fca5a5;}
+@keyframes toastIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Gestión de Especialistas</h1>
+        <div class="breadcrumb-r">
+            <a href="{{ url_for('dashboard_admin') }}">Panel Admin</a>
+            <i class="bi bi-chevron-right"></i><span>Especialistas</span>
+        </div>
+    </div>
+    {% if empleados_sin_cuenta %}
+    <button onclick="abrirModalCrear()" class="btn-rossmix">
+        <i class="bi bi-person-plus-fill"></i> Crear Acceso
+    </button>
+    {% endif %}
+</div>
+
+<!-- Cuentas existentes -->
+<div class="r-card" style="margin-bottom:1.5rem;">
+    <div class="r-card-header">
+        <h2><i class="bi bi-shield-lock-fill" style="color:#c41e3a;"></i> Cuentas de Acceso</h2>
+        <span style="font-size:0.85rem;color:#888;">{{ cuentas|length }} cuenta(s)</span>
+    </div>
+    {% if cuentas %}
+    <div style="overflow-x:auto;">
+        <table class="r-table">
+            <thead>
+                <tr><th>Especialista</th><th>Email de acceso</th><th>Vinculada a</th><th>Estado</th><th>Acciones</th></tr>
+            </thead>
+            <tbody>
+                {% for c in cuentas %}
+                <tr id="esp-cuenta-{{ c.id }}">
+                    <td>
+                        <div style="display:flex;align-items:center;gap:0.6rem;">
+                            <div style="width:34px;height:34px;border-radius:50%;
+                                        background:linear-gradient(135deg,#fff0f6,#ffd6e8);
+                                        color:#c41e3a;display:flex;align-items:center;
+                                        justify-content:center;font-weight:800;font-size:0.85rem;flex-shrink:0;">
+                                {{ c.nombre[0].upper() }}
+                            </div>
+                            <strong>{{ c.nombre }}</strong>
+                        </div>
+                    </td>
+                    <td style="color:#6b7280;font-size:0.88rem;">{{ c.email }}</td>
+                    <td>
+                        {% if c.empleado_vinculado %}
+                            <span style="background:#f0fdf4;color:#166534;padding:0.2rem 0.7rem;border-radius:20px;font-size:0.8rem;font-weight:600;">
+                                <i class="bi bi-link-45deg"></i> {{ c.empleado_vinculado.nombre }}
+                            </span>
+                        {% else %}
+                            <span style="color:#dc2626;font-size:0.82rem;">Sin vínculo</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if c.activo %}<span class="badge-active">Activa</span>
+                        {% else %}<span class="badge-inactive">Inactiva</span>{% endif %}
+                    </td>
+                    <td>
+                        <div style="display:flex;gap:0.4rem;">
+                            <button onclick="abrirResetPassword({{ c.id }}, '{{ c.nombre }}')"
+                                    style="background:#fef3c7;color:#d97706;border:none;padding:0.4rem 0.8rem;
+                                           border-radius:8px;font-size:0.82rem;font-weight:600;cursor:pointer;"
+                                    title="Cambiar contraseña">
+                                <i class="bi bi-key-fill"></i>
+                            </button>
+                            <button onclick="eliminarCuenta({{ c.id }}, '{{ c.nombre }}')"
+                                    style="background:#fee2e2;color:#dc2626;border:none;padding:0.4rem 0.8rem;
+                                           border-radius:8px;font-size:0.82rem;font-weight:600;cursor:pointer;"
+                                    title="Eliminar acceso">
+                                <i class="bi bi-trash3-fill"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="text-align:center;padding:2.5rem;color:#9ca3af;">
+        <i class="bi bi-shield-x" style="font-size:2rem;display:block;margin-bottom:0.5rem;"></i>
+        Ninguna especialista tiene acceso aún.
+        {% if empleados_sin_cuenta %}
+        <br><button onclick="abrirModalCrear()" style="color:#c41e3a;font-weight:600;background:none;border:none;cursor:pointer;margin-top:0.5rem;">Crear primera cuenta</button>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<!-- Especialistas sin cuenta -->
+{% if empleados_sin_cuenta %}
+<div class="r-card">
+    <div class="r-card-header">
+        <h2><i class="bi bi-person-x-fill" style="color:#888;"></i> Sin Acceso al Portal</h2>
+        <span style="font-size:0.85rem;color:#888;">{{ empleados_sin_cuenta|length }} empleada(s) sin cuenta</span>
+    </div>
+    <div style="padding:1.2rem 1.4rem;display:flex;flex-wrap:wrap;gap:0.7rem;">
+        {% for emp in empleados_sin_cuenta %}
+        <div style="background:#f8f9fa;border:1.5px solid #e5e7eb;border-radius:12px;
+                    padding:0.7rem 1rem;display:flex;align-items:center;gap:0.6rem;">
+            <div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#ede9ff,#d4caff);
+                        color:#7c3aed;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.82rem;">
+                {{ emp.nombre[0].upper() }}
+            </div>
+            <span style="font-size:0.88rem;font-weight:600;">{{ emp.nombre }}</span>
+            <button onclick="abrirModalCrearEmp({{ emp.id_empleado }}, '{{ emp.nombre }}')"
+                    style="background:#c41e3a;color:white;border:none;padding:0.3rem 0.7rem;
+                           border-radius:8px;font-size:0.78rem;font-weight:700;cursor:pointer;">
+                <i class="bi bi-plus"></i> Crear acceso
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- ── MODAL CREAR CUENTA ── -->
+<div id="modalCrearCuenta" class="rmx-modal-overlay">
+    <div class="rmx-modal">
+        <div class="rmx-modal-header">
+            <div class="icon-wrap">🔐</div>
+            <div>
+                <h3>Crear Acceso</h3>
+                <p id="modalCrearSub">Configura el acceso al portal</p>
+            </div>
+            <button class="rmx-modal-close" onclick="cerrarModalCrear()"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div class="rmx-modal-body">
+            <form id="formCrearCuenta" novalidate>
+                <input type="hidden" id="crearEmpId" name="id_empleado">
+                <div id="wrapSelectEmp" class="mb-3">
+                    <label class="r-form-label">Especialista *</label>
+                    <select class="r-form-control" id="crearEmpSelect" name="id_empleado_sel"
+                            onchange="document.getElementById('crearEmpId').value=this.value">
+                        <option value="">— Seleccionar especialista —</option>
+                        {% for emp in empleados_sin_cuenta %}
+                        <option value="{{ emp.id_empleado }}">{{ emp.nombre }}{% if emp.especialidad %} · {{ emp.especialidad }}{% endif %}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="r-form-label">Email de Acceso *</label>
+                    <input type="email" class="r-form-control" id="crearEmail" name="email"
+                           placeholder="email@rossmix.com" required>
+                </div>
+                <div class="mb-3">
+                    <label class="r-form-label">Contraseña *</label>
+                    <input type="password" class="r-form-control" id="crearPassword" name="password"
+                           placeholder="Mínimo 6 caracteres" required>
+                    <p class="r-form-hint">La especialista usará estas credenciales para acceder a su portal</p>
+                </div>
+            </form>
+        </div>
+        <div class="rmx-modal-footer">
+            <button type="button" onclick="cerrarModalCrear()" class="btn-secondary-r" style="flex:1;">Cancelar</button>
+            <button type="button" onclick="guardarCuenta()" id="btnGuardarCuenta"
+                    class="btn-rossmix" style="flex:2;justify-content:center;">
+                <i class="bi bi-check-lg"></i> Crear Acceso
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ── MODAL RESET PASSWORD ── -->
+<div id="modalResetPwd" class="rmx-modal-overlay">
+    <div class="rmx-modal" style="max-width:420px;">
+        <div class="rmx-modal-header" style="background:linear-gradient(135deg,#d97706,#f59e0b);">
+            <div class="icon-wrap">🔑</div>
+            <div>
+                <h3>Cambiar Contraseña</h3>
+                <p id="resetNombre"></p>
+            </div>
+            <button class="rmx-modal-close" onclick="cerrarReset()"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div class="rmx-modal-body">
+            <input type="hidden" id="resetUserId">
+            <div class="mb-3">
+                <label class="r-form-label">Nueva Contraseña *</label>
+                <input type="password" class="r-form-control" id="resetPassword" placeholder="Mínimo 6 caracteres">
+            </div>
+        </div>
+        <div class="rmx-modal-footer">
+            <button onclick="cerrarReset()" class="btn-secondary-r" style="flex:1;">Cancelar</button>
+            <button onclick="guardarPassword()" id="btnGuardarPwd"
+                    style="flex:2;background:linear-gradient(135deg,#d97706,#f59e0b);color:white;
+                           border:none;padding:0.75rem;border-radius:12px;font-weight:700;cursor:pointer;
+                           display:flex;align-items:center;justify-content:center;gap:0.4rem;">
+                <i class="bi bi-check-lg"></i> Actualizar
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="rmxToast" class="rmx-toast" style="display:none;"></div>
+
+<script>
+function showToast(msg, tipo='success') {
+    const t = document.getElementById('rmxToast');
+    t.className = `rmx-toast ${tipo}`;
+    t.innerHTML = `<i class="bi bi-${tipo==='success'?'check-circle-fill':'x-circle-fill'}"></i> ${msg}`;
+    t.style.display = 'flex';
+    setTimeout(() => t.style.display='none', 3500);
+}
+
+function abrirModalCrear() {
+    document.getElementById('crearEmpId').value = '';
+    document.getElementById('crearEmpSelect') && (document.getElementById('crearEmpSelect').value = '');
+    document.getElementById('crearEmail').value = '';
+    document.getElementById('crearPassword').value = '';
+    document.getElementById('wrapSelectEmp').style.display = 'block';
+    document.getElementById('modalCrearSub').textContent = 'Elige la especialista y configura su acceso';
+    document.getElementById('modalCrearCuenta').classList.add('open');
+}
+
+function abrirModalCrearEmp(idEmp, nombre) {
+    document.getElementById('crearEmpId').value = idEmp;
+    document.getElementById('crearEmail').value = '';
+    document.getElementById('crearPassword').value = '';
+    document.getElementById('wrapSelectEmp').style.display = 'none';
+    document.getElementById('modalCrearSub').textContent = nombre;
+    document.getElementById('modalCrearCuenta').classList.add('open');
+}
+function cerrarModalCrear() { document.getElementById('modalCrearCuenta').classList.remove('open'); }
+
+async function guardarCuenta() {
+    const empId  = document.getElementById('crearEmpId').value ||
+                   (document.getElementById('crearEmpSelect')?.value);
+    const email  = document.getElementById('crearEmail').value.trim();
+    const pwd    = document.getElementById('crearPassword').value;
+    if (!empId || !email || !pwd) { showToast('Completa todos los campos', 'error'); return; }
+    if (pwd.length < 6) { showToast('Contraseña mínimo 6 caracteres', 'error'); return; }
+
+    const btn = document.getElementById('btnGuardarCuenta');
+    btn.disabled = true; btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Creando...';
+    const form = new FormData();
+    form.append('id_empleado', empId);
+    form.append('email', email);
+    form.append('password', pwd);
+    try {
+        const res  = await fetch('/admin/especialistas/crear', {
+            method:'POST', body:form, headers:{'X-Requested-With':'XMLHttpRequest'}
+        });
+        const data = await res.json();
+        if (data.success) {
+            cerrarModalCrear();
+            showToast(data.message, 'success');
+            setTimeout(() => location.reload(), 1200);
+        } else { showToast(data.message, 'error'); }
+    } catch(e) { showToast('Error de conexión', 'error'); }
+    finally { btn.disabled=false; btn.innerHTML='<i class="bi bi-check-lg"></i> Crear Acceso'; }
+}
+
+function abrirResetPassword(id, nombre) {
+    document.getElementById('resetUserId').value = id;
+    document.getElementById('resetNombre').textContent = nombre;
+    document.getElementById('resetPassword').value = '';
+    document.getElementById('modalResetPwd').classList.add('open');
+}
+function cerrarReset() { document.getElementById('modalResetPwd').classList.remove('open'); }
+
+async function guardarPassword() {
+    const id  = document.getElementById('resetUserId').value;
+    const pwd = document.getElementById('resetPassword').value;
+    if (pwd.length < 6) { showToast('Mínimo 6 caracteres', 'error'); return; }
+    const btn = document.getElementById('btnGuardarPwd');
+    btn.disabled=true; btn.innerHTML='<i class="bi bi-hourglass-split"></i>';
+    const form = new FormData(); form.append('nueva_password', pwd);
+    try {
+        const res  = await fetch(`/admin/especialistas/reset-password/${id}`, {method:'POST',body:form});
+        const data = await res.json();
+        cerrarReset();
+        showToast(data.message, data.success?'success':'error');
+    } catch(e) { showToast('Error','error'); }
+    finally { btn.disabled=false; btn.innerHTML='<i class="bi bi-check-lg"></i> Actualizar'; }
+}
+
+async function eliminarCuenta(id, nombre) {
+    const ok = await rossmixConfirm({titulo:'Eliminar acceso',mensaje:`¿Eliminar la cuenta de ${nombre}?\nYa no podrá acceder al portal.`,tipo:'danger',okText:'Sí, eliminar'});
+    if (!ok) return;
+    try {
+        const res  = await fetch(`/admin/especialistas/eliminar/${id}`, {method:'POST'});
+        const data = await res.json();
+        if (data.success) { document.getElementById(`esp-cuenta-${id}`)?.remove(); showToast(data.message,'success'); }
+        else showToast(data.message,'error');
+    } catch(e) { showToast('Error','error'); }
+}
+
+document.getElementById('modalCrearCuenta').addEventListener('click',e=>{if(e.target===e.currentTarget)cerrarModalCrear();});
+document.getElementById('modalResetPwd').addEventListener('click',e=>{if(e.target===e.currentTarget)cerrarReset();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){cerrarModalCrear();cerrarReset();}});
+</script>
+{% endblock %}

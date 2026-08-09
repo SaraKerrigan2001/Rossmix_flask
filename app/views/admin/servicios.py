@@ -16,32 +16,62 @@ def servicios():
     return render_template('admin/servicios.html', servicios=lista)
 
 
+@admin_bp.route('/servicios/datos/<int:id_servicio>', methods=['GET'])
+@admin_required
+def servicios_datos(id_servicio):
+    """Retorna datos del servicio para modal AJAX"""
+    svc = Servicio.query.get_or_404(id_servicio)
+    return jsonify({
+        'id_servicio': svc.id_servicio,
+        'nombre_servicio': svc.nombre_servicio,
+        'descripcion': svc.descripcion or '',
+        'precio_total': float(svc.precio_total),
+        'duracion_minutos': svc.duracion_minutos,
+        'activo': svc.activo
+    })
+
+
 @admin_bp.route('/servicios/crear', methods=['GET', 'POST'])
 @admin_required
 def servicios_crear():
-    """Crear nuevo servicio"""
+    """Crear nuevo servicio — soporta JSON (modal) y form normal"""
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+
     if request.method == 'POST':
-        nombre = request.form.get('nombre_servicio')
-        descripcion = request.form.get('descripcion')
-        precio = request.form.get('precio_total')
-        duracion = request.form.get('duracion_minutos')
+        nombre = request.form.get('nombre_servicio', '').strip()
+        descripcion = request.form.get('descripcion', '').strip()
+        precio = request.form.get('precio_total', '').strip()
+        duracion = request.form.get('duracion_minutos', '').strip()
 
         if not all([nombre, precio, duracion]):
+            if is_ajax:
+                return jsonify({'success': False, 'message': 'Nombre, precio y duración son obligatorios'}), 400
             flash('Todos los campos son obligatorios', 'error')
             return redirect(url_for('admin.servicios_crear'))
 
-        # Crear servicio
         nuevo_servicio = Servicio(
             nombre_servicio=nombre,
-            descripcion=descripcion,
+            descripcion=descripcion or None,
             precio_total=Decimal(precio),
             duracion_minutos=int(duracion),
             activo=True
         )
-
         db.session.add(nuevo_servicio)
         db.session.commit()
 
+        if is_ajax:
+            return jsonify({
+                'success': True,
+                'message': f'Servicio {nombre} creado exitosamente',
+                'servicio': {
+                    'id_servicio': nuevo_servicio.id_servicio,
+                    'nombre_servicio': nuevo_servicio.nombre_servicio,
+                    'descripcion': nuevo_servicio.descripcion or '—',
+                    'precio_total': float(nuevo_servicio.precio_total),
+                    'duracion_minutos': nuevo_servicio.duracion_minutos,
+                    'activo': nuevo_servicio.activo
+                }
+            })
         flash(f'Servicio {nombre} creado exitosamente', 'success')
         return redirect(url_for('admin.servicios'))
 
@@ -51,17 +81,32 @@ def servicios_crear():
 @admin_bp.route('/servicios/editar/<int:id_servicio>', methods=['GET', 'POST'])
 @admin_required
 def servicios_editar(id_servicio):
-    """Editar servicio existente"""
+    """Editar servicio existente — soporta JSON (modal) y form normal"""
     servicio = Servicio.query.get_or_404(id_servicio)
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
 
     if request.method == 'POST':
-        servicio.nombre_servicio = request.form.get('nombre_servicio')
-        servicio.descripcion = request.form.get('descripcion')
+        servicio.nombre_servicio = request.form.get('nombre_servicio', '').strip()
+        servicio.descripcion = request.form.get('descripcion', '').strip() or None
         servicio.precio_total = Decimal(request.form.get('precio_total'))
         servicio.duracion_minutos = int(request.form.get('duracion_minutos'))
         servicio.activo = request.form.get('activo') == 'on'
 
         db.session.commit()
+
+        if is_ajax:
+            return jsonify({
+                'success': True,
+                'message': f'Servicio {servicio.nombre_servicio} actualizado exitosamente',
+                'servicio': {
+                    'id_servicio': servicio.id_servicio,
+                    'nombre_servicio': servicio.nombre_servicio,
+                    'descripcion': servicio.descripcion or '—',
+                    'precio_total': float(servicio.precio_total),
+                    'duracion_minutos': servicio.duracion_minutos,
+                    'activo': servicio.activo
+                }
+            })
         flash(f'Servicio {servicio.nombre_servicio} actualizado exitosamente', 'success')
         return redirect(url_for('admin.servicios'))
 

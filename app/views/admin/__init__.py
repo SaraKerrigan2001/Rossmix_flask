@@ -15,3 +15,4 @@ from app.views.admin import horarios   # noqa: E402, F401
 from app.views.admin import citas      # noqa: E402, F401
 from app.views.admin import pagos      # noqa: E402, F401
 from app.views.admin import exportar   # noqa: E402, F401
+from app.views.admin import especialistas  # noqa: E402, F401

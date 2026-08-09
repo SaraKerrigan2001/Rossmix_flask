@@ -9,6 +9,7 @@ from app.models.horario import HorarioEmpleado
 from app.models.cita import Cita
 from app.models.pago import Pago
 from app.models.notificacion import Notificacion
+from app.models.configuracion import Configuracion
 
 __all__ = [
     'Usuario',
@@ -19,4 +20,5 @@ __all__ = [
     'Cita',
     'Pago',
     'Notificacion',
+    'Configuracion',
 ]

@@ -43,5 +43,7 @@ def dashboard_cliente():
         'citas_pendientes': citas_pendientes,
         'citas_completadas': citas_completadas
     }
+    
+    usuario_obj = Usuario.query.get(id_cliente)
 
-    return render_template('dashboard_cliente.html', stats=stats, proxima_cita=proxima_cita)
+    return render_template('dashboard_cliente.html', stats=stats, proxima_cita=proxima_cita, usuario=usuario_obj)

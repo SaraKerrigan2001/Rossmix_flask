@@ -445,14 +445,13 @@
 
     <!-- Formulario -->
     <form method="POST" action="{{ url_for('agendar_paso4') }}" id="form-fecha-hora">
-        <input type="hidden" name="id_servicio" value="{{ servicio.id_servicio }}">
-        <input type="hidden" name="id_empleado" value="{{ empleado.id_empleado if empleado else 0 }}">
-        <input type="hidden" name="fecha" id="fecha-hidden">
-        <input type="hidden" name="hora" id="hora-hidden">
-        
-        <button type="submit" class="btn-continue" id="btn-continuar" disabled>
-            Continuar a Confirmación →
-        </button>
+        {{ form.hidden_tag() }}
+        {{ form.id_servicio() }}
+        {{ form.id_empleado() }}
+        {{ form.fecha(class_='hidden-input') }}
+        {{ form.hora(class_='hidden-input') }}
+
+        {{ form.submit(class_='btn-continue', id='btn-continuar', disabled=True) }}
     </form>
 </div>
 

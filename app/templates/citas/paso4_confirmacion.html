@@ -205,6 +205,11 @@
         font-size: 1.1rem;
     }
 
+    .payment-highlight {
+        color: #ff1493;
+        font-weight: 700;
+    }
+
     .payment-row:last-child {
         border-bottom: none;
         border-top: 3px solid #ff69b4;
@@ -442,7 +447,7 @@
             </div>
             <div class="payment-row">
                 <span>Abono requerido (para apartar):</span>
-                <span style="color: #ff1493;">$5,000</span>
+                <span class="payment-highlight">$5,000</span>
             </div>
             <div class="payment-row">
                 <span>Saldo pendiente (pagar en el salón):</span>
@@ -479,14 +484,13 @@
 
     <!-- Formulario de Confirmación -->
     <form action="{{ url_for('confirmar_cita') }}" method="POST" id="form-confirmar">
-        <input type="hidden" name="id_servicio" value="{{ servicio.id_servicio }}">
-        <input type="hidden" name="id_empleado" value="{{ id_empleado }}">
-        <input type="hidden" name="fecha_hora_inicio" value="{{ fecha_hora_inicio.strftime('%Y-%m-%d %H:%M:%S') }}">
-        <input type="hidden" name="fecha_hora_fin" value="{{ fecha_hora_fin.strftime('%Y-%m-%d %H:%M:%S') }}">
+        {{ form.hidden_tag() }}
+        {{ form.id_servicio() }}
+        {{ form.id_empleado() }}
+        {{ form.fecha_hora_inicio() }}
+        {{ form.fecha_hora_fin() }}
         
-        <button type="submit" class="btn-confirm">
-            ✅ Confirmar y Agendar Cita
-        </button>
+        {{ form.submit(class_='btn-confirm') }}
     </form>
 
     <div class="warning-box">

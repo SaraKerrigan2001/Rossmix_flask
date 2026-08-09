@@ -54,15 +54,17 @@ CREATE TABLE usuario (
     email           VARCHAR(150)    UNIQUE NOT NULL,
     telefono        VARCHAR(20)     NOT NULL,
     password        VARCHAR(200)    NOT NULL,
-    tipo_usuario    VARCHAR(10)     NOT NULL DEFAULT 'cliente'
-                                    CHECK (tipo_usuario IN ('admin','cliente')),
+    tipo_usuario    VARCHAR(20)     NOT NULL DEFAULT 'cliente'
+                                    CHECK (tipo_usuario IN ('admin','cliente','especialista')),
     fecha_registro  TIMESTAMP       DEFAULT CURRENT_TIMESTAMP,
-    activo          BOOLEAN         DEFAULT TRUE
+    activo          BOOLEAN         DEFAULT TRUE,
+    id_empleado     INTEGER         -- FK se agrega después de crear empleados
 );
 
-COMMENT ON TABLE  usuario               IS 'Usuarios del sistema: clientes y administradores';
-COMMENT ON COLUMN usuario.tipo_usuario  IS 'admin = administrador del salón | cliente = cliente final';
+COMMENT ON TABLE  usuario               IS 'Usuarios del sistema: clientes, administradores y especialistas';
+COMMENT ON COLUMN usuario.tipo_usuario  IS 'admin = administrador | cliente = cliente final | especialista = empleada con acceso';
 COMMENT ON COLUMN usuario.telefono      IS 'Celular/WhatsApp de contacto';
+COMMENT ON COLUMN usuario.id_empleado   IS 'Vínculo con empleados para cuentas tipo especialista';
 
 -- ============================================================================
 -- 4. TABLA: SERVICIOS
@@ -90,6 +92,12 @@ CREATE TABLE empleados (
 );
 
 COMMENT ON TABLE empleados IS 'Personal especialista del salón';
+
+-- FK diferida: usuario.id_empleado → empleados (se agrega aquí porque usuario se crea antes)
+ALTER TABLE usuario
+    ADD CONSTRAINT fk_usuario_empleado
+        FOREIGN KEY (id_empleado) REFERENCES empleados(id_empleado)
+        ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- ============================================================================
 -- 6. TABLA: EMPLEADO_SERVICIOS (many-to-many)
@@ -295,7 +303,7 @@ SELECT
     p.estado_pago
 FROM citas c
 JOIN usuario    u ON c.id_cliente  = u.id
-JOIN empleados  e ON c.id_empleado = e.id_empleado
+LEFT JOIN empleados  e ON c.id_empleado = e.id_empleado
 JOIN servicios  s ON c.id_servicio = s.id_servicio
 LEFT JOIN pagos p ON p.id_cita     = c.id_cita;
 
@@ -449,7 +457,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-DROP TRIGGER IF EXISTS trg_auditoria_nuevo_usuario ON usuario;
+-- El trigger se elimina en cascada cuando se ejecuta
+-- DROP FUNCTION IF EXISTS fn_auditoria_nuevo_usuario CASCADE (línea 1 del script)
 CREATE TRIGGER trg_auditoria_nuevo_usuario
     AFTER INSERT ON usuario
     FOR EACH ROW

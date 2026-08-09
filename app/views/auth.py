@@ -2,6 +2,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from werkzeug.security import generate_password_hash, check_password_hash
 from app.extensions import db
+from app.forms.auth import LoginForm, RegisterForm
 from app.models import Usuario
 
 auth_bp = Blueprint('auth', __name__)
@@ -9,9 +10,10 @@ auth_bp = Blueprint('auth', __name__)
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == 'POST':
-        email = request.form.get('email')
-        password = request.form.get('password')
+    form = LoginForm()
+    if form.validate_on_submit():
+        email = form.email.data.strip()
+        password = form.password.data
 
         usuario = Usuario.query.filter_by(email=email).first()
 
@@ -27,43 +29,30 @@ def login():
 
             if usuario.tipo_usuario == 'admin':
                 return redirect(url_for('admin.dashboard'))
+            elif usuario.tipo_usuario == 'especialista':
+                return redirect(url_for('especialista.dashboard'))
             else:
                 return redirect(url_for('cliente.dashboard_cliente'))
         else:
             flash('Email o contraseña incorrectos', 'error')
 
-    return render_template('login.html')
+    return render_template('login.html', form=form)
 
 
 @auth_bp.route('/registro', methods=['GET', 'POST'])
 def registro():
-    if request.method == 'POST':
-        nombre = request.form.get('nombre')
-        email = request.form.get('email')
-        telefono = request.form.get('telefono')
-        password = request.form.get('password')
-        confirmar_password = request.form.get('confirmar_password')
+    form = RegisterForm()
+    if form.validate_on_submit():
+        nombre = form.nombre.data.strip()
+        email = form.email.data.strip()
+        telefono = form.telefono.data.strip()
+        password = form.password.data
 
-        # Validaciones
-        if not all([nombre, email, telefono, password, confirmar_password]):
-            flash('Todos los campos son obligatorios', 'error')
-            return redirect(url_for('auth.registro'))
-
-        if password != confirmar_password:
-            flash('Las contraseñas no coinciden', 'error')
-            return redirect(url_for('auth.registro'))
-
-        if len(password) < 6:
-            flash('La contraseña debe tener al menos 6 caracteres', 'error')
-            return redirect(url_for('auth.registro'))
-
-        # Verificar si el email ya existe
         usuario_existente = Usuario.query.filter_by(email=email).first()
         if usuario_existente:
             flash('Este email ya está registrado', 'error')
             return redirect(url_for('auth.registro'))
 
-        # Crear nuevo usuario
         nuevo_usuario = Usuario(
             nombre=nombre,
             email=email,
@@ -78,7 +67,7 @@ def registro():
         flash('¡Registro exitoso! Ya puedes iniciar sesión', 'success')
         return redirect(url_for('auth.login'))
 
-    return render_template('registro.html')
+    return render_template('registro.html', form=form)
 
 
 @auth_bp.route('/logout')

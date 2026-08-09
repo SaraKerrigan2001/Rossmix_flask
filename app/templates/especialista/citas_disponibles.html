@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+{% block title %}Citas Disponibles — Rossmix{% endblock %}
+
+{% block extra_css %}
+<style>
+@keyframes rmxSlideUp{from{opacity:0;transform:translateY(30px);}to{opacity:1;transform:translateY(0);}}
+.rmx-toast{position:fixed;bottom:2rem;right:2rem;z-index:9999;padding:0.9rem 1.4rem;border-radius:14px;font-weight:600;font-size:0.9rem;display:flex;align-items:center;gap:0.6rem;box-shadow:0 8px 30px rgba(0,0,0,0.18);animation:toastIn 0.35s ease;pointer-events:none;}
+.rmx-toast.success{background:#ecfdf5;color:#166534;border:1.5px solid #86efac;}
+.rmx-toast.error{background:#fef2f2;color:#991b1b;border:1.5px solid #fca5a5;}
+@keyframes toastIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+.cita-card{background:white;border-radius:18px;padding:1.4rem 1.8rem;box-shadow:0 2px 14px rgba(0,0,0,0.07);border:2px solid #f0f0f0;transition:all 0.2s;animation:rmxSlideUp 0.3s ease;}
+.cita-card:hover{border-color:#ff1493;box-shadow:0 8px 28px rgba(196,30,58,0.13);transform:translateY(-2px);}
+.cita-card.tomada{opacity:0.4;pointer-events:none;transform:scale(0.97);border-color:#e5e7eb;}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Citas Disponibles</h1>
+        <div class="breadcrumb-r">
+            <a href="{{ url_for('especialista_dashboard') }}">Mi Portal</a>
+            <i class="bi bi-chevron-right"></i>
+            <span>Disponibles</span>
+        </div>
+    </div>
+    <a href="{{ url_for('especialista_dashboard') }}" class="btn-secondary-r">
+        <i class="bi bi-arrow-left"></i> Volver
+    </a>
+</div>
+
+{% if disponibles %}
+<!-- Banner informativo -->
+<div style="background:linear-gradient(135deg,#fff0f6,#ffd6e8);border:1.5px solid #ffc0d8;
+            border-radius:14px;padding:1rem 1.4rem;margin-bottom:1.5rem;
+            display:flex;align-items:center;gap:0.8rem;font-size:0.9rem;color:#9f1239;">
+    <span style="font-size:1.4rem;">⚡</span>
+    <div>
+        <strong>{{ disponibles|length }} cita(s) esperando especialista.</strong>
+        ¡La primera que la acepte se la lleva! Las citas se asignan en tiempo real.
+    </div>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1.2rem;">
+    {% for cita, cliente, servicio in disponibles %}
+    <div class="cita-card" id="cita-card-{{ cita.id_cita }}">
+        <!-- Cabecera servicio -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+            <div style="display:flex;align-items:center;gap:0.7rem;">
+                <div style="width:44px;height:44px;border-radius:12px;flex-shrink:0;
+                            background:linear-gradient(135deg,#fff0f6,#ffd6e8);
+                            display:flex;align-items:center;justify-content:center;font-size:1.2rem;">✂️</div>
+                <div>
+                    <div style="font-weight:800;font-size:1rem;color:#1a1a1a;">{{ servicio.nombre_servicio }}</div>
+                    <div style="font-size:0.78rem;color:#888;">{{ servicio.duracion_minutos }} min</div>
+                </div>
+            </div>
+            <div style="text-align:right;">
+                <div style="font-size:1.1rem;font-weight:800;color:#059669;">${{ "{:,.0f}".format(servicio.precio_total) }}</div>
+                <div style="font-size:0.72rem;color:#888;">precio del servicio</div>
+            </div>
+        </div>
+
+        <!-- Info cita -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;margin-bottom:1.1rem;">
+            <div style="background:#f8faff;border-radius:10px;padding:0.7rem 0.9rem;">
+                <div style="font-size:0.72rem;color:#888;font-weight:600;text-transform:uppercase;margin-bottom:0.2rem;">Fecha</div>
+                <div style="font-weight:700;color:#1a1a1a;font-size:0.9rem;">
+                    <i class="bi bi-calendar3" style="color:#c41e3a;"></i>
+                    {{ cita.fecha_hora_inicio.strftime('%d/%m/%Y') }}
+                </div>
+            </div>
+            <div style="background:#f8faff;border-radius:10px;padding:0.7rem 0.9rem;">
+                <div style="font-size:0.72rem;color:#888;font-weight:600;text-transform:uppercase;margin-bottom:0.2rem;">Hora</div>
+                <div style="font-weight:700;color:#1a1a1a;font-size:0.9rem;">
+                    <i class="bi bi-clock" style="color:#2563eb;"></i>
+                    {{ cita.fecha_hora_inicio.strftime('%H:%M') }}
+                </div>
+            </div>
+            <div style="background:#f8faff;border-radius:10px;padding:0.7rem 0.9rem;">
+                <div style="font-size:0.72rem;color:#888;font-weight:600;text-transform:uppercase;margin-bottom:0.2rem;">Clienta</div>
+                <div style="font-weight:700;color:#1a1a1a;font-size:0.9rem;">
+                    <i class="bi bi-person" style="color:#7c3aed;"></i>
+                    {{ cliente.nombre.split()[0] }}
+                </div>
+            </div>
+            <div style="background:#f8faff;border-radius:10px;padding:0.7rem 0.9rem;">
+                <div style="font-size:0.72rem;color:#888;font-weight:600;text-transform:uppercase;margin-bottom:0.2rem;">Código</div>
+                <div style="font-weight:700;color:#888;font-size:0.82rem;font-family:monospace;">
+                    {{ cita.codigo_reserva or '—' }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Botón aceptar -->
+        <button onclick="aceptarCita({{ cita.id_cita }}, this)"
+                id="btn-{{ cita.id_cita }}"
+                style="width:100%;background:linear-gradient(135deg,#c41e3a,#ff1493);
+                       color:white;border:none;padding:0.8rem;border-radius:12px;
+                       font-weight:800;font-size:0.95rem;cursor:pointer;
+                       display:flex;align-items:center;justify-content:center;gap:0.5rem;
+                       transition:all 0.2s;box-shadow:0 4px 16px rgba(196,30,58,0.3);">
+            <i class="bi bi-lightning-fill"></i> ¡Aceptar esta cita!
+        </button>
+    </div>
+    {% endfor %}
+</div>
+
+{% else %}
+<div style="text-align:center;padding:4rem 2rem;background:white;border-radius:20px;
+            box-shadow:0 2px 14px rgba(0,0,0,0.07);">
+    <div style="font-size:3.5rem;margin-bottom:1rem;">🎉</div>
+    <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.5rem;margin-bottom:0.5rem;">
+        Sin citas disponibles
+    </h3>
+    <p style="color:#888;margin-bottom:1.5rem;">
+        Todas las citas de tus servicios ya tienen especialista asignada.<br>
+        Vuelve pronto para ver nuevas oportunidades.
+    </p>
+    <a href="{{ url_for('especialista_dashboard') }}" class="btn-rossmix">
+        <i class="bi bi-house"></i> Volver al panel
+    </a>
+</div>
+{% endif %}
+
+<div id="rmxToast" class="rmx-toast" style="display:none;"></div>
+
+<script>
+function showToast(msg, tipo='success') {
+    const t = document.getElementById('rmxToast');
+    t.className = `rmx-toast ${tipo}`;
+    t.innerHTML = `<i class="bi bi-${tipo==='success'?'check-circle-fill':'x-circle-fill'}"></i> ${msg}`;
+    t.style.display = 'flex';
+    setTimeout(() => t.style.display = 'none', 4000);
+}
+
+async function aceptarCita(id, btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Aceptando...';
+    try {
+        const res  = await fetch(`/especialista/aceptar-cita/${id}`, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+            const card = document.getElementById(`cita-card-${id}`);
+            card.classList.add('tomada');
+            card.innerHTML = `
+                <div style="text-align:center;padding:1.5rem;color:#166534;">
+                    <div style="font-size:2rem;margin-bottom:0.5rem;">✅</div>
+                    <strong>¡Cita aceptada!</strong><br>
+                    <span style="font-size:0.85rem;color:#888;">La clienta ha sido notificada.</span>
+                </div>`;
+            showToast(data.message, 'success');
+        } else {
+            showToast(data.message, 'error');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-lightning-fill"></i> ¡Aceptar esta cita!';
+        }
+    } catch(e) {
+        showToast('Error de conexión', 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-lightning-fill"></i> ¡Aceptar esta cita!';
+    }
+}
+</script>
+{% endblock %}

@@ -5,7 +5,10 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify
 from app.extensions import db
+from app.forms.auth import PagoForm
+from app.forms.citas import SeleccionarHorarioForm, ConfirmarCitaForm
 from app.models import Usuario, Cita, Servicio, Empleado, EmpleadoServicio, HorarioEmpleado
+from app.services.citas_service import CitaService
 from app.utils.helpers import add_notificacion
 
 citas_bp = Blueprint('citas', __name__)
@@ -60,11 +63,17 @@ def agendar_paso3(id_servicio, id_empleado):
     hoy = datetime.now().strftime('%Y-%m-%d')
     max_fecha = (datetime.now() + timedelta(days=90)).strftime('%Y-%m-%d')
 
+    form = SeleccionarHorarioForm(
+        id_servicio=servicio.id_servicio,
+        id_empleado=empleado.id_empleado if empleado else 0
+    )
+
     return render_template('citas/paso3_fecha_hora.html',
                            servicio=servicio,
                            empleado=empleado,
                            hoy=hoy,
-                           max_fecha=max_fecha)
+                           max_fecha=max_fecha,
+                           form=form)
 
 
 @citas_bp.route('/citas/horarios-disponibles')
@@ -144,15 +153,15 @@ def agendar_paso4():
         flash('Debes iniciar sesión para agendar una cita', 'error')
         return redirect(url_for('auth.login'))
 
-    # Obtener datos del formulario
-    id_servicio = request.form.get('id_servicio', type=int)
-    id_empleado = request.form.get('id_empleado', type=int)
-    fecha_str = request.form.get('fecha')
-    hora_str = request.form.get('hora')
-
-    if not all([id_servicio, fecha_str, hora_str]):
-        flash('Datos incompletos', 'error')
+    form = SeleccionarHorarioForm()
+    if not form.validate_on_submit():
+        flash('Datos incompletos o inválidos', 'error')
         return redirect(url_for('citas.agendar_paso1'))
+
+    id_servicio = int(form.id_servicio.data)
+    id_empleado = int(form.id_empleado.data or 0)
+    fecha_str = form.fecha.data
+    hora_str = form.hora.data
 
     # Obtener información
     servicio = Servicio.query.get_or_404(id_servicio)
@@ -171,12 +180,20 @@ def agendar_paso4():
         flash('No puedes agendar citas en el pasado', 'error')
         return redirect(url_for('citas.agendar_paso3', id_servicio=id_servicio, id_empleado=id_empleado or 0))
 
+    confirmation_form = ConfirmarCitaForm(
+        id_servicio=id_servicio,
+        id_empleado=id_empleado,
+        fecha_hora_inicio=fecha_hora_inicio.strftime('%Y-%m-%d %H:%M:%S'),
+        fecha_hora_fin=fecha_hora_fin.strftime('%Y-%m-%d %H:%M:%S')
+    )
+
     return render_template('citas/paso4_confirmacion.html',
                            servicio=servicio,
                            empleado=empleado,
                            fecha_hora_inicio=fecha_hora_inicio,
                            fecha_hora_fin=fecha_hora_fin,
-                           id_empleado=id_empleado or 0)
+                           id_empleado=id_empleado or 0,
+                           form=confirmation_form)
 
 
 @citas_bp.route('/citas/confirmar', methods=['POST'])
@@ -185,11 +202,15 @@ def confirmar_cita():
     if 'usuario_id' not in session:
         return jsonify({'error': 'No autorizado'}), 401
 
-    # Obtener datos
-    id_servicio = request.form.get('id_servicio', type=int)
-    id_empleado = request.form.get('id_empleado', type=int)
-    fecha_hora_inicio_str = request.form.get('fecha_hora_inicio')
-    fecha_hora_fin_str = request.form.get('fecha_hora_fin')
+    form = ConfirmarCitaForm()
+    if not form.validate_on_submit():
+        flash('La confirmación de la cita falló. Por favor vuelve a intentarlo.', 'error')
+        return redirect(url_for('citas.agendar_paso1'))
+
+    id_servicio = int(form.id_servicio.data)
+    id_empleado = int(form.id_empleado.data or 0)
+    fecha_hora_inicio_str = form.fecha_hora_inicio.data
+    fecha_hora_fin_str = form.fecha_hora_fin.data
 
     try:
         fecha_hora_inicio = datetime.strptime(fecha_hora_inicio_str, '%Y-%m-%d %H:%M:%S')
@@ -214,30 +235,20 @@ def confirmar_cita():
             flash('No hay empleados disponibles para este servicio', 'error')
             return redirect(url_for('citas.agendar_paso1'))
 
-    # Generar código de reserva
-    codigo_reserva = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
-
-    # Crear cita
-    nueva_cita = Cita(
-        id_cliente=session['usuario_id'],
-        id_empleado=id_empleado,
-        id_servicio=id_servicio,
-        fecha_hora_inicio=fecha_hora_inicio,
-        fecha_hora_fin=fecha_hora_fin,
-        monto_total=Decimal(str(servicio.precio_total)),
-        monto_abono=Decimal('5000.00'),
-        saldo_pendiente=Decimal(str(servicio.precio_total)) - Decimal('5000.00'),
-        estado='pendiente_pago',
-        reembolsado=False,
-        codigo_reserva=codigo_reserva,
-        fecha_creacion=datetime.now()
-    )
+    if not CitaService.validar_disponibilidad_cita(id_empleado, fecha_hora_inicio, fecha_hora_fin):
+        flash('El horario seleccionado ya no está disponible. Por favor elige otro.', 'error')
+        return redirect(url_for('citas.agendar_paso3', id_servicio=id_servicio, id_empleado=id_empleado or 0))
 
     try:
-        db.session.add(nueva_cita)
-        db.session.commit()
+        nueva_cita = CitaService.crear_cita(
+            id_cliente=session['usuario_id'],
+            id_servicio=id_servicio,
+            id_empleado=id_empleado,
+            fecha_hora_inicio=fecha_hora_inicio,
+            fecha_hora_fin=fecha_hora_fin
+        )
         flash('¡Cita agendada exitosamente!', 'success')
-        return redirect(url_for('citas.cita_confirmada', codigo=codigo_reserva))
+        return redirect(url_for('citas.cita_confirmada', codigo=nueva_cita.codigo_reserva))
     except Exception as e:
         db.session.rollback()
         flash(f'Error al crear la cita: {str(e)}', 'error')
@@ -265,10 +276,10 @@ def mis_citas():
         flash('Debes iniciar sesión', 'error')
         return redirect(url_for('auth.login'))
 
-    # Obtener citas futuras
+    # Obtener citas futuras — outerjoin para incluir citas sin especialista asignada aún
     citas_futuras = db.session.query(Cita, Servicio, Empleado).join(
         Servicio, Cita.id_servicio == Servicio.id_servicio
-    ).join(
+    ).outerjoin(
         Empleado, Cita.id_empleado == Empleado.id_empleado
     ).filter(
         Cita.id_cliente == session['usuario_id'],
@@ -276,10 +287,10 @@ def mis_citas():
         Cita.estado.in_(['pendiente_pago', 'confirmada'])
     ).order_by(Cita.fecha_hora_inicio).all()
 
-    # Obtener citas pasadas
+    # Obtener citas pasadas — outerjoin por la misma razón
     citas_pasadas = db.session.query(Cita, Servicio, Empleado).join(
         Servicio, Cita.id_servicio == Servicio.id_servicio
-    ).join(
+    ).outerjoin(
         Empleado, Cita.id_empleado == Empleado.id_empleado
     ).filter(
         Cita.id_cliente == session['usuario_id'],
@@ -368,20 +379,12 @@ def cliente_pagos_registrar(id_cita):
         flash('No puedes pagar una cita cancelada', 'error')
         return redirect(url_for('citas.mis_citas'))
 
-    if request.method == 'POST':
-        monto = request.form.get('monto', type=float)
-        metodo = request.form.get('metodo_pago', 'efectivo')
-        referencia = request.form.get('referencia', '').strip() or None
-        notas = request.form.get('notas', '').strip() or None
-
-        if not monto or monto <= 0:
-            flash('El monto debe ser mayor a 0', 'error')
-            return redirect(url_for('citas.cliente_pagos_registrar', id_cita=id_cita))
-
-        metodos_validos = ['efectivo', 'tarjeta', 'transferencia', 'nequi', 'daviplata']
-        if metodo not in metodos_validos:
-            flash('Método de pago inválido', 'error')
-            return redirect(url_for('citas.cliente_pagos_registrar', id_cita=id_cita))
+    form = PagoForm()
+    if form.validate_on_submit():
+        monto = form.monto.data
+        metodo = form.metodo_pago.data
+        referencia = form.referencia.data.strip() or None
+        notas = form.notas.data.strip() or None
 
         nuevo_pago = Pago(
             id_cita=id_cita,
@@ -418,8 +421,160 @@ def cliente_pagos_registrar(id_cita):
         flash(f'Pago de ${monto:,.0f} registrado exitosamente', 'success')
         return redirect(url_for('citas.mis_citas'))
 
-    # GET — formulario
-    metodos = ['efectivo', 'tarjeta', 'transferencia', 'nequi', 'daviplata']
+    # Inicializar valores predeterminados para GET o re-render en POST inválido
+    if request.method == 'GET':
+        form.monto.data = cita.saldo_pendiente or cita.monto_total
+        form.metodo_pago.data = 'efectivo'
+
     return render_template('citas/cliente_pagos_form.html',
                            cita=cita, cliente=cliente,
-                           servicio=servicio, metodos=metodos)
+                           servicio=servicio, form=form)
+
+
+@citas_bp.route('/citas/descargar-pdf/<int:id_cita>')
+def descargar_cita_pdf(id_cita):
+    """Descargar comprobante PDF de una cita"""
+    if 'usuario_id' not in session:
+        flash('Debes iniciar sesión', 'error')
+        return redirect(url_for('auth.login'))
+
+    cita = Cita.query.get_or_404(id_cita)
+    # Verificar que la cita pertenece al usuario (o es admin)
+    if session.get('tipo_usuario') not in ('admin', 'especialista'):
+        if cita.id_cliente != session['usuario_id']:
+            flash('No tienes permiso', 'error')
+            return redirect(url_for('citas.mis_citas'))
+
+    from flask import make_response
+    from io import BytesIO
+    try:
+        from reportlab.lib.pagesizes import A4
+        from reportlab.lib import colors
+        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.lib.units import cm
+
+        servicio = Servicio.query.get(cita.id_servicio)
+        empleado = Empleado.query.get(cita.id_empleado) if cita.id_empleado else None
+        cliente  = Usuario.query.get(cita.id_cliente)
+
+        buffer = BytesIO()
+        doc    = SimpleDocTemplate(buffer, pagesize=A4,
+                                   rightMargin=2*cm, leftMargin=2*cm,
+                                   topMargin=2*cm, bottomMargin=2*cm)
+        styles = getSampleStyleSheet()
+        story  = []
+
+        title_style = ParagraphStyle('title', parent=styles['Title'],
+                                     fontSize=22, textColor=colors.HexColor('#c41e3a'),
+                                     spaceAfter=6)
+        story.append(Paragraph('Rossmix — Salón de Belleza', title_style))
+        story.append(Paragraph('Comprobante de Cita', styles['Heading2']))
+        story.append(Spacer(1, 0.5*cm))
+
+        data = [
+            ['Campo', 'Detalle'],
+            ['Código',     cita.codigo_reserva or '—'],
+            ['Cliente',    cliente.nombre if cliente else '—'],
+            ['Servicio',   servicio.nombre_servicio if servicio else '—'],
+            ['Especialista', empleado.nombre if empleado else 'Por asignar'],
+            ['Fecha',      cita.fecha_hora_inicio.strftime('%d/%m/%Y')],
+            ['Hora',       cita.fecha_hora_inicio.strftime('%H:%M')],
+            ['Estado',     cita.estado.replace('_', ' ').title()],
+            ['Monto total', f"${float(cita.monto_total or 0):,.0f} COP"],
+            ['Abono',       f"${float(cita.monto_abono or 0):,.0f} COP"],
+            ['Saldo pendiente', f"${float(cita.saldo_pendiente or 0):,.0f} COP"],
+        ]
+        t = Table(data, colWidths=[5*cm, 12*cm])
+        t.setStyle(TableStyle([
+            ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#c41e3a')),
+            ('TEXTCOLOR',  (0,0), (-1,0), colors.white),
+            ('FONTNAME',   (0,0), (-1,0), 'Helvetica-Bold'),
+            ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, colors.HexColor('#fff0f6')]),
+            ('GRID',       (0,0), (-1,-1), 0.5, colors.HexColor('#ffd6e8')),
+            ('FONTSIZE',   (0,0), (-1,-1), 10),
+            ('PADDING',    (0,0), (-1,-1), 8),
+        ]))
+        story.append(t)
+        story.append(Spacer(1, 1*cm))
+        story.append(Paragraph(
+            'Gracias por elegir Rossmix. Recuerda cancelar con al menos 2 horas de anticipación.',
+            styles['Italic']
+        ))
+
+        doc.build(story)
+        pdf = buffer.getvalue()
+        buffer.close()
+
+        response = make_response(pdf)
+        response.headers['Content-Type'] = 'application/pdf'
+        response.headers['Content-Disposition'] = (
+            f'attachment; filename=rossmix_cita_{cita.codigo_reserva or id_cita}.pdf'
+        )
+        return response
+
+    except ImportError:
+        flash('ReportLab no está instalado. Instálalo con: pip install reportlab', 'error')
+        return redirect(url_for('citas.mis_citas'))
+    except Exception as e:
+        flash(f'Error al generar PDF: {e}', 'error')
+        return redirect(url_for('citas.mis_citas'))
+
+
+@citas_bp.route('/citas/gestionar/<token>')
+def gestionar_cita(token):
+    """Vista de gestión de cita por token seguro"""
+    if 'usuario_id' not in session:
+        flash('Debes iniciar sesión', 'error')
+        return redirect(url_for('auth.login'))
+
+    cita = Cita.query.filter_by(token_gestion=token).first_or_404()
+
+    if cita.id_cliente != session['usuario_id']:
+        flash('No tienes permiso para gestionar esta cita', 'error')
+        return redirect(url_for('citas.mis_citas'))
+
+    servicio = Servicio.query.get(cita.id_servicio)
+    empleado = Empleado.query.get(cita.id_empleado) if cita.id_empleado else None
+    return render_template('citas/confirmada.html', cita=cita,
+                           servicio=servicio, empleado=empleado)
+
+
+@citas_bp.route('/citas/reagendar-no-asistio/<int:id_cita>')
+def reagendar_no_asistio(id_cita):
+    """Reagendar cita con estado no_asistio — reutiliza el abono como crédito"""
+    if 'usuario_id' not in session:
+        flash('Debes iniciar sesión', 'error')
+        return redirect(url_for('auth.login'))
+
+    cita = Cita.query.filter_by(
+        id_cita=id_cita, id_cliente=session['usuario_id'], estado='no_asistio'
+    ).first_or_404()
+
+    flash('Selecciona un nuevo servicio para reagendar. Tu abono se aplicará como crédito.', 'success')
+    return redirect(url_for('citas.agendar_paso1'))
+
+
+@citas_bp.route('/citas/reprogramar/<int:id_cita>', methods=['GET'])
+def reprogramar_cita_form(id_cita):
+    """Formulario de reprogramación de cita"""
+    if 'usuario_id' not in session:
+        flash('Debes iniciar sesión', 'error')
+        return redirect(url_for('auth.login'))
+
+    cita = Cita.query.filter_by(
+        id_cita=id_cita, id_cliente=session['usuario_id']
+    ).first_or_404()
+    servicio = Servicio.query.get(cita.id_servicio)
+    empleado = Empleado.query.get(cita.id_empleado) if cita.id_empleado else None
+
+    hoy      = datetime.now().strftime('%Y-%m-%d')
+    max_fecha = (datetime.now() + timedelta(days=90)).strftime('%Y-%m-%d')
+
+    return render_template('citas/paso3_fecha_hora.html',
+                           servicio=servicio,
+                           empleado=empleado,
+                           hoy=hoy,
+                           max_fecha=max_fecha,
+                           reprogramando=True,
+                           id_cita_original=id_cita)

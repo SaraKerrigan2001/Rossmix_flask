@@ -14,7 +14,7 @@ class Cita(db.Model):
     fecha_hora_inicio = db.Column(db.DateTime, nullable=False)
     fecha_hora_fin = db.Column(db.DateTime, nullable=False)
     monto_total = db.Column(db.Numeric(10, 2))
-    monto_abono = db.Column(db.Numeric(10, 2))
+    monto_abono = db.Column(db.Numeric(10, 2), default=5000)
     saldo_pendiente = db.Column(db.Numeric(10, 2))
     estado = db.Column(
         db.Enum(
@@ -32,7 +32,8 @@ class Cita(db.Model):
         default='pendiente_pago',
     )
     reembolsado = db.Column(db.Boolean, default=False)
-    codigo_reserva = db.Column(db.String(10), unique=True)
+    codigo_reserva = db.Column(db.String(20), unique=True)
+    token_gestion = db.Column(db.String(32), unique=True)  # Token URL-safe para link de gestión/reprogramación
     notas = db.Column(db.Text)
     fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
 

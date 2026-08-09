@@ -1,0 +1,338 @@
+{% extends 'base.html' %}
+{% block title %}Mi Portal — {{ empleado.nombre }} · Rossmix{% endblock %}
+
+{% block extra_css %}
+<style>
+.esp-stat{background:white;border-radius:16px;padding:1.3rem 1.6rem;box-shadow:0 2px 14px rgba(0,0,0,0.07);display:flex;align-items:center;gap:1rem;transition:transform 0.2s,box-shadow 0.2s;}
+.esp-stat:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,0.1);}
+.esp-stat .icon{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;}
+.esp-stat .val{font-size:1.8rem;font-weight:800;color:#1a1a1a;line-height:1;}
+.esp-stat .lbl{font-size:0.8rem;color:#888;margin-top:0.2rem;}
+@keyframes rmxSlideUp{from{opacity:0;transform:translateY(30px);}to{opacity:1;transform:translateY(0);}}
+.cita-disp-card{background:white;border-radius:14px;padding:1.1rem 1.4rem;border:2px solid #e5e7eb;
+                transition:all 0.2s;box-shadow:0 2px 8px rgba(0,0,0,0.05);}
+.cita-disp-card:hover{border-color:#c41e3a;box-shadow:0 6px 20px rgba(196,30,58,0.12);}
+.rmx-toast{position:fixed;bottom:2rem;right:2rem;z-index:9999;padding:0.9rem 1.4rem;border-radius:14px;font-weight:600;font-size:0.9rem;display:flex;align-items:center;gap:0.6rem;box-shadow:0 8px 30px rgba(0,0,0,0.18);animation:toastIn 0.35s ease;pointer-events:none;}
+.rmx-toast.success{background:#ecfdf5;color:#166534;border:1.5px solid #86efac;}
+.rmx-toast.error{background:#fef2f2;color:#991b1b;border:1.5px solid #fca5a5;}
+@keyframes toastIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+
+/* Agenda del día */
+.agenda-item{background:white;border-radius:14px;padding:1rem 1.3rem;border:2px solid #f0f0f0;
+             display:flex;align-items:center;gap:1rem;transition:all 0.2s;margin-bottom:0.7rem;}
+.agenda-item:hover{border-color:#2563eb;box-shadow:0 4px 16px rgba(37,99,235,0.1);}
+.agenda-hora{background:linear-gradient(135deg,#eff6ff,#dbeafe);color:#2563eb;font-weight:800;
+             font-size:0.9rem;padding:0.6rem 0.8rem;border-radius:10px;text-align:center;min-width:65px;flex-shrink:0;}
+.agenda-info{flex:1;min-width:0;}
+.agenda-info .servicio{font-weight:700;font-size:0.92rem;color:#1a1a1a;}
+.agenda-info .cliente{font-size:0.82rem;color:#6b7280;margin-top:0.15rem;}
+.btn-estado{border:none;padding:0.4rem 0.9rem;border-radius:8px;font-weight:700;font-size:0.78rem;
+            cursor:pointer;transition:all 0.2s;display:inline-flex;align-items:center;gap:0.3rem;white-space:nowrap;}
+.btn-iniciar{background:linear-gradient(135deg,#dbeafe,#bfdbfe);color:#1d4ed8;}
+.btn-iniciar:hover{background:linear-gradient(135deg,#2563eb,#1d4ed8);color:white;transform:scale(1.05);}
+.btn-completar{background:linear-gradient(135deg,#dcfce7,#bbf7d0);color:#166534;}
+.btn-completar:hover{background:linear-gradient(135deg,#22c55e,#16a34a);color:white;transform:scale(1.05);}
+.btn-estado:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Saludo -->
+<div style="background:linear-gradient(135deg,#c41e3a,#ff1493);border-radius:20px;
+            padding:1.8rem 2rem;margin-bottom:2rem;color:white;
+            display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
+    <div>
+        <div style="font-size:0.88rem;opacity:0.85;margin-bottom:0.3rem;">Portal Especialista</div>
+        <h1 style="font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:800;margin:0;">
+            ¡Hola, {{ empleado.nombre }}! 💅
+        </h1>
+        <div style="font-size:0.9rem;opacity:0.9;margin-top:0.4rem;">
+            {{ empleado.especialidad or 'Especialista Rossmix' }}
+        </div>
+    </div>
+    <div style="display:flex;gap:0.8rem;flex-wrap:wrap;">
+        <a href="{{ url_for('especialista_citas_disponibles') }}"
+           style="background:white;color:#c41e3a;padding:0.6rem 1.4rem;border-radius:10px;
+                  font-weight:700;text-decoration:none;display:flex;align-items:center;gap:0.4rem;">
+            <i class="bi bi-lightning-fill"></i>
+            {% if disponibles %}
+                {{ disponibles|length }} disponible(s)
+            {% else %}
+                Ver disponibles
+            {% endif %}
+        </a>
+        <a href="{{ url_for('especialista_mis_citas') }}"
+           style="background:rgba(255,255,255,0.2);color:white;padding:0.6rem 1.4rem;
+                  border-radius:10px;font-weight:600;text-decoration:none;border:1.5px solid rgba(255,255,255,0.4);">
+            <i class="bi bi-calendar3"></i> Mis Citas
+        </a>
+    </div>
+</div>
+
+<!-- Stats -->
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:1.2rem;margin-bottom:2rem;">
+    <div class="esp-stat">
+        <div class="icon" style="background:linear-gradient(135deg,#fef3c7,#fde68a);">📅</div>
+        <div>
+            <div class="val">{{ agenda_hoy|length }}</div>
+            <div class="lbl">Citas hoy</div>
+        </div>
+    </div>
+    <div class="esp-stat">
+        <div class="icon" style="background:linear-gradient(135deg,#dbeafe,#bfdbfe);">📋</div>
+        <div>
+            <div class="val">{{ mis_citas|length }}</div>
+            <div class="lbl">Citas próximas</div>
+        </div>
+    </div>
+    <div class="esp-stat">
+        <div class="icon" style="background:linear-gradient(135deg,#dcfce7,#bbf7d0);">✅</div>
+        <div>
+            <div class="val">{{ completadas_mes }}</div>
+            <div class="lbl">Completadas este mes</div>
+        </div>
+    </div>
+    <div class="esp-stat" style="border-left:4px solid #059669;">
+        <div class="icon" style="background:linear-gradient(135deg,#d1fae5,#a7f3d0);">💰</div>
+        <div>
+            <div class="val" style="color:#059669;font-size:1.4rem;">${{ "{:,.0f}".format(ingresos_mes) }}</div>
+            <div class="lbl">Ingresos del mes</div>
+        </div>
+    </div>
+    <div class="esp-stat" style="border-left:4px solid #c41e3a;">
+        <div class="icon" style="background:linear-gradient(135deg,#fff0f6,#ffd6e8);">⚡</div>
+        <div>
+            <div class="val" style="color:#c41e3a;">{{ disponibles|length }}</div>
+            <div class="lbl">Citas disponibles</div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════ Agenda del Día ═══════════════ -->
+<div class="r-card" style="margin-bottom:1.5rem;">
+    <div class="r-card-header">
+        <h2><i class="bi bi-calendar-day" style="color:#f59e0b;"></i> Agenda de Hoy</h2>
+        <span style="background:#fef3c7;color:#92400e;padding:0.3rem 0.9rem;border-radius:20px;font-weight:700;font-size:0.82rem;">
+            {{ agenda_hoy|length }} cita(s)
+        </span>
+    </div>
+    <div style="padding:1rem 1.4rem;">
+        {% if agenda_hoy %}
+            {% for cita, cliente, servicio in agenda_hoy %}
+            <div class="agenda-item" id="agenda-{{ cita.id_cita }}">
+                <div class="agenda-hora">
+                    {{ cita.fecha_hora_inicio.strftime('%H:%M') }}
+                    <div style="font-size:0.65rem;font-weight:500;color:#6b7280;margin-top:0.1rem;">
+                        {{ servicio.duracion_minutos }}min
+                    </div>
+                </div>
+                <div class="agenda-info">
+                    <div class="servicio">{{ servicio.nombre_servicio }}</div>
+                    <div class="cliente">
+                        <i class="bi bi-person-fill"></i> {{ cliente.nombre }}
+                        · <i class="bi bi-telephone-fill"></i> {{ cliente.telefono }}
+                    </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:0.6rem;flex-shrink:0;">
+                    <span class="badge-estado
+                        {% if cita.estado == 'confirmada' %}be-confirmada
+                        {% elif cita.estado == 'en_atencion' %}be-atencion
+                        {% elif cita.estado == 'completada' %}be-completada
+                        {% else %}be-pendiente{% endif %}"
+                        id="badge-{{ cita.id_cita }}">
+                        {{ cita.estado.replace('_', ' ').title() }}
+                    </span>
+
+                    {% if cita.estado == 'confirmada' %}
+                    <button class="btn-estado btn-iniciar"
+                            onclick="cambiarEstado({{ cita.id_cita }}, 'en_atencion', this)"
+                            id="btn-estado-{{ cita.id_cita }}">
+                        <i class="bi bi-play-fill"></i> Iniciar
+                    </button>
+                    {% elif cita.estado == 'en_atencion' %}
+                    <button class="btn-estado btn-completar"
+                            onclick="cambiarEstado({{ cita.id_cita }}, 'completada', this)"
+                            id="btn-estado-{{ cita.id_cita }}">
+                        <i class="bi bi-check-circle-fill"></i> Completar
+                    </button>
+                    {% elif cita.estado == 'completada' %}
+                    <span style="font-size:0.8rem;color:#059669;font-weight:600;">
+                        <i class="bi bi-check-all"></i> Finalizada
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+        <div style="text-align:center;padding:2.5rem;color:#9ca3af;">
+            <i class="bi bi-sun" style="font-size:2.5rem;display:block;margin-bottom:0.5rem;color:#f59e0b;"></i>
+            <div style="font-weight:600;margin-bottom:0.3rem;">Sin citas para hoy</div>
+            <div style="font-size:0.85rem;">¡Disfruta tu día o revisa las citas disponibles!</div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+
+    <!-- Citas disponibles para tomar -->
+    <div class="r-card">
+        <div class="r-card-header">
+            <h2><i class="bi bi-lightning-fill" style="color:#c41e3a;"></i> Citas Disponibles</h2>
+            <a href="{{ url_for('especialista_citas_disponibles') }}" class="btn-secondary-r" style="padding:0.4rem 1rem;font-size:0.82rem;">
+                Ver todas
+            </a>
+        </div>
+        <div style="padding:1rem 1.4rem;">
+            {% if disponibles %}
+                {% for cita, cliente, servicio in disponibles[:5] %}
+                <div class="cita-disp-card" style="margin-bottom:0.8rem;" id="disp-{{ cita.id_cita }}">
+                    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;">
+                        <div>
+                            <div style="font-weight:700;font-size:0.95rem;">{{ servicio.nombre_servicio }}</div>
+                            <div style="font-size:0.82rem;color:#888;">
+                                <i class="bi bi-person"></i> {{ cliente.nombre }} ·
+                                <i class="bi bi-calendar3"></i> {{ cita.fecha_hora_inicio.strftime('%d/%m/%Y') }} ·
+                                <i class="bi bi-clock"></i> {{ cita.fecha_hora_inicio.strftime('%H:%M') }}
+                            </div>
+                        </div>
+                        <button onclick="aceptarCita({{ cita.id_cita }}, this)"
+                                style="background:linear-gradient(135deg,#c41e3a,#ff1493);color:white;
+                                       border:none;padding:0.5rem 1.1rem;border-radius:10px;
+                                       font-weight:700;font-size:0.82rem;cursor:pointer;
+                                       display:flex;align-items:center;gap:0.4rem;white-space:nowrap;">
+                            <i class="bi bi-check-lg"></i> Tomar
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+            <div style="text-align:center;padding:2rem;color:#9ca3af;">
+                <i class="bi bi-check-circle" style="font-size:2rem;display:block;margin-bottom:0.5rem;"></i>
+                No hay citas disponibles por ahora
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Mis próximas citas -->
+    <div class="r-card">
+        <div class="r-card-header">
+            <h2><i class="bi bi-calendar3" style="color:#2563eb;"></i> Mis Próximas Citas</h2>
+        </div>
+        <div style="padding:1rem 1.4rem;">
+            {% if mis_citas %}
+                {% for cita, cliente, servicio in mis_citas %}
+                <div style="padding:0.85rem 0;border-bottom:1px solid #f5f5f5;display:flex;align-items:center;gap:1rem;">
+                    <div style="width:40px;height:40px;border-radius:10px;flex-shrink:0;
+                                background:linear-gradient(135deg,#dbeafe,#bfdbfe);
+                                display:flex;align-items:center;justify-content:center;font-size:0.9rem;">
+                        {{ cita.fecha_hora_inicio.strftime('%d') }}
+                    </div>
+                    <div style="flex:1;">
+                        <div style="font-weight:700;font-size:0.9rem;">{{ servicio.nombre_servicio }}</div>
+                        <div style="font-size:0.78rem;color:#888;">
+                            {{ cliente.nombre }} · {{ cita.fecha_hora_inicio.strftime('%d/%m %H:%M') }}
+                        </div>
+                    </div>
+                    <span class="badge-estado
+                        {% if cita.estado == 'confirmada' %}be-confirmada
+                        {% elif cita.estado == 'en_atencion' %}be-atencion
+                        {% else %}be-pendiente{% endif %}">
+                        {{ cita.estado.replace('_', ' ').title() }}
+                    </span>
+                </div>
+                {% endfor %}
+            {% else %}
+            <div style="text-align:center;padding:2rem;color:#9ca3af;">
+                No tienes citas próximas
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div id="rmxToast" class="rmx-toast" style="display:none;"></div>
+
+<script>
+function showToast(msg, tipo='success') {
+    const t = document.getElementById('rmxToast');
+    t.className = `rmx-toast ${tipo}`;
+    t.innerHTML = `<i class="bi bi-${tipo==='success'?'check-circle-fill':'x-circle-fill'}"></i> ${msg}`;
+    t.style.display = 'flex';
+    setTimeout(() => t.style.display='none', 3500);
+}
+
+async function aceptarCita(id, btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-hourglass-split"></i>';
+    try {
+        const res  = await fetch(`/especialista/aceptar-cita/${id}`, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+            document.getElementById(`disp-${id}`)?.remove();
+            showToast(data.message, 'success');
+            // Recargar después de 1.5s para actualizar stats
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showToast(data.message, 'error');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-check-lg"></i> Tomar';
+        }
+    } catch(e) {
+        showToast('Error de conexión', 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-check-lg"></i> Tomar';
+    }
+}
+
+async function cambiarEstado(idCita, nuevoEstado, btn) {
+    btn.disabled = true;
+    const textoOriginal = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-hourglass-split"></i>';
+
+    try {
+        const res = await fetch(`/especialista/cambiar-estado/${idCita}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ estado: nuevoEstado })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            showToast(data.message, 'success');
+
+            const badge = document.getElementById(`badge-${idCita}`);
+            if (badge) {
+                badge.className = 'badge-estado';
+                if (nuevoEstado === 'en_atencion') {
+                    badge.classList.add('be-atencion');
+                    badge.textContent = 'En Atención';
+                    // Reemplazar botón por "Completar"
+                    btn.className = 'btn-estado btn-completar';
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Completar';
+                    btn.setAttribute('onclick', `cambiarEstado(${idCita}, 'completada', this)`);
+                } else if (nuevoEstado === 'completada') {
+                    badge.classList.add('be-completada');
+                    badge.textContent = 'Completada';
+                    // Reemplazar botón por texto
+                    btn.outerHTML = '<span style="font-size:0.8rem;color:#059669;font-weight:600;"><i class="bi bi-check-all"></i> Finalizada</span>';
+                }
+            }
+
+            // Recargar stats después de 2s
+            setTimeout(() => location.reload(), 2000);
+        } else {
+            showToast(data.message, 'error');
+            btn.disabled = false;
+            btn.innerHTML = textoOriginal;
+        }
+    } catch(e) {
+        showToast('Error de conexión', 'error');
+        btn.disabled = false;
+        btn.innerHTML = textoOriginal;
+    }
+}
+</script>
+{% endblock %}

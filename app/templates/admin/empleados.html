@@ -1,6 +1,74 @@
 {% extends 'base.html' %}
 {% block title %}Gestión de Empleados - Rossmix{% endblock %}
 
+{% block extra_css %}
+<style>
+/* ── Modal base ── */
+.rmx-modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(10,10,30,0.6); z-index: 4000;
+    align-items: center; justify-content: center;
+    padding: 1rem; backdrop-filter: blur(6px);
+}
+.rmx-modal-overlay.open { display: flex; }
+.rmx-modal {
+    background: white; border-radius: 24px; width: 100%;
+    max-width: 680px; max-height: 92vh;
+    display: flex; flex-direction: column; overflow: hidden;
+    box-shadow: 0 32px 80px rgba(0,0,0,0.3);
+    animation: rmxSlideUp 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes rmxSlideUp {
+    from { opacity:0; transform:translateY(40px) scale(0.96); }
+    to   { opacity:1; transform:translateY(0)   scale(1); }
+}
+.rmx-modal-header {
+    padding: 1.4rem 1.8rem;
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    display: flex; align-items: center; gap: 1rem; flex-shrink: 0;
+}
+.rmx-modal-header .icon-wrap {
+    width: 48px; height: 48px; border-radius: 14px;
+    background: rgba(255,255,255,0.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; flex-shrink: 0;
+}
+.rmx-modal-header h3 { margin: 0; color: white; font-size: 1.1rem; font-weight: 800; }
+.rmx-modal-header p  { margin: 0; color: rgba(255,255,255,0.8); font-size: 0.82rem; }
+.rmx-modal-close {
+    margin-left: auto; background: rgba(255,255,255,0.2);
+    border: none; color: white; width: 34px; height: 34px;
+    border-radius: 50%; cursor: pointer; font-size: 1.1rem;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s; flex-shrink: 0;
+}
+.rmx-modal-close:hover { background: rgba(255,255,255,0.35); }
+.rmx-modal-body { padding: 1.6rem 1.8rem; overflow-y: auto; flex: 1; }
+.rmx-modal-footer {
+    padding: 1rem 1.8rem 1.6rem;
+    border-top: 1.5px solid #f0f0f0;
+    background: #fafafa; display: flex; gap: 0.8rem; flex-shrink: 0;
+}
+/* ── Toast ── */
+.rmx-toast {
+    position: fixed; bottom: 2rem; right: 2rem; z-index: 9999;
+    padding: 0.9rem 1.4rem; border-radius: 14px;
+    font-weight: 600; font-size: 0.9rem;
+    display: flex; align-items: center; gap: 0.6rem;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.18);
+    animation: toastIn 0.35s ease; pointer-events: none;
+}
+.rmx-toast.success { background: #ecfdf5; color: #166534; border: 1.5px solid #86efac; }
+.rmx-toast.error   { background: #fef2f2; color: #991b1b; border: 1.5px solid #fca5a5; }
+@keyframes toastIn { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+/* ── Servicios checkbox grid ── */
+.svc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px,1fr)); gap: 0.5rem; max-height: 220px; overflow-y: auto; border: 1.5px solid #e5e7eb; border-radius: 12px; padding: 0.8rem; }
+.svc-label { display: flex; align-items: center; gap: 0.6rem; padding: 0.6rem 0.8rem; border-radius: 8px; cursor: pointer; border: 1.5px solid #f0f0f0; transition: all 0.15s; }
+.svc-label:hover { border-color: #d8b4fe; background: #faf5ff; }
+.svc-label:has(input:checked) { border-color: #7c3aed; background: #f5f3ff; }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="page-header">
     <div>
@@ -10,9 +78,9 @@
             <i class="bi bi-chevron-right"></i> <span>Empleados</span>
         </div>
     </div>
-    <a href="{{ url_for('admin_empleados_crear') }}" class="btn-rossmix">
+    <button onclick="abrirModalCrear()" class="btn-rossmix" style="background:linear-gradient(135deg,#7c3aed,#a855f7);">
         <i class="bi bi-plus-lg"></i> Nuevo Empleado
-    </a>
+    </button>
 </div>
 
 <div class="r-card">
@@ -22,7 +90,8 @@
             <span style="font-size:0.85rem; color:#888;">{{ empleados|length }} empleado(s)</span>
         </div>
         <div class="dropdown">
-            <button class="btn-rossmix dropdown-toggle" type="button" id="exportEmpleadosDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="background:#059669;">
+            <button class="btn-rossmix dropdown-toggle" type="button" id="exportEmpleadosDropdown"
+                    data-bs-toggle="dropdown" aria-expanded="false" style="background:#059669;">
                 <i class="bi bi-file-earmark-excel"></i> Exportar a Excel
             </button>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="exportEmpleadosDropdown">
@@ -38,23 +107,20 @@
         <table class="r-table">
             <thead>
                 <tr>
-                    <th>ID</th>
-                    <th>Nombre</th>
-                    <th>Especialidad</th>
-                    <th>Servicios</th>
-                    <th>Estado</th>
-                    <th>Registro</th>
-                    <th>Acciones</th>
+                    <th>ID</th><th>Nombre</th><th>Especialidad</th>
+                    <th>Servicios</th><th>Estado</th><th>Registro</th><th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
                 {% for emp in empleados %}
                 <tr id="empleado-{{ emp.id_empleado }}">
-                    <td style="color:#9ca3af; font-size:0.82rem;">#{{ emp.id_empleado }}</td>
+                    <td style="color:#9ca3af;font-size:0.82rem;">#{{ emp.id_empleado }}</td>
                     <td>
-                        <div style="display:flex; align-items:center; gap:0.7rem;">
-                            <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#ede9ff,#d4caff);
-                                        display:flex;align-items:center;justify-content:center;font-weight:700;color:#7c3aed;font-size:0.9rem;flex-shrink:0;">
+                        <div style="display:flex;align-items:center;gap:0.7rem;">
+                            <div style="width:36px;height:36px;border-radius:50%;
+                                        background:linear-gradient(135deg,#ede9ff,#d4caff);
+                                        display:flex;align-items:center;justify-content:center;
+                                        font-weight:700;color:#7c3aed;font-size:0.9rem;flex-shrink:0;">
                                 {{ emp.nombre[0].upper() }}
                             </div>
                             <strong>{{ emp.nombre }}</strong>
@@ -62,33 +128,41 @@
                     </td>
                     <td style="color:#6b7280;">{{ emp.especialidad or '—' }}</td>
                     <td>
-                        <span style="background:#f0f4ff;color:#2563eb;padding:0.2rem 0.7rem;border-radius:20px;font-size:0.8rem;font-weight:600;">
+                        <span style="background:#f0f4ff;color:#2563eb;padding:0.2rem 0.7rem;
+                                     border-radius:20px;font-size:0.8rem;font-weight:600;">
                             {{ emp.servicios|length }} servicio(s)
                         </span>
                     </td>
                     <td>
-                        {% if emp.activo %}
-                            <span class="badge-active">Activo</span>
-                        {% else %}
-                            <span class="badge-inactive">Inactivo</span>
-                        {% endif %}
+                        {% if emp.activo %}<span class="badge-active">Activo</span>
+                        {% else %}<span class="badge-inactive">Inactivo</span>{% endif %}
                     </td>
-                    <td style="color:#9ca3af; font-size:0.82rem;">
+                    <td style="color:#9ca3af;font-size:0.82rem;">
                         {{ emp.fecha_registro.strftime('%d/%m/%Y') if emp.fecha_registro else '—' }}
                     </td>
                     <td>
-                        <div style="display:flex; gap:0.4rem; flex-wrap:wrap;">
-                            <a href="{{ url_for('admin_empleados_editar', id_empleado=emp.id_empleado) }}"
-                               style="background:#fef3c7;color:#d97706;padding:0.4rem 0.7rem;border-radius:8px;font-size:0.82rem;font-weight:600;text-decoration:none;" title="Editar">
-                                <i class="bi bi-pencil"></i>
-                            </a>
+                        <div style="display:flex;gap:0.4rem;flex-wrap:wrap;">
+                            <button onclick="abrirModalEditar({{ emp.id_empleado }}, '{{ emp.nombre }}')"
+                                    style="background:#fef3c7;color:#d97706;border:none;padding:0.4rem 0.8rem;
+                                           border-radius:8px;font-size:0.82rem;font-weight:600;cursor:pointer;
+                                           transition:all 0.2s;" title="Editar"
+                                    onmouseover="this.style.background='#fde68a'"
+                                    onmouseout="this.style.background='#fef3c7'">
+                                <i class="bi bi-pencil-fill"></i>
+                            </button>
                             <a href="{{ url_for('admin_horarios_crear', id_empleado=emp.id_empleado) }}"
-                               style="background:#eff6ff;color:#2563eb;padding:0.4rem 0.7rem;border-radius:8px;font-size:0.82rem;font-weight:600;text-decoration:none;" title="Horarios">
-                                <i class="bi bi-clock"></i>
+                               style="background:#eff6ff;color:#2563eb;padding:0.4rem 0.8rem;
+                                      border-radius:8px;font-size:0.82rem;font-weight:600;
+                                      text-decoration:none;transition:all 0.2s;" title="Horarios">
+                                <i class="bi bi-clock-fill"></i>
                             </a>
                             <button onclick="confirmarEliminar({{ emp.id_empleado }}, '{{ emp.nombre }}')"
-                                    style="background:#fee2e2;color:#dc2626;border:none;padding:0.4rem 0.7rem;border-radius:8px;font-size:0.82rem;font-weight:600;cursor:pointer;" title="Eliminar">
-                                <i class="bi bi-trash3"></i>
+                                    style="background:#fee2e2;color:#dc2626;border:none;padding:0.4rem 0.8rem;
+                                           border-radius:8px;font-size:0.82rem;font-weight:600;cursor:pointer;
+                                           transition:all 0.2s;" title="Eliminar"
+                                    onmouseover="this.style.background='#fecaca'"
+                                    onmouseout="this.style.background='#fee2e2'">
+                                <i class="bi bi-trash3-fill"></i>
                             </button>
                         </div>
                     </td>
@@ -98,242 +172,324 @@
         </table>
     </div>
     {% else %}
-    <div class="r-card-body" style="text-align:center; padding:3rem; color:#9ca3af;">
-        <i class="bi bi-people" style="font-size:2.5rem; display:block; margin-bottom:0.8rem;"></i>
+    <div class="r-card-body" style="text-align:center;padding:3rem;color:#9ca3af;">
+        <i class="bi bi-people" style="font-size:2.5rem;display:block;margin-bottom:0.8rem;"></i>
         No hay empleados registrados.
-        <a href="{{ url_for('admin_empleados_crear') }}" style="color:#c41e3a; font-weight:600;">Crear el primero</a>
+        <button onclick="abrirModalCrear()" style="color:#7c3aed;font-weight:600;background:none;border:none;cursor:pointer;">
+            Crear el primero
+        </button>
     </div>
     {% endif %}
 </div>
 
-<!-- Modal Eliminar con lista de clientes afectados -->
+<!-- ══════════ MODAL CREAR / EDITAR EMPLEADO ══════════ -->
+<div id="modalEmpleado" class="rmx-modal-overlay" role="dialog" aria-modal="true">
+    <div class="rmx-modal">
+        <div class="rmx-modal-header">
+            <div class="icon-wrap">👤</div>
+            <div>
+                <h3 id="modalEmpleadoTitulo">Nuevo Empleado</h3>
+                <p id="modalEmpleadoSubtitulo">Completa los datos del empleado</p>
+            </div>
+            <button class="rmx-modal-close" onclick="cerrarModalEmpleado()" aria-label="Cerrar">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div class="rmx-modal-body">
+            <form id="formEmpleado" novalidate>
+                <input type="hidden" id="empIdHidden" value="">
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="r-form-label">Nombre Completo *</label>
+                        <input type="text" class="r-form-control" id="empNombre" name="nombre"
+                               placeholder="Nombre del empleado" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="r-form-label">Especialidad</label>
+                        <input type="text" class="r-form-control" id="empEspecialidad" name="especialidad"
+                               placeholder="Ej: Manicurista, Estilista...">
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="r-form-label">Servicios que Realiza *</label>
+                    <p style="font-size:0.82rem;color:#888;margin-bottom:0.5rem;">Selecciona al menos un servicio</p>
+                    <div class="svc-grid" id="svcGrid">
+                        {% for svc in servicios %}
+                        <label class="svc-label">
+                            <input type="checkbox" name="servicios" value="{{ svc.id_servicio }}"
+                                   style="width:16px;height:16px;accent-color:#7c3aed;">
+                            <div>
+                                <div style="font-size:0.85rem;font-weight:600;color:#1a1a1a;">{{ svc.nombre_servicio }}</div>
+                                <div style="font-size:0.75rem;color:#9ca3af;">${{ "{:,.0f}".format(svc.precio_total) }} · {{ svc.duracion_minutos }}min</div>
+                            </div>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div id="wrapActivo" style="display:none;">
+                    <label style="display:flex;align-items:center;gap:0.7rem;cursor:pointer;">
+                        <input type="checkbox" id="empActivo" name="activo"
+                               style="width:18px;height:18px;accent-color:#7c3aed;">
+                        <span class="r-form-label" style="margin:0;">Empleado activo</span>
+                    </label>
+                </div>
+            </form>
+        </div>
+        <div class="rmx-modal-footer">
+            <button type="button" onclick="cerrarModalEmpleado()" class="btn-secondary-r" style="flex:1;">
+                <i class="bi bi-x-lg"></i> Cancelar
+            </button>
+            <button type="button" onclick="guardarEmpleado()" id="btnGuardarEmp"
+                    class="btn-rossmix" style="flex:2;background:linear-gradient(135deg,#7c3aed,#a855f7);justify-content:center;">
+                <i class="bi bi-check-lg"></i> Guardar Empleado
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════ MODAL ELIMINAR EMPLEADO ══════════ -->
 <div id="modalEliminar" style="display:none;position:fixed;inset:0;
-     background:rgba(15,15,35,0.65);z-index:3000;align-items:center;
+     background:rgba(15,15,35,0.65);z-index:4000;align-items:center;
      justify-content:center;padding:1rem;backdrop-filter:blur(5px);">
     <div style="background:white;border-radius:24px;padding:0;max-width:560px;width:100%;
                 box-shadow:0 32px 80px rgba(0,0,0,0.28);overflow:hidden;
                 max-height:92vh;display:flex;flex-direction:column;
-                animation:rmxPopIn 0.35s cubic-bezier(0.34,1.56,0.64,1);">
-
-        <!-- Paso 1: Confirmación inicial -->
+                animation:rmxSlideUp 0.3s cubic-bezier(0.34,1.56,0.64,1);">
         <div id="paso1" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
-            <!-- Header rojo -->
             <div style="background:linear-gradient(135deg,#dc2626,#ef4444);
-                        padding:1.4rem 1.8rem;display:flex;align-items:center;
-                        gap:1rem;flex-shrink:0;">
-                <div style="width:46px;height:46px;border-radius:14px;
-                            background:rgba(255,255,255,0.2);flex-shrink:0;
-                            display:flex;align-items:center;justify-content:center;
-                            font-size:1.5rem;">🗑️</div>
+                        padding:1.4rem 1.8rem;display:flex;align-items:center;gap:1rem;flex-shrink:0;">
+                <div style="width:46px;height:46px;border-radius:14px;background:rgba(255,255,255,0.2);
+                            flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.5rem;">🗑️</div>
                 <div>
-                    <h3 style="margin:0;color:white;font-size:1.05rem;font-weight:800;">
-                        Eliminar Empleado
-                    </h3>
-                    <p id="modalNombre" style="margin:0;color:rgba(255,255,255,0.85);
-                       font-size:0.82rem;"></p>
+                    <h3 style="margin:0;color:white;font-size:1.05rem;font-weight:800;">Eliminar Empleado</h3>
+                    <p id="modalNombre" style="margin:0;color:rgba(255,255,255,0.85);font-size:0.82rem;"></p>
                 </div>
+                <button onclick="cerrarModal()" style="margin-left:auto;background:rgba(255,255,255,0.2);
+                        border:none;color:white;width:34px;height:34px;border-radius:50%;
+                        cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;">
+                    <i class="bi bi-x-lg"></i>
+                </button>
             </div>
-
-            <!-- Body scrollable -->
             <div style="padding:1.4rem 1.8rem;overflow-y:auto;flex:1;">
                 <div id="loadingMsg" style="text-align:center;padding:1.5rem;color:#888;">
                     <div style="font-size:2rem;margin-bottom:0.5rem;">⏳</div>
                     Verificando citas afectadas...
                 </div>
                 <div id="sinCitas" style="display:none;">
-                    <div style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);
-                                border:1.5px solid #86efac;border-radius:14px;
+                    <div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:14px;
                                 padding:1.1rem;color:#166534;font-size:0.9rem;">
                         <i class="bi bi-check-circle-fill"></i>
                         Sin citas futuras pendientes. Se puede eliminar sin impacto.
                     </div>
                 </div>
                 <div id="conCitas" style="display:none;">
-                    <div style="background:linear-gradient(135deg,#fffbeb,#fef3c7);
-                                border:1.5px solid #fde68a;border-radius:14px;
-                                padding:1rem;margin-bottom:0.8rem;color:#92400e;
-                                font-size:0.88rem;display:flex;align-items:center;gap:0.5rem;">
-                        <i class="bi bi-exclamation-triangle-fill" style="font-size:1.1rem;"></i>
-                        <div>
-                            <strong>Clientas con citas afectadas:</strong>
-                            <span id="totalAfectados"
-                                  style="background:#dc2626;color:white;border-radius:10px;
-                                         padding:0.1rem 0.55rem;font-size:0.78rem;
-                                         font-weight:700;margin-left:0.4rem;"></span>
-                        </div>
+                    <div style="background:#fffbeb;border:1.5px solid #fde68a;border-radius:14px;
+                                padding:1rem;margin-bottom:0.8rem;color:#92400e;font-size:0.88rem;">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <strong>Clientas con citas afectadas:</strong>
+                        <span id="totalAfectados" style="background:#dc2626;color:white;border-radius:10px;
+                                     padding:0.1rem 0.55rem;font-size:0.78rem;font-weight:700;margin-left:0.4rem;"></span>
                     </div>
-                    <div style="border:1.5px solid #f0e8ff;border-radius:12px;
-                                overflow:hidden;max-height:220px;overflow-y:auto;
-                                margin-bottom:0.8rem;">
+                    <div style="border:1.5px solid #f0e8ff;border-radius:12px;overflow:hidden;
+                                max-height:200px;overflow-y:auto;margin-bottom:0.8rem;">
                         <table style="width:100%;border-collapse:collapse;font-size:0.84rem;">
                             <thead>
-                                <tr style="background:linear-gradient(135deg,#fee2e2,#fecaca);
-                                           position:sticky;top:0;">
-                                    <th style="padding:0.6rem 0.9rem;text-align:left;
-                                               color:#991b1b;font-weight:700;">Clienta</th>
-                                    <th style="padding:0.6rem 0.9rem;text-align:left;
-                                               color:#991b1b;font-weight:700;">Servicio</th>
-                                    <th style="padding:0.6rem 0.9rem;text-align:left;
-                                               color:#991b1b;font-weight:700;">Fecha</th>
-                                    <th style="padding:0.6rem 0.9rem;text-align:left;
-                                               color:#991b1b;font-weight:700;">Tel.</th>
+                                <tr style="background:#fee2e2;position:sticky;top:0;">
+                                    <th style="padding:0.6rem 0.9rem;text-align:left;color:#991b1b;font-weight:700;">Clienta</th>
+                                    <th style="padding:0.6rem 0.9rem;text-align:left;color:#991b1b;font-weight:700;">Servicio</th>
+                                    <th style="padding:0.6rem 0.9rem;text-align:left;color:#991b1b;font-weight:700;">Fecha</th>
                                 </tr>
                             </thead>
                             <tbody id="tablaAfectados"></tbody>
                         </table>
                     </div>
-                    <div style="background:linear-gradient(135deg,#fff1f2,#ffe4e6);
-                                border:1.5px solid #fecdd3;border-radius:12px;
+                    <div style="background:#fff1f2;border:1.5px solid #fecdd3;border-radius:12px;
                                 padding:0.85rem;font-size:0.84rem;color:#9f1239;">
                         <i class="bi bi-info-circle-fill"></i>
-                        Las citas quedarán <strong>sin especialista</strong> y las clientas
-                        serán notificadas. Reasígnalas desde <strong>Gestión de Citas</strong>.
+                        Las citas quedarán <strong>sin especialista</strong>. Reasígnalas desde <strong>Gestión de Citas</strong>.
                     </div>
                 </div>
             </div>
-
-            <!-- Botones -->
-            <div id="botonesConfirmar"
-                 style="display:none;gap:0.8rem;padding:1rem 1.8rem 1.6rem;
-                        border-top:1.5px solid #f5f5f5;background:#fafafa;flex-shrink:0;">
-                <button onclick="cerrarModal()"
-                        style="flex:1;background:white;color:#555;border:1.5px solid #e9ecef;
-                               padding:0.75rem;border-radius:12px;font-weight:600;
-                               font-size:0.9rem;cursor:pointer;transition:all 0.2s;"
-                        onmouseover="this.style.borderColor='#dc2626';this.style.color='#dc2626';"
-                        onmouseout="this.style.borderColor='#e9ecef';this.style.color='#555';">
+            <div id="botonesConfirmar" style="display:none;gap:0.8rem;padding:1rem 1.8rem 1.6rem;
+                     border-top:1.5px solid #f5f5f5;background:#fafafa;flex-shrink:0;">
+                <button onclick="cerrarModal()" style="flex:1;background:white;color:#555;border:1.5px solid #e9ecef;
+                        padding:0.75rem;border-radius:12px;font-weight:600;font-size:0.9rem;cursor:pointer;">
                     Cancelar
                 </button>
                 <button id="btnConfirmar" onclick="ejecutarEliminar()"
-                        style="flex:2;background:linear-gradient(135deg,#dc2626,#ef4444);
-                               color:white;border:none;padding:0.75rem;border-radius:12px;
-                               font-weight:700;font-size:0.9rem;cursor:pointer;
-                               transition:all 0.2s;
-                               box-shadow:0 6px 20px rgba(220,38,38,0.4);
+                        style="flex:2;background:linear-gradient(135deg,#dc2626,#ef4444);color:white;border:none;
+                               padding:0.75rem;border-radius:12px;font-weight:700;font-size:0.9rem;cursor:pointer;
                                display:flex;align-items:center;justify-content:center;gap:0.5rem;">
                     <i class="bi bi-trash3-fill"></i>
                     <span id="btnConfirmarTexto">Eliminar</span>
                 </button>
             </div>
         </div>
-
-        <!-- Resultado final -->
-        <div id="pasoResultado"
-             style="display:none;text-align:center;padding:2.5rem 2rem;">
+        <div id="pasoResultado" style="display:none;text-align:center;padding:2.5rem 2rem;">
             <div id="resultadoIcono" style="font-size:3.5rem;margin-bottom:1rem;"></div>
-            <h3 id="resultadoTitulo"
-                style="margin-bottom:0.5rem;font-size:1.2rem;font-weight:800;"></h3>
-            <p id="resultadoMsg"
-               style="color:#666;font-size:0.9rem;margin-bottom:1.5rem;line-height:1.6;"></p>
-            <button onclick="cerrarModal()" class="btn-rossmix">
-                <i class="bi bi-check-lg"></i> Listo
-            </button>
+            <h3 id="resultadoTitulo" style="margin-bottom:0.5rem;font-size:1.2rem;font-weight:800;"></h3>
+            <p id="resultadoMsg" style="color:#666;font-size:0.9rem;margin-bottom:1.5rem;line-height:1.6;"></p>
+            <button onclick="cerrarModal()" class="btn-rossmix"><i class="bi bi-check-lg"></i> Listo</button>
         </div>
     </div>
 </div>
+<!-- Toast -->
+<div id="rmxToast" class="rmx-toast" style="display:none;"></div>
 
 <script>
-let empIdActual   = null;
-let tieneAfectados = false;
+/* ── Toast ── */
+function showToast(msg, tipo='success') {
+    const t = document.getElementById('rmxToast');
+    t.className = `rmx-toast ${tipo}`;
+    t.innerHTML = `<i class="bi bi-${tipo==='success'?'check-circle-fill':'x-circle-fill'}"></i> ${msg}`;
+    t.style.display = 'flex';
+    setTimeout(() => t.style.display='none', 3500);
+}
 
+/* ── Modal Empleado ── */
+function abrirModalCrear() {
+    document.getElementById('modalEmpleadoTitulo').textContent = 'Nuevo Empleado';
+    document.getElementById('modalEmpleadoSubtitulo').textContent = 'Completa los datos del empleado';
+    document.getElementById('empIdHidden').value = '';
+    document.getElementById('empNombre').value = '';
+    document.getElementById('empEspecialidad').value = '';
+    document.getElementById('wrapActivo').style.display = 'none';
+    document.querySelectorAll('#svcGrid input[type=checkbox]').forEach(c => c.checked = false);
+    document.getElementById('modalEmpleado').classList.add('open');
+    document.getElementById('empNombre').focus();
+}
+
+async function abrirModalEditar(id, nombre) {
+    document.getElementById('modalEmpleadoTitulo').textContent = 'Editar Empleado';
+    document.getElementById('modalEmpleadoSubtitulo').textContent = nombre;
+    document.getElementById('empIdHidden').value = id;
+    document.getElementById('wrapActivo').style.display = 'block';
+    document.querySelectorAll('#svcGrid input[type=checkbox]').forEach(c => c.checked = false);
+
+    try {
+        const res = await fetch(`/admin/empleados/datos/${id}`);
+        const d   = await res.json();
+        document.getElementById('empNombre').value       = d.nombre;
+        document.getElementById('empEspecialidad').value = d.especialidad;
+        document.getElementById('empActivo').checked     = d.activo;
+        d.servicios_empleado.forEach(sid => {
+            const cb = document.querySelector(`#svcGrid input[value="${sid}"]`);
+            if (cb) cb.checked = true;
+        });
+    } catch(e) { showToast('Error al cargar datos', 'error'); return; }
+
+    document.getElementById('modalEmpleado').classList.add('open');
+}
+
+function cerrarModalEmpleado() {
+    document.getElementById('modalEmpleado').classList.remove('open');
+}
+
+async function guardarEmpleado() {
+    const id     = document.getElementById('empIdHidden').value;
+    const nombre = document.getElementById('empNombre').value.trim();
+    if (!nombre) { showToast('El nombre es obligatorio', 'error'); return; }
+
+    const checked = document.querySelectorAll('#svcGrid input:checked');
+    if (checked.length === 0 && document.querySelectorAll('#svcGrid input').length > 0) {
+        showToast('Selecciona al menos un servicio', 'error'); return;
+    }
+
+    const btn = document.getElementById('btnGuardarEmp');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Guardando...';
+
+    const form = new FormData(document.getElementById('formEmpleado'));
+    const url  = id ? `/admin/empleados/editar/${id}` : '/admin/empleados/crear';
+
+    try {
+        const res  = await fetch(url, {
+            method: 'POST', body: form,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            cerrarModalEmpleado();
+            showToast(data.message, 'success');
+            setTimeout(() => location.reload(), 1200);
+        } else {
+            showToast(data.message || 'Error al guardar', 'error');
+        }
+    } catch(e) { showToast('Error de conexión', 'error'); }
+    finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-check-lg"></i> Guardar Empleado';
+    }
+}
+
+/* ── Modal Eliminar ── */
+let empIdActual = null;
 async function confirmarEliminar(id, nombre) {
     empIdActual = id;
-    tieneAfectados = false;
-
-    // Resetear modal
-    document.getElementById('loadingMsg').style.display   = 'block';
-    document.getElementById('sinCitas').style.display     = 'none';
-    document.getElementById('conCitas').style.display     = 'none';
+    document.getElementById('loadingMsg').style.display    = 'block';
+    document.getElementById('sinCitas').style.display      = 'none';
+    document.getElementById('conCitas').style.display      = 'none';
     document.getElementById('botonesConfirmar').style.display = 'none';
-    document.getElementById('paso1').style.display        = 'block';
+    document.getElementById('paso1').style.display         = 'block';
     document.getElementById('pasoResultado').style.display = 'none';
-    document.getElementById('modalNombre').textContent    = nombre;
+    document.getElementById('modalNombre').textContent     = nombre;
     document.getElementById('modalEliminar').style.display = 'flex';
 
-    // Consultar clientes afectados
     try {
         const res  = await fetch(`/admin/empleados/clientes-afectados/${id}`);
         const data = await res.json();
-
         document.getElementById('loadingMsg').style.display = 'none';
 
         if (data.total === 0) {
-            // Sin citas afectadas
             document.getElementById('sinCitas').style.display = 'block';
             document.getElementById('btnConfirmarTexto').textContent = 'Eliminar';
-            tieneAfectados = false;
         } else {
-            // Hay clientes afectados — mostrar tabla
-            tieneAfectados = true;
             document.getElementById('conCitas').style.display = 'block';
             document.getElementById('totalAfectados').textContent = data.total + ' cita(s)';
-            document.getElementById('btnConfirmarTexto').textContent =
-                `Eliminar y desasignar ${data.total} cita(s)`;
-
+            document.getElementById('btnConfirmarTexto').textContent = `Eliminar y desasignar ${data.total} cita(s)`;
             const tbody = document.getElementById('tablaAfectados');
             tbody.innerHTML = '';
             data.afectados.forEach((a, i) => {
-                const bg = i % 2 === 0 ? 'white' : '#fff5f5';
-                tbody.innerHTML += `
-                    <tr style="background:${bg};border-bottom:1px solid #f5f5f5;">
-                        <td style="padding:0.55rem 0.9rem;font-weight:600;">${a.cliente}</td>
-                        <td style="padding:0.55rem 0.9rem;color:#555;">${a.servicio}</td>
-                        <td style="padding:0.55rem 0.9rem;color:#c41e3a;font-weight:600;">
-                            ${a.fecha} ${a.hora}
-                        </td>
-                        <td style="padding:0.55rem 0.9rem;color:#888;">${a.telefono}</td>
-                    </tr>`;
+                tbody.innerHTML += `<tr style="background:${i%2===0?'white':'#fff5f5'};border-bottom:1px solid #f5f5f5;">
+                    <td style="padding:0.55rem 0.9rem;font-weight:600;">${a.cliente}</td>
+                    <td style="padding:0.55rem 0.9rem;color:#555;">${a.servicio}</td>
+                    <td style="padding:0.55rem 0.9rem;color:#c41e3a;font-weight:600;">${a.fecha} ${a.hora}</td>
+                </tr>`;
             });
         }
-
         document.getElementById('botonesConfirmar').style.display = 'flex';
-
     } catch(e) {
-        document.getElementById('loadingMsg').innerHTML =
-            '<i class="bi bi-exclamation-triangle" style="color:#dc2626;"></i> Error al cargar datos.';
+        document.getElementById('loadingMsg').innerHTML = '<i class="bi bi-exclamation-triangle" style="color:#dc2626;"></i> Error al cargar datos.';
     }
 }
 
 async function ejecutarEliminar() {
     if (!empIdActual) return;
-
     const btn = document.getElementById('btnConfirmar');
     btn.disabled = true;
     btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Procesando...';
-
     const form = new FormData();
     form.append('confirmado', 'true');
-
     try {
-        const res  = await fetch(`/admin/empleados/eliminar/${empIdActual}`, {
-            method: 'POST', body: form
-        });
+        const res  = await fetch(`/admin/empleados/eliminar/${empIdActual}`, { method:'POST', body:form });
         const data = await res.json();
-
-        document.getElementById('paso1').style.display        = 'none';
+        document.getElementById('paso1').style.display         = 'none';
         document.getElementById('pasoResultado').style.display = 'block';
-
         if (data.success) {
-            document.getElementById('resultadoIcono').textContent = '✅';
+            document.getElementById('resultadoIcono').textContent  = '✅';
             document.getElementById('resultadoTitulo').textContent = 'Empleado eliminado';
-            let msg = data.message;
-            if (data.citas_desasignadas > 0) {
-                msg += ` Se desasignaron ${data.citas_desasignadas} cita(s). `
-                     + `Las clientas fueron notificadas. Recuerda reasignarlas en Gestión de Citas.`;
-            }
-            document.getElementById('resultadoMsg').textContent = msg;
-            // Quitar fila de la tabla
+            document.getElementById('resultadoMsg').textContent    = data.message;
             document.getElementById(`empleado-${empIdActual}`)?.remove();
         } else {
-            document.getElementById('resultadoIcono').textContent = '❌';
+            document.getElementById('resultadoIcono').textContent  = '❌';
             document.getElementById('resultadoTitulo').textContent = 'No se pudo eliminar';
-            document.getElementById('resultadoMsg').textContent = data.message;
+            document.getElementById('resultadoMsg').textContent    = data.message;
         }
-
     } catch(e) {
         document.getElementById('resultadoIcono').textContent = '❌';
-        document.getElementById('resultadoTitulo').textContent = 'Error de conexión';
-        document.getElementById('resultadoMsg').textContent = 'Intenta de nuevo.';
+        document.getElementById('resultadoTitulo').textContent = 'Error';
+        document.getElementById('resultadoMsg').textContent   = 'Intenta de nuevo.';
     }
 }
 
@@ -342,9 +498,9 @@ function cerrarModal() {
     empIdActual = null;
 }
 
-// Cerrar al hacer clic fuera
-document.getElementById('modalEliminar').addEventListener('click', function(e) {
-    if (e.target === this) cerrarModal();
-});
+/* Cerrar modales al hacer click fuera */
+document.getElementById('modalEmpleado').addEventListener('click', e => { if(e.target===e.currentTarget) cerrarModalEmpleado(); });
+document.getElementById('modalEliminar').addEventListener('click', e => { if(e.target===e.currentTarget) cerrarModal(); });
+document.addEventListener('keydown', e => { if(e.key==='Escape') { cerrarModalEmpleado(); cerrarModal(); } });
 </script>
 {% endblock %}
