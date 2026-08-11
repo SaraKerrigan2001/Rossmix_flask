@@ -27,13 +27,17 @@
         </div>
         <div class="r-card-body">
             <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="mb-4">
                     <label for="monto" class="r-form-label">Monto a Pagar *</label>
                     <div class="pago-amount-row">
                         <span class="amount-symbol">$</span>
                         <input id="monto" type="number" class="r-form-control" name="monto"
                                value="{{ cita.saldo_pendiente or cita.monto_total }}"
-                               min="1" step="1000" required>
+                               min="5000" step="1"
+                               placeholder="Ej: 40000"
+                               style="-moz-appearance: textfield;"
+                               required>
                     </div>
                     <p class="r-form-hint">
                         Monto total: <strong>${{ "{:,.0f}".format(cita.monto_total) }}</strong>
@@ -54,8 +58,6 @@
                                     {% if metodo == 'efectivo' %}<i class="bi bi-cash"></i>
                                     {% elif metodo == 'tarjeta' %}<i class="bi bi-credit-card"></i>
                                     {% elif metodo == 'transferencia' %}<i class="bi bi-bank"></i>
-                                    {% elif metodo == 'nequi' %}<i class="bi bi-phone"></i>
-                                    {% elif metodo == 'daviplata' %}<i class="bi bi-phone-fill"></i>
                                     {% endif %}
                                     {{ metodo }}
                                 </div>
@@ -148,5 +150,16 @@
 <style>
 .metodo-label:hover { border-color:#ffb3d1; background:#fff8fc; }
 .metodo-label:has(input:checked) { border-color:#c41e3a; background:#fff0f6; }
+
+/* Ocultar flechas del input number en todos los navegadores */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+input[type=number] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
 </style>
 {% endblock %}

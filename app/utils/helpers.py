@@ -36,14 +36,38 @@ def add_notificacion(id_usuario, titulo, mensaje=None, target=None):
 
 
 def inject_notificaciones():
-    """Context processor: inyecta notificaciones en todos los templates."""
+    """Context processor: inyecta notificaciones y contadores en todos los templates."""
     if 'usuario_id' in session:
         try:
             notifs = Notificacion.query.filter_by(
                 id_usuario=session['usuario_id']).order_by(
                 Notificacion.fecha.desc()).limit(6).all()
-            unread = Notificacion.query.filter_by(id_usuario=session['usuario_id'], leido=False).count()
-            return dict(notificaciones=notifs, notificaciones_unread=unread)
+            unread = Notificacion.query.filter_by(
+                id_usuario=session['usuario_id'], leido=False).count()
+
+            # Contador de pagos por confirmar (solo para admins)
+            pagos_por_confirmar = 0
+            if session.get('tipo_usuario') == 'admin':
+                try:
+                    from app.models.cita import Cita
+                    from app.models.pago import Pago
+                    pagos_por_confirmar = db.session.query(
+                        db.func.count(Cita.id_cita)
+                    ).filter(
+                        Cita.estado.in_(['confirmada', 'en_atencion']),
+                        ~db.session.query(Pago.id_pago).filter(
+                            Pago.id_cita == Cita.id_cita,
+                            Pago.estado_pago == 'completado'
+                        ).exists()
+                    ).scalar() or 0
+                except Exception:
+                    pagos_por_confirmar = 0
+
+            return dict(
+                notificaciones=notifs,
+                notificaciones_unread=unread,
+                pagos_por_confirmar=pagos_por_confirmar,
+            )
         except Exception:
-            return dict(notificaciones=[], notificaciones_unread=0)
-    return dict(notificaciones=[], notificaciones_unread=0)
+            return dict(notificaciones=[], notificaciones_unread=0, pagos_por_confirmar=0)
+    return dict(notificaciones=[], notificaciones_unread=0, pagos_por_confirmar=0)

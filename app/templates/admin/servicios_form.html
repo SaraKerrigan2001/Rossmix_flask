@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+﻿{% extends 'base.html' %}
 {% block title %}{{ 'Editar' if servicio else 'Crear' }} Servicio - Rossmix{% endblock %}
 
 {% block content %}
@@ -26,6 +26,7 @@
     </div>
     <div class="r-card-body">
         <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="mb-4">
                 <label class="r-form-label">Nombre del Servicio *</label>
                 <input type="text" class="r-form-control" name="nombre_servicio"

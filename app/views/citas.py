@@ -14,6 +14,17 @@ from app.utils.helpers import add_notificacion
 citas_bp = Blueprint('citas', __name__)
 
 
+@citas_bp.route('/citas/estado/<int:id_cita>')
+def estado_cita(id_cita):
+    """API: Retorna el estado actual de una cita (usado por polling en mis_citas y confirmada)."""
+    if 'usuario_id' not in session:
+        return jsonify({'error': 'No autorizado'}), 401
+    cita = Cita.query.filter_by(
+        id_cita=id_cita, id_cliente=session['usuario_id']
+    ).first_or_404()
+    return jsonify({'estado': cita.estado, 'id_cita': cita.id_cita})
+
+
 @citas_bp.route('/citas/agendar/paso1')
 def agendar_paso1():
     """Paso 1: Seleccionar servicio"""
@@ -79,7 +90,7 @@ def agendar_paso3(id_servicio, id_empleado):
 @citas_bp.route('/citas/horarios-disponibles')
 def horarios_disponibles():
     """API: Obtener horarios disponibles para una fecha y empleado"""
-    fecha_str = request.args.get('fecha')
+    fecha_str   = request.args.get('fecha')
     id_empleado = request.args.get('id_empleado', type=int)
     id_servicio = request.args.get('id_servicio', type=int)
 
@@ -88,61 +99,29 @@ def horarios_disponibles():
 
     try:
         fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
-    except BaseException:
+    except ValueError:
         return jsonify({'error': 'Fecha inválida'}), 400
 
-    # Si id_empleado es 0, seleccionar empleado aleatorio que haga el servicio
-    if id_empleado == 0:
-        empleados_ids = db.session.query(EmpleadoServicio.id_empleado).filter_by(id_servicio=id_servicio).all()
-        empleados_ids = [e[0] for e in empleados_ids]
-        if not empleados_ids:
-            return jsonify({'horarios': []})
-        id_empleado = random.choice(empleados_ids)
+    # Delegar completamente al servicio — evita duplicación de lógica
+    horarios = CitaService.obtener_horarios_disponibles(
+        fecha=fecha,
+        id_servicio=id_servicio,
+        id_empleado=id_empleado or 0,
+    )
 
-    # Obtener servicio para duración
-    servicio = Servicio.query.get(id_servicio)
-    if not servicio:
-        return jsonify({'error': 'Servicio no encontrado'}), 404
-
-    # Obtener día de la semana (0=Domingo, 1=Lunes, etc.)
-    dia_semana = (fecha.weekday() + 1) % 7  # Convertir de Python (0=Lunes) a nuestra DB (0=Domingo)
-
-    # Obtener horario del empleado para ese día
-    horario = HorarioEmpleado.query.filter_by(
-        id_empleado=id_empleado,
-        dia_semana=dia_semana
-    ).first()
-
-    if not horario:
-        return jsonify({'horarios': []})
-
-    # Generar slots de tiempo disponibles
-    horarios_list = []
-    hora_actual = datetime.combine(fecha, horario.hora_inicio)
-    hora_fin = datetime.combine(fecha, horario.hora_fin)
-    duracion = timedelta(minutes=servicio.duracion_minutos)
-
-    while hora_actual + duracion <= hora_fin:
-        # Verificar si ya hay una cita en este horario
-        cita_existente = Cita.query.filter(
-            Cita.id_empleado == id_empleado,
-            Cita.fecha_hora_inicio < hora_actual + duracion,
-            Cita.fecha_hora_fin > hora_actual,
-            Cita.estado.in_(['pendiente_pago', 'confirmada', 'en_atencion'])
-        ).first()
-
-        if not cita_existente:
-            horarios_list.append({
-                'hora': hora_actual.strftime('%H:%M'),
-                'hora_fin': (hora_actual + duracion).strftime('%H:%M'),
-                'disponible': True
-            })
-
-        hora_actual += timedelta(minutes=30)  # Intervalos de 30 minutos
+    # Si el empleado fue 0, el servicio elige uno aleatoriamente internamente;
+    # necesitamos devolver cuál fue elegido para que el paso 4 lo use.
+    # Re-ejecutamos solo para obtener el id_empleado resuelto.
+    id_empleado_resuelto = id_empleado or 0
+    if id_empleado_resuelto == 0 and horarios:
+        from app.models import EmpleadoServicio
+        ids = [e.id_empleado for e in EmpleadoServicio.query.filter_by(id_servicio=id_servicio).all()]
+        if ids:
+            id_empleado_resuelto = random.choice(ids)
 
     return jsonify({
-        'horarios': horarios_list,
-        'id_empleado': id_empleado
+        'horarios': horarios,
+        'id_empleado': id_empleado_resuelto,
     })
 
 
@@ -247,6 +226,22 @@ def confirmar_cita():
             fecha_hora_inicio=fecha_hora_inicio,
             fecha_hora_fin=fecha_hora_fin
         )
+
+        # Aplicar crédito de reagenda si existe en sesión
+        credito = session.pop('credito_reagenda', None)
+        if credito and credito.get('monto_credito', 0) > 0:
+            monto_credito = Decimal(str(credito['monto_credito']))
+            nueva_cita.monto_abono = (nueva_cita.monto_abono or Decimal('0')) + monto_credito
+            nueva_cita.saldo_pendiente = (nueva_cita.monto_total or Decimal('0')) - nueva_cita.monto_abono
+            if nueva_cita.saldo_pendiente <= 0:
+                nueva_cita.saldo_pendiente = Decimal('0')
+                nueva_cita.estado = 'confirmada'
+            nueva_cita.notas = (
+                f"Crédito de ${float(monto_credito):,.0f} aplicado "
+                f"desde cita #{credito.get('codigo_origen', '')}."
+            )
+            db.session.commit()
+
         flash('¡Cita agendada exitosamente!', 'success')
         return redirect(url_for('citas.cita_confirmada', codigo=nueva_cita.codigo_reserva))
     except Exception as e:
@@ -542,7 +537,7 @@ def gestionar_cita(token):
 
 @citas_bp.route('/citas/reagendar-no-asistio/<int:id_cita>')
 def reagendar_no_asistio(id_cita):
-    """Reagendar cita con estado no_asistio — reutiliza el abono como crédito"""
+    """Reagendar cita con estado no_asistio — guarda el abono como crédito en sesión"""
     if 'usuario_id' not in session:
         flash('Debes iniciar sesión', 'error')
         return redirect(url_for('auth.login'))
@@ -551,7 +546,19 @@ def reagendar_no_asistio(id_cita):
         id_cita=id_cita, id_cliente=session['usuario_id'], estado='no_asistio'
     ).first_or_404()
 
-    flash('Selecciona un nuevo servicio para reagendar. Tu abono se aplicará como crédito.', 'success')
+    # Guardar el crédito y la cita original en sesión para aplicarlo al confirmar
+    session['credito_reagenda'] = {
+        'id_cita_origen': cita.id_cita,
+        'monto_credito': float(cita.monto_abono or 0),
+        'codigo_origen': cita.codigo_reserva,
+    }
+
+    flash(
+        f'Tienes un crédito de ${float(cita.monto_abono or 0):,.0f} '
+        f'del abono de tu cita anterior (#{cita.codigo_reserva}). '
+        f'Se descontará automáticamente al confirmar tu nueva cita.',
+        'success'
+    )
     return redirect(url_for('citas.agendar_paso1'))
 
 
@@ -571,10 +578,126 @@ def reprogramar_cita_form(id_cita):
     hoy      = datetime.now().strftime('%Y-%m-%d')
     max_fecha = (datetime.now() + timedelta(days=90)).strftime('%Y-%m-%d')
 
+    form = SeleccionarHorarioForm(
+        id_servicio=servicio.id_servicio if servicio else 0,
+        id_empleado=empleado.id_empleado if empleado else 0,
+    )
+
     return render_template('citas/paso3_fecha_hora.html',
                            servicio=servicio,
                            empleado=empleado,
                            hoy=hoy,
                            max_fecha=max_fecha,
+                           form=form,
                            reprogramando=True,
                            id_cita_original=id_cita)
+
+
+@citas_bp.route('/citas/reprogramar/<int:id_cita>', methods=['POST'])
+def reprogramar_cita_submit(id_cita):
+    """Procesa la reprogramación: cancela la cita original y crea una nueva."""
+    if 'usuario_id' not in session:
+        flash('Debes iniciar sesión', 'error')
+        return redirect(url_for('auth.login'))
+
+    cita_original = Cita.query.filter_by(
+        id_cita=id_cita, id_cliente=session['usuario_id']
+    ).first_or_404()
+
+    # Solo se pueden reprogramar citas pendientes o confirmadas
+    if cita_original.estado not in ('pendiente_pago', 'confirmada'):
+        flash('Solo puedes reprogramar citas pendientes o confirmadas.', 'error')
+        return redirect(url_for('citas.mis_citas'))
+
+    # Mínimo 2 horas de anticipación para reprogramar
+    if (cita_original.fecha_hora_inicio - datetime.now()) < timedelta(hours=2):
+        flash('Debes reprogramar con al menos 2 horas de anticipación.', 'error')
+        return redirect(url_for('citas.mis_citas'))
+
+    form = SeleccionarHorarioForm()
+    if not form.validate_on_submit():
+        flash('Datos incompletos. Vuelve a seleccionar fecha y hora.', 'error')
+        return redirect(url_for('citas.reprogramar_cita_form', id_cita=id_cita))
+
+    id_servicio = int(form.id_servicio.data)
+    id_empleado = int(form.id_empleado.data or 0)
+    fecha_str   = form.fecha.data
+    hora_str    = form.hora.data
+
+    servicio = Servicio.query.get_or_404(id_servicio)
+
+    try:
+        fecha_hora_inicio = datetime.strptime(f'{fecha_str} {hora_str}', '%Y-%m-%d %H:%M')
+        fecha_hora_fin    = fecha_hora_inicio + timedelta(minutes=servicio.duracion_minutos)
+    except ValueError:
+        flash('Fecha u hora inválida.', 'error')
+        return redirect(url_for('citas.reprogramar_cita_form', id_cita=id_cita))
+
+    if fecha_hora_inicio <= datetime.now():
+        flash('La nueva fecha debe ser futura.', 'error')
+        return redirect(url_for('citas.reprogramar_cita_form', id_cita=id_cita))
+
+    if id_empleado == 0:
+        from app.models import EmpleadoServicio as ES
+        ids = [e.id_empleado for e in ES.query.filter_by(id_servicio=id_servicio).all()]
+        if not ids:
+            flash('No hay especialistas disponibles para ese servicio.', 'error')
+            return redirect(url_for('citas.reprogramar_cita_form', id_cita=id_cita))
+        id_empleado = random.choice(ids)
+
+    if not CitaService.validar_disponibilidad_cita(id_empleado, fecha_hora_inicio, fecha_hora_fin):
+        flash('El horario seleccionado ya no está disponible. Elige otro.', 'error')
+        return redirect(url_for('citas.reprogramar_cita_form', id_cita=id_cita))
+
+    try:
+        # Guardar el abono de la cita original para transferirlo
+        abono_previo = cita_original.monto_abono or Decimal('0')
+        codigo_previo = cita_original.codigo_reserva
+
+        # Cancelar la cita original
+        cita_original.estado = 'cancelada'
+        cita_original.notas = (
+            (cita_original.notas or '') +
+            f' [Reprogramada el {datetime.now().strftime("%d/%m/%Y %H:%M")}]'
+        )
+        db.session.commit()
+
+        # Crear la nueva cita
+        nueva_cita = CitaService.crear_cita(
+            id_cliente=session['usuario_id'],
+            id_servicio=id_servicio,
+            id_empleado=id_empleado,
+            fecha_hora_inicio=fecha_hora_inicio,
+            fecha_hora_fin=fecha_hora_fin,
+        )
+
+        # Transferir el abono previo a la nueva cita
+        if abono_previo > 0:
+            nueva_cita.monto_abono     = abono_previo
+            nueva_cita.saldo_pendiente = (nueva_cita.monto_total or Decimal('0')) - abono_previo
+            if nueva_cita.saldo_pendiente <= 0:
+                nueva_cita.saldo_pendiente = Decimal('0')
+                nueva_cita.estado = 'confirmada'
+            nueva_cita.notas = f'Reprogramación de cita #{codigo_previo}. Abono transferido.'
+            db.session.commit()
+
+        # Notificar al cliente
+        try:
+            add_notificacion(
+                session['usuario_id'],
+                'Cita reprogramada',
+                f'Tu cita #{codigo_previo} fue reprogramada para el '
+                f'{fecha_hora_inicio.strftime("%d/%m/%Y a las %H:%M")}. '
+                f'Nuevo código: {nueva_cita.codigo_reserva}.',
+                target=url_for('citas.mis_citas')
+            )
+        except Exception:
+            pass
+
+        flash('¡Cita reprogramada exitosamente!', 'success')
+        return redirect(url_for('citas.cita_confirmada', codigo=nueva_cita.codigo_reserva))
+
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al reprogramar la cita: {str(e)}', 'error')
+        return redirect(url_for('citas.reprogramar_cita_form', id_cita=id_cita))

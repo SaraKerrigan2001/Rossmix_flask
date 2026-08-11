@@ -25,8 +25,7 @@ class Cita(db.Model):
             'cancelada',
             'no_asistio',
             name='estado_cita_enum',
-            native_enum=True,
-            create_constraint=False,
+            create_type=False,   # el tipo ya existe en PostgreSQL (creado por Rossmix.sql)
         ),
         nullable=False,
         default='pendiente_pago',

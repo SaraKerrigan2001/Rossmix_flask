@@ -47,6 +47,15 @@ def dashboard():
     if ingresos_mes_anterior > 0:
         crecimiento_ingresos = ((ingresos_mes - ingresos_mes_anterior) / ingresos_mes_anterior) * 100
 
+    # Pagos pendientes (citas confirmadas sin pago registrado)
+    from app.models import Pago
+    pagos_pendientes = db.session.query(func.count(Cita.id_cita)).filter(
+        Cita.estado.in_(['confirmada', 'en_atencion']),
+        ~db.session.query(Pago.id_pago).filter(
+            Pago.id_cita == Cita.id_cita
+        ).exists()
+    ).scalar() or 0
+
     # Top 3 Especialistas (por ingresos generados)
     top_especialistas = db.session.query(
         Empleado.nombre, 
@@ -65,6 +74,7 @@ def dashboard():
         'ingresos_mes': float(ingresos_mes),
         'ingresos_mes_anterior': float(ingresos_mes_anterior),
         'crecimiento_ingresos': float(crecimiento_ingresos),
+        'pagos_pendientes': pagos_pendientes,
         'top_especialistas': top_especialistas
     }
 

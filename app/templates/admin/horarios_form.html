@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+﻿{% extends 'base.html' %}
 
 {% block title %}{{ 'Editar' if horario else 'Crear' }} Horario - Admin Rossmix{% endblock %}
 
@@ -46,6 +46,7 @@
                     </div>
 
                     <form id="formHorario" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="forzar" id="inputForzar" value="false">
 
                         {% if not horario %}

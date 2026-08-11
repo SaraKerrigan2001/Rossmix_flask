@@ -1,11 +1,12 @@
 """CRUD de clientes (admin)."""
 from datetime import datetime
-from flask import render_template, request, redirect, url_for, flash, jsonify
+from flask import render_template, request, redirect, url_for, flash, jsonify, session
 from werkzeug.security import generate_password_hash
 from app.extensions import db
 from app.models import Usuario, Cita
 from app.utils.decorators import admin_required
 from app.views.admin import admin_bp
+from app.models.auditoria import registrar_auditoria
 
 
 @admin_bp.route('/clientes')
@@ -76,6 +77,19 @@ def clientes_editar(id_cliente):
 
         db.session.commit()
 
+        registrar_auditoria(
+            accion='editar',
+            id_usuario=cliente.id,
+            id_actor=session.get('usuario_id'),
+            nombre=cliente.nombre,
+            email=cliente.email,
+            telefono=cliente.telefono,
+            tipo_usuario=cliente.tipo_usuario,
+            detalle='Admin editó datos del cliente',
+            ip_address=request.remote_addr,
+        )
+        db.session.commit()
+
         if is_ajax:
             return jsonify({
                 'success': True,
@@ -113,8 +127,20 @@ def clientes_eliminar(id_cliente):
             'message': f'No se puede eliminar. El cliente tiene {citas_futuras} cita(s) pendiente(s)'
         }), 400
 
-    nombre = cliente.nombre
+    nombre        = cliente.nombre
+    email_cliente = cliente.email or ''
     db.session.delete(cliente)
+    db.session.commit()
+
+    registrar_auditoria(
+        accion='eliminar',
+        id_usuario=None,
+        id_actor=session.get('usuario_id'),
+        nombre=nombre,
+        email=email_cliente,
+        detalle=f'Admin eliminó al cliente {nombre}',
+        ip_address=request.remote_addr,
+    )
     db.session.commit()
 
     return jsonify({

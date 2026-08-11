@@ -44,7 +44,7 @@ def pagos_registrar(id_cita):
             flash('El monto debe ser mayor a 0', 'error')
             return redirect(url_for('admin.pagos_registrar', id_cita=id_cita))
 
-        metodos_validos = ['efectivo', 'tarjeta', 'transferencia', 'nequi', 'daviplata']
+        metodos_validos = ['efectivo', 'tarjeta', 'transferencia']
         if metodo not in metodos_validos:
             flash('Método de pago inválido', 'error')
             return redirect(url_for('admin.pagos_registrar', id_cita=id_cita))
@@ -59,11 +59,12 @@ def pagos_registrar(id_cita):
         )
         db.session.add(nuevo_pago)
 
-        # Actualizar estado de cita y saldo
-        cita.monto_abono = Decimal(str(monto))
-        cita.saldo_pendiente = (cita.monto_total or Decimal('0')) - Decimal(str(monto))
+        # Actualizar estado de cita y saldo — acumular abono (igual que el pago del cliente)
+        cita.monto_abono = (cita.monto_abono or Decimal('0')) + Decimal(str(monto))
+        cita.saldo_pendiente = (cita.monto_total or Decimal('0')) - cita.monto_abono
         if cita.saldo_pendiente <= 0:
             cita.estado = 'completada'
+            cita.saldo_pendiente = Decimal('0')
 
         db.session.commit()
         # Notificar al cliente
@@ -94,7 +95,7 @@ def pagos_registrar(id_cita):
         return redirect(url_for('admin.pagos'))
 
     # GET — formulario
-    metodos = ['efectivo', 'tarjeta', 'transferencia', 'nequi', 'daviplata']
+    metodos = ['efectivo', 'tarjeta', 'transferencia']
     return render_template('admin/pagos_form.html',
                            cita=cita, cliente=cliente,
                            servicio=servicio, metodos=metodos)

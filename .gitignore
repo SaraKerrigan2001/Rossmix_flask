@@ -3,6 +3,16 @@
 .env.*
 !.env.example
 
+# Documentos con credenciales o datos sensibles
+credenciales_login.md
+credenciales*.md
+*_credenciales.md
+
+# Archivos temporales y de tarea
+task.md
+*.bak
+app.py.bak
+
 # Entornos virtuales
 .venv/
 .venv313/

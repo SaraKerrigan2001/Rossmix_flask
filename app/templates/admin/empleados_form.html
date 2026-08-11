@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+﻿{% extends 'base.html' %}
 {% block title %}{{ 'Editar' if empleado else 'Crear' }} Empleado - Rossmix{% endblock %}
 
 {% block content %}
@@ -26,6 +26,7 @@
     </div>
     <div class="r-card-body">
         <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="row g-4 mb-4">
                 <div class="col-md-6">
                     <label class="r-form-label">Nombre Completo *</label>

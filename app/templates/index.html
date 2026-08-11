@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+﻿{% extends 'base.html' %}
 
 {% block title %}Rossmix - Salón de Belleza y Uñas{% endblock %}
 
@@ -390,14 +390,14 @@
             </p>
             <div class="hero-buttons">
                 {% if not session.usuario_id %}
-                    <a href="{{ url_for('registro') }}" class="btn-pink"><i class="bi bi-scissors"></i> Registrarse Gratis</a>
-                    <a href="{{ url_for('login') }}" class="btn-outline-pink"><i class="bi bi-calendar3"></i> Agendar Cita</a>
+                    <a href="{{ url_for('auth.registro') }}" class="btn-pink"><i class="bi bi-scissors"></i> Registrarse Gratis</a>
+                    <a href="{{ url_for('auth.login') }}" class="btn-outline-pink"><i class="bi bi-calendar3"></i> Agendar Cita</a>
                 {% else %}
-                    <a href="{{ url_for('agendar_paso1') }}" class="btn-pink"><i class="bi bi-calendar-plus"></i> Agendar Cita</a>
+                    <a href="{{ url_for('citas.agendar_paso1') }}" class="btn-pink"><i class="bi bi-calendar-plus"></i> Agendar Cita</a>
                     {% if session.tipo_usuario == 'cliente' %}
-                        <a href="{{ url_for('dashboard_cliente') }}" class="btn-outline-pink"><i class="bi bi-house"></i> Mi Panel</a>
+                        <a href="{{ url_for('cliente.dashboard_cliente') }}" class="btn-outline-pink"><i class="bi bi-house"></i> Mi Panel</a>
                     {% else %}
-                        <a href="{{ url_for('dashboard_admin') }}" class="btn-outline-pink"><i class="bi bi-grid"></i> Panel Admin</a>
+                        <a href="{{ url_for('admin.dashboard') }}" class="btn-outline-pink"><i class="bi bi-grid"></i> Panel Admin</a>
                     {% endif %}
                 {% endif %}
             </div>
@@ -422,7 +422,7 @@
             <div class="cat-info">
                 <h3>Manicure Clásico</h3>
                 <p>Limpieza, forma y color perfecto</p>
-                <a href="{{ url_for('agendar_paso1') }}" class="quick-view"><i class="bi bi-arrow-right"></i> Ver servicio</a>
+                <a href="{{ url_for('citas.agendar_paso1') }}" class="quick-view"><i class="bi bi-arrow-right"></i> Ver servicio</a>
             </div>
         </div>
         <div class="cat-card">
@@ -430,7 +430,7 @@
             <div class="cat-info">
                 <h3>Uñas en Gel</h3>
                 <p>Duración y brillo sin igual</p>
-                <a href="{{ url_for('agendar_paso1') }}" class="quick-view"><i class="bi bi-arrow-right"></i> Ver servicio</a>
+                <a href="{{ url_for('citas.agendar_paso1') }}" class="quick-view"><i class="bi bi-arrow-right"></i> Ver servicio</a>
             </div>
         </div>
         <div class="cat-card">
@@ -438,7 +438,7 @@
             <div class="cat-info">
                 <h3>Diseños Artísticos</h3>
                 <p>Arte en cada uña, estilo único</p>
-                <a href="{{ url_for('agendar_paso1') }}" class="quick-view"><i class="bi bi-arrow-right"></i> Ver servicio</a>
+                <a href="{{ url_for('citas.agendar_paso1') }}" class="quick-view"><i class="bi bi-arrow-right"></i> Ver servicio</a>
             </div>
         </div>
         <div class="cat-card">
@@ -446,7 +446,7 @@
             <div class="cat-info">
                 <h3>Semipermanente</h3>
                 <p>Color que dura semanas</p>
-                <a href="{{ url_for('agendar_paso1') }}" class="quick-view"><i class="bi bi-arrow-right"></i> Ver servicio</a>
+                <a href="{{ url_for('citas.agendar_paso1') }}" class="quick-view"><i class="bi bi-arrow-right"></i> Ver servicio</a>
             </div>
         </div>
     </div>
@@ -598,14 +598,14 @@
         </div>
         <div class="cta-actions">
             {% if not session.usuario_id %}
-                <a href="{{ url_for('registro') }}" class="btn-white"><i class="bi bi-scissors"></i> Crear Cuenta</a>
-                <a href="{{ url_for('login') }}" class="btn-outline-white"><i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión</a>
+                <a href="{{ url_for('auth.registro') }}" class="btn-white"><i class="bi bi-scissors"></i> Crear Cuenta</a>
+                <a href="{{ url_for('auth.login') }}" class="btn-outline-white"><i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión</a>
             {% else %}
-                <a href="{{ url_for('agendar_paso1') }}" class="btn-white"><i class="bi bi-calendar-plus"></i> Agendar Ahora</a>
+                <a href="{{ url_for('citas.agendar_paso1') }}" class="btn-white"><i class="bi bi-calendar-plus"></i> Agendar Ahora</a>
                 {% if session.tipo_usuario == 'cliente' %}
-                    <a href="{{ url_for('mis_citas') }}" class="btn-outline-white"><i class="bi bi-calendar3"></i> Mis Citas</a>
+                    <a href="{{ url_for('citas.mis_citas') }}" class="btn-outline-white"><i class="bi bi-calendar3"></i> Mis Citas</a>
                 {% else %}
-                    <a href="{{ url_for('dashboard_admin') }}" class="btn-outline-white"><i class="bi bi-grid"></i> Panel Admin</a>
+                    <a href="{{ url_for('admin.dashboard') }}" class="btn-outline-white"><i class="bi bi-grid"></i> Panel Admin</a>
                 {% endif %}
             {% endif %}
         </div>

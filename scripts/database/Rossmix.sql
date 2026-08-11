@@ -1,4 +1,4 @@
--- ============================================================================
+﻿-- ============================================================================
 -- ROSSMIX - BASE DE DATOS DEFINITIVA Y UNIFICADA
 -- Versión final: usuario+clientes unificados, pagos conectados a citas
 -- Ejecutar en pgAdmin sobre la base de datos "Rossmix"
@@ -7,7 +7,6 @@
 -- ============================================================================
 -- 1. LIMPIEZA COMPLETA (orden inverso por dependencias)
 -- ============================================================================
-DROP VIEW  IF EXISTS vista_nuevos_usuarios  CASCADE;
 DROP VIEW  IF EXISTS vista_agenda_diaria    CASCADE;
 DROP VIEW  IF EXISTS vista_pagos_pendientes CASCADE;
 DROP TABLE IF EXISTS auditoria_usuarios     CASCADE;
@@ -19,9 +18,9 @@ DROP TABLE IF EXISTS empleado_servicios     CASCADE;
 DROP TABLE IF EXISTS empleados              CASCADE;
 DROP TABLE IF EXISTS servicios              CASCADE;
 DROP TABLE IF EXISTS usuario                CASCADE;
+DROP TABLE IF EXISTS configuraciones        CASCADE;
 DROP TYPE  IF EXISTS estado_cita_enum       CASCADE;
 DROP TYPE  IF EXISTS metodo_pago_enum       CASCADE;
-DROP FUNCTION IF EXISTS fn_auditoria_nuevo_usuario CASCADE;
 
 -- ============================================================================
 -- 2. TIPOS ENUMERADOS
@@ -258,24 +257,48 @@ CREATE INDEX idx_notif_fecha   ON notificaciones(fecha);
 
 -- ============================================================================
 -- 12. TABLA: AUDITORIA_USUARIOS
---    Registro automático de cada nuevo usuario vía trigger
+--    Registra cada acción relevante sobre cuentas de usuario
+--    (creación, edición, desactivación, login, etc.)
+--    id_usuario → usuario(id)  [SET NULL: si se borra el usuario, el log se conserva]
+--    id_cita    → citas(id_cita) [SET NULL: referencia opcional a una cita relacionada]
 -- ============================================================================
 CREATE TABLE auditoria_usuarios (
     id              SERIAL          PRIMARY KEY,
-    id_usuario      INTEGER         NOT NULL,
-    nombre          VARCHAR(100),
-    email           VARCHAR(120),
-    telefono        VARCHAR(20),
-    tipo_usuario    VARCHAR(20),
-    fecha_registro  TIMESTAMP       DEFAULT NOW(),
-    accion          VARCHAR(10)     DEFAULT 'INSERT',
-    ip_address      VARCHAR(45)
+    id_usuario      INTEGER,                        -- usuario que fue afectado
+    id_actor        INTEGER,                        -- usuario que realizó la acción (admin)
+    nombre          VARCHAR(100),                   -- snapshot del nombre al momento de la acción
+    email           VARCHAR(120),                   -- snapshot del email
+    telefono        VARCHAR(20),                    -- snapshot del teléfono
+    tipo_usuario    VARCHAR(20),                    -- snapshot del rol
+    accion          VARCHAR(50)     NOT NULL,       -- 'crear','editar','desactivar','login','logout', etc.
+    detalle         TEXT,                           -- descripción libre del cambio
+    ip_address      VARCHAR(45),                    -- IPv4 o IPv6
+    fecha           TIMESTAMP       DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_auditoria_usuario
+        FOREIGN KEY (id_usuario) REFERENCES usuario(id)
+        ON DELETE SET NULL ON UPDATE CASCADE,
+
+    CONSTRAINT fk_auditoria_actor
+        FOREIGN KEY (id_actor) REFERENCES usuario(id)
+        ON DELETE SET NULL ON UPDATE CASCADE
 );
 
-COMMENT ON TABLE auditoria_usuarios IS 'Registro automático de nuevos usuarios vía trigger PostgreSQL';
+COMMENT ON TABLE  auditoria_usuarios          IS 'Registro de auditoría de acciones sobre cuentas de usuario';
+COMMENT ON COLUMN auditoria_usuarios.id_usuario  IS 'Usuario afectado por la acción';
+COMMENT ON COLUMN auditoria_usuarios.id_actor    IS 'Usuario que ejecutó la acción (ej: admin que editó)';
+COMMENT ON COLUMN auditoria_usuarios.accion      IS 'Tipo de acción: crear | editar | desactivar | login | logout | reset_password';
+COMMENT ON COLUMN auditoria_usuarios.detalle     IS 'Descripción del cambio, ej: "cambió email de X a Y"';
+COMMENT ON COLUMN auditoria_usuarios.ip_address  IS 'Dirección IP desde donde se realizó la acción';
 
-CREATE INDEX idx_auditoria_usuario ON auditoria_usuarios(id_usuario);
-CREATE INDEX idx_auditoria_fecha   ON auditoria_usuarios(fecha_registro);
+-- Índices para consultas frecuentes de auditoría
+CREATE INDEX idx_audit_usuario  ON auditoria_usuarios(id_usuario);
+CREATE INDEX idx_audit_actor    ON auditoria_usuarios(id_actor);
+CREATE INDEX idx_audit_accion   ON auditoria_usuarios(accion);
+CREATE INDEX idx_audit_fecha    ON auditoria_usuarios(fecha);
+
+-- ============================================================================
+-- 13. VISTAS
 -- ============================================================================
 
 -- Vista agenda diaria completa
@@ -413,7 +436,49 @@ SELECT id_empleado, 6, '09:00', '16:00'
 FROM empleados;
 
 -- ============================================================================
--- 18. VERIFICACIÓN FINAL
+-- 18. TABLA: CONFIGURACIONES
+--    Parámetros configurables del sistema (clave-valor)
+--    creado_por → usuario(id)  [SET NULL: si se borra el usuario, la config se conserva]
+-- ============================================================================
+CREATE TABLE configuraciones (
+    id                   SERIAL          PRIMARY KEY,
+    clave                VARCHAR(120)    UNIQUE NOT NULL,
+    valor                TEXT            NOT NULL,
+    descripcion          TEXT,
+    creado_por           INTEGER,                        -- FK → usuario que creó el parámetro
+    modificado_por       INTEGER,                        -- FK → usuario que lo modificó por última vez
+    fecha_creacion       TIMESTAMP       DEFAULT CURRENT_TIMESTAMP,
+    fecha_actualizacion  TIMESTAMP       DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_config_creado_por
+        FOREIGN KEY (creado_por)    REFERENCES usuario(id)
+        ON DELETE SET NULL ON UPDATE CASCADE,
+
+    CONSTRAINT fk_config_modificado_por
+        FOREIGN KEY (modificado_por) REFERENCES usuario(id)
+        ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+COMMENT ON TABLE  configuraciones                IS 'Parámetros configurables del sistema (clave-valor)';
+COMMENT ON COLUMN configuraciones.clave          IS 'Identificador único del parámetro, ej: abono_minimo';
+COMMENT ON COLUMN configuraciones.valor          IS 'Valor del parámetro en texto plano';
+COMMENT ON COLUMN configuraciones.creado_por     IS 'ID del usuario admin que creó el parámetro';
+COMMENT ON COLUMN configuraciones.modificado_por IS 'ID del usuario admin que modificó el parámetro por última vez';
+
+CREATE INDEX idx_config_clave        ON configuraciones(clave);
+CREATE INDEX idx_config_creado_por   ON configuraciones(creado_por);
+CREATE INDEX idx_config_modificado   ON configuraciones(modificado_por);
+
+-- Datos iniciales de configuración (creado_por y modificado_por quedan NULL hasta que un admin los gestione)
+INSERT INTO configuraciones (clave, valor, descripcion) VALUES
+('abono_minimo',        '5000',                      'Monto mínimo de abono para reservar una cita (COP)'),
+('anticipacion_minima', '2',                          'Horas mínimas de anticipación para cancelar/reprogramar'),
+('max_dias_agenda',     '90',                         'Máximo de días en el futuro que se puede agendar'),
+('nombre_salon',        'Rossmix Salón de Belleza',   'Nombre del salón que aparece en emails y PDFs'),
+('moneda',              'COP',                        'Moneda utilizada en precios');
+
+-- ============================================================================
+-- 19. VERIFICACIÓN FINAL
 -- ============================================================================
 SELECT 'usuario'             AS tabla, COUNT(*) AS registros FROM usuario          UNION ALL
 SELECT 'servicios',                    COUNT(*) FROM servicios                     UNION ALL
@@ -423,65 +488,11 @@ SELECT 'horarios_empleados',           COUNT(*) FROM horarios_empleados         
 SELECT 'citas',                        COUNT(*) FROM citas                         UNION ALL
 SELECT 'pagos',                        COUNT(*) FROM pagos                         UNION ALL
 SELECT 'notificaciones',               COUNT(*) FROM notificaciones                UNION ALL
-SELECT 'auditoria_usuarios',           COUNT(*) FROM auditoria_usuarios;
-
-
--- ============================================================================
--- 19. TRIGGER: AUDITORÍA DE NUEVOS USUARIOS EN TIEMPO REAL
---    Cada INSERT en usuario queda registrado automáticamente en
---    auditoria_usuarios y emite un canal pg_notify para listeners externos.
--- ============================================================================
-CREATE OR REPLACE FUNCTION fn_auditoria_nuevo_usuario()
-RETURNS TRIGGER AS $$
-BEGIN
-    INSERT INTO auditoria_usuarios (
-        id_usuario, nombre, email, telefono, tipo_usuario, fecha_registro, accion
-    ) VALUES (
-        NEW.id, NEW.nombre, NEW.email, NEW.telefono,
-        NEW.tipo_usuario, NEW.fecha_registro, 'INSERT'
-    );
-
-    -- Notificar canal en tiempo real (útil para listeners externos o WebSockets)
-    PERFORM pg_notify(
-        'nuevo_usuario',
-        json_build_object(
-            'id',           NEW.id,
-            'nombre',       NEW.nombre,
-            'email',        NEW.email,
-            'tipo_usuario', NEW.tipo_usuario,
-            'fecha',        to_char(NEW.fecha_registro, 'DD/MM/YYYY HH24:MI:SS')
-        )::text
-    );
-
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
--- El trigger se elimina en cascada cuando se ejecuta
--- DROP FUNCTION IF EXISTS fn_auditoria_nuevo_usuario CASCADE (línea 1 del script)
-CREATE TRIGGER trg_auditoria_nuevo_usuario
-    AFTER INSERT ON usuario
-    FOR EACH ROW
-    EXECUTE FUNCTION fn_auditoria_nuevo_usuario();
-
--- ============================================================================
--- 20. VISTAS DE AUDITORÍA
--- ============================================================================
-CREATE OR REPLACE VIEW vista_nuevos_usuarios AS
-    SELECT id, id_usuario, nombre, email, telefono,
-           tipo_usuario, fecha_registro, accion
-    FROM auditoria_usuarios
-    ORDER BY fecha_registro DESC;
+SELECT 'auditoria_usuarios',           COUNT(*) FROM auditoria_usuarios            UNION ALL
+SELECT 'configuraciones',              COUNT(*) FROM configuraciones;
 
 -- ============================================================================
 -- CONSULTAS ÚTILES EN PGADMIN:
---
---   Ver todos los usuarios nuevos:
---     SELECT * FROM vista_nuevos_usuarios;
---
---   Ver registros de la última hora:
---     SELECT * FROM vista_nuevos_usuarios
---     WHERE fecha_registro >= NOW() - INTERVAL '1 hour';
 --
 --   Ver agenda de hoy:
 --     SELECT * FROM vista_agenda_diaria

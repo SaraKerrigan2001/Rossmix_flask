@@ -43,8 +43,11 @@
             <i class="bi bi-currency-dollar"></i>
         </div>
         <div>
-            {% set total = pagos | sum(attribute='0.monto') %}
-            <div style="font-size:1.6rem;font-weight:800;color:#1a1a1a;">${{ "{:,.0f}".format(total) }}</div>
+            {% set ns = namespace(total=0) %}
+            {% for pago, cita, usuario, servicio in pagos %}
+                {% set ns.total = ns.total + pago.monto %}
+            {% endfor %}
+            <div style="font-size:1.6rem;font-weight:800;color:#1a1a1a;">${{ "{:,.0f}".format(ns.total) }}</div>
             <div style="font-size:0.82rem;color:#888;">Total Recaudado</div>
         </div>
     </div>
