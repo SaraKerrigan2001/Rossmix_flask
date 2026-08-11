@@ -4,6 +4,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from app.extensions import db
 from app.forms.auth import LoginForm, RegisterForm
 from app.models import Usuario
+from app.models.auditoria import registrar_auditoria
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -22,9 +23,24 @@ def login():
                 flash('Tu cuenta está desactivada. Contacta al administrador.', 'error')
                 return redirect(url_for('auth.login'))
 
+            session.permanent = True   # activa el timeout definido en PERMANENT_SESSION_LIFETIME
             session['usuario_id'] = usuario.id
             session['nombre'] = usuario.nombre
             session['tipo_usuario'] = usuario.tipo_usuario
+
+            # Registrar login en auditoría
+            registrar_auditoria(
+                accion='login',
+                id_usuario=usuario.id,
+                id_actor=usuario.id,
+                nombre=usuario.nombre,
+                email=usuario.email,
+                tipo_usuario=usuario.tipo_usuario,
+                detalle=f'Inicio de sesión exitoso',
+                ip_address=request.remote_addr,
+            )
+            db.session.commit()
+
             flash(f'¡Bienvenido/a {usuario.nombre}!', 'success')
 
             if usuario.tipo_usuario == 'admin':
@@ -72,6 +88,25 @@ def registro():
 
 @auth_bp.route('/logout')
 def logout():
+    # Registrar logout antes de limpiar la sesión
+    uid = session.get('usuario_id')
+    uname = session.get('nombre', '')
+    utype = session.get('tipo_usuario', '')
+    if uid:
+        try:
+            registrar_auditoria(
+                accion='logout',
+                id_usuario=uid,
+                id_actor=uid,
+                nombre=uname,
+                tipo_usuario=utype,
+                detalle='Cierre de sesión',
+                ip_address=request.remote_addr,
+            )
+            db.session.commit()
+        except Exception:
+            pass
+
     session.clear()
     flash('Has cerrado sesión correctamente', 'success')
     return redirect(url_for('main.index'))

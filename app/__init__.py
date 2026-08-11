@@ -49,6 +49,7 @@ def create_app(config_class=Config):
         'gestionar_cita':        'citas.gestionar_cita',
         'reagendar_no_asistio':  'citas.reagendar_no_asistio',
         'reprogramar_cita_form': 'citas.reprogramar_cita_form',
+        'reprogramar_cita_submit': 'citas.reprogramar_cita_submit',
         'admin_exportar_excel': 'admin.exportar_excel',
         'admin_empleados': 'admin.empleados',
         'admin_empleados_crear': 'admin.empleados_crear',

@@ -1,94 +1,72 @@
 """
-Pobla la tabla usuario con admin + clientes de prueba.
-Ejecutar UNA SOLA VEZ después de correr rossmix_definitivo.sql
-
-Las credenciales (conexión a la BD y contraseñas de los usuarios de
-prueba) se leen desde variables de entorno / archivo ".env" en lugar de
-estar escritas en este archivo. Ver ".env.example" para la lista de
-variables disponibles.
-
-Variables de entorno usadas por este script:
-  DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD
-  SEED_ADMIN_PASSWORD       (contraseña para los usuarios admin de prueba)
-  SEED_CLIENTE_PASSWORD     (contraseña para los usuarios cliente de prueba)
+Crea/actualiza todos los usuarios de prueba de Rossmix en PostgreSQL.
+Ejecutar una vez tras recrear la BD: python crear_usuarios.py
 """
-import os
-import sys
+import os, sys
+# Agregar la raíz del proyecto al path (dos niveles arriba de scripts/utilidades/)
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+sys.path.insert(0, ROOT)
 
-from dotenv import load_dotenv
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
+from app import create_app
+from app.extensions import db
+from app.models.usuario import Usuario
 from werkzeug.security import generate_password_hash
-import psycopg
 
-load_dotenv()
-
-DB = dict(
-    host=os.environ.get('DB_HOST', 'localhost'),
-    port=os.environ.get('DB_PORT', '5432'),
-    dbname=os.environ.get('DB_NAME', 'Rossmix'),
-    user=os.environ.get('DB_USER', 'postgres'),
-    password=os.environ.get('DB_PASSWORD'),
-)
-
-if not DB['password']:
-    sys.exit(
-        'Error: falta la variable de entorno DB_PASSWORD.\n'
-        'Define las variables de conexión en tu archivo .env '
-        '(ver .env.example) antes de ejecutar este script.'
-    )
-
-# Contraseñas de los usuarios de prueba: también configurables por entorno,
-# con un valor por defecto solo para no romper el flujo de desarrollo local.
-ADMIN_PWD   = os.environ.get('SEED_ADMIN_PASSWORD',   'admin123')
+ADMIN_PWD   = os.environ.get('SEED_ADMIN_PASSWORD',  'admin123')
 CLIENTE_PWD = os.environ.get('SEED_CLIENTE_PASSWORD', 'cliente123')
 
-usuarios = [
-    # (nombre,               email,                         telefono,     password,     tipo)
-    ("Administrador",        "admin@rossmix.com",           "3000000000", ADMIN_PWD,    "admin"),
-    ("María González",       "maria@rossmix.com",           "3001234567", ADMIN_PWD,    "admin"),
-    ("Andrea Vargas",        "andrea.vargas@email.com",     "3100000001", CLIENTE_PWD,  "cliente"),
-    ("Patricia Silva",       "patricia.silva@email.com",    "3100000002", CLIENTE_PWD,  "cliente"),
-    ("Diana Gutierrez",      "diana.gutierrez@email.com",   "3100000003", CLIENTE_PWD,  "cliente"),
-    ("Juliana Rojas",        "juliana.rojas@email.com",     "3100000004", CLIENTE_PWD,  "cliente"),
-    ("Catalina Mendoza",     "catalina.mendoza@email.com",  "3100000005", CLIENTE_PWD,  "cliente"),
-    ("Valentina Perez",      "valentina.perez@email.com",   "3100000006", CLIENTE_PWD,  "cliente"),
-    ("Isabella Garcia",      "isabella.garcia@email.com",   "3100000007", CLIENTE_PWD,  "cliente"),
-    ("Laura Martinez",       "laura.martinez@email.com",    "3100000008", CLIENTE_PWD,  "cliente"),
-    ("Evelit Collante",      "evelit@gmail.co",             "3100000009", CLIENTE_PWD,  "cliente"),
-    ("Carlos Prieto",        "carlos@gmail.com",            "3456789123", CLIENTE_PWD,  "cliente"),
+USUARIOS = [
+    # (nombre, email, telefono, tipo, password)
+    ('Administrador',    'admin@rossmix.com',            '3000000000', 'admin',   ADMIN_PWD),
+    ('María González',   'maria@rossmix.com',            '3001000000', 'admin',   ADMIN_PWD),
+    ('Andrea Vargas',    'andrea.vargas@email.com',       '3001000001', 'cliente', CLIENTE_PWD),
+    ('Patricia Silva',   'patricia.silva@email.com',      '3001000002', 'cliente', CLIENTE_PWD),
+    ('Diana Gutierrez',  'diana.gutierrez@email.com',     '3001000003', 'cliente', CLIENTE_PWD),
+    ('Juliana Rojas',    'juliana.rojas@email.com',       '3001000004', 'cliente', CLIENTE_PWD),
+    ('Catalina Mendoza', 'catalina.mendoza@email.com',    '3001000005', 'cliente', CLIENTE_PWD),
+    ('Valentina Perez',  'valentina.perez@email.com',     '3001000006', 'cliente', CLIENTE_PWD),
+    ('Isabella Garcia',  'isabella.garcia@email.com',     '3001000007', 'cliente', CLIENTE_PWD),
+    ('Laura Martinez',   'laura.martinez@email.com',      '3001000008', 'cliente', CLIENTE_PWD),
+    ('Evelit Collante',  'evelit@gmail.co',               '3001000009', 'cliente', CLIENTE_PWD),
+    ('Carlos Prieto',    'carlos@gmail.com',              '3001000010', 'cliente', 'carlos1234'),
 ]
 
-conn = psycopg.connect(**DB)
-cur  = conn.cursor()
+print('=' * 60)
+print('CREANDO USUARIOS — ROSSMIX')
+print('=' * 60)
 
-print("=" * 58)
-print("CREANDO USUARIOS — ROSSMIX")
-print("=" * 58)
+app = create_app()
+with app.app_context():
+    creados = actualizados = 0
+    for nombre, email, telefono, tipo, pwd in USUARIOS:
+        existente = Usuario.query.filter_by(email=email).first()
+        if existente:
+            existente.nombre       = nombre
+            existente.telefono     = telefono
+            existente.tipo_usuario = tipo
+            existente.activo       = True
+            actualizados += 1
+            print(f'  [UPD  ] {tipo:7} {nombre:25} {email}')
+        else:
+            u = Usuario(
+                nombre=nombre, email=email, telefono=telefono,
+                password=generate_password_hash(pwd), tipo_usuario=tipo
+            )
+            db.session.add(u)
+            creados += 1
+            print(f'  [NUEVO] {tipo:7} {nombre:25} {email}')
 
-ok = 0
-for nombre, email, tel, pwd, tipo in usuarios:
-    try:
-        cur.execute(
-            "INSERT INTO usuario (nombre, email, telefono, password, tipo_usuario) "
-            "VALUES (%s, %s, %s, %s, %s) ON CONFLICT (email) DO NOTHING",
-            (nombre, email, tel, generate_password_hash(pwd), tipo)
-        )
-        tag = "ADMIN  " if tipo == "admin" else "cliente"
-        print(f"  [{tag}] {nombre:25s} {email}")
-        ok += 1
-    except Exception as e:
-        print(f"  ERROR {email}: {e}")
+    db.session.commit()
 
-conn.commit()
-
-# Verificación final
-cur.execute("SELECT tipo_usuario, COUNT(*) FROM usuario GROUP BY tipo_usuario")
-print(f"\nResultado en BD:")
-for row in cur.fetchall():
-    print(f"  {row[0]:8s}: {row[1]} usuario(s)")
-
-cur.close()
-conn.close()
-print(f"\n{ok} usuarios procesados correctamente.")
-print("\nCredenciales usadas (definidas por variables de entorno):")
-print(f"  Admin:   admin@rossmix.com        /  (SEED_ADMIN_PASSWORD)")
-print(f"  Cliente: andrea.vargas@email.com  /  (SEED_CLIENTE_PASSWORD)")
+    total = Usuario.query.count()
+    print(f'\nResultado: {creados} creados, {actualizados} actualizados — {total} usuarios en BD')
+    print(f'\nCredenciales:')
+    print(f'  Admin:   admin@rossmix.com  /  {ADMIN_PWD}')
+    print(f'  Cliente: andrea.vargas@email.com  /  {CLIENTE_PWD}')
+    print(f'  Carlos:  carlos@gmail.com  /  carlos1234')

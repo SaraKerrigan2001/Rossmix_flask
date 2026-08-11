@@ -19,8 +19,7 @@ class Pago(db.Model):
             'nequi',
             'daviplata',
             name='metodo_pago_enum',
-            native_enum=True,
-            create_constraint=False,
+            create_type=False,   # el tipo ya existe en PostgreSQL (creado por Rossmix.sql)
         ),
         nullable=False,
         default='efectivo',

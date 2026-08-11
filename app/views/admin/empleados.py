@@ -13,6 +13,16 @@ def empleados():
     """Listar todos los empleados"""
     lista = Empleado.query.order_by(Empleado.nombre).all()
     servicios = Servicio.query.filter_by(activo=True).all()
+
+    # Pre-calcular número de servicios por empleado para evitar error en template
+    # (Empleado no tiene atributo 'servicios' directamente en el modelo ORM)
+    conteo_servicios = {}
+    for emp in lista:
+        conteo_servicios[emp.id_empleado] = EmpleadoServicio.query.filter_by(
+            id_empleado=emp.id_empleado
+        ).count()
+        emp.num_servicios = conteo_servicios[emp.id_empleado]
+
     return render_template('admin/empleados.html', empleados=lista, servicios=servicios)
 
 

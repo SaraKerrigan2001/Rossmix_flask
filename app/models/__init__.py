@@ -10,6 +10,7 @@ from app.models.cita import Cita
 from app.models.pago import Pago
 from app.models.notificacion import Notificacion
 from app.models.configuracion import Configuracion
+from app.models.auditoria import AuditoriaUsuario
 
 __all__ = [
     'Usuario',
@@ -21,4 +22,5 @@ __all__ = [
     'Pago',
     'Notificacion',
     'Configuracion',
+    'AuditoriaUsuario',
 ]

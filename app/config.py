@@ -67,3 +67,11 @@ class Config:
     # Configuración de formularios y CSRF
     WTF_CSRF_ENABLED = True
     WTF_CSRF_TIME_LIMIT = None
+
+    # Sesión permanente con tiempo de expiración
+    # La sesión expira tras 8 horas de inactividad en producción
+    PERMANENT_SESSION_LIFETIME_SECONDS = int(
+        os.environ.get('SESSION_LIFETIME_SECONDS', 8 * 60 * 60)  # 8 horas por defecto
+    )
+    from datetime import timedelta
+    PERMANENT_SESSION_LIFETIME = timedelta(seconds=PERMANENT_SESSION_LIFETIME_SECONDS)

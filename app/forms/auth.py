@@ -27,8 +27,6 @@ class PagoForm(FlaskForm):
             ('efectivo', 'Efectivo'),
             ('tarjeta', 'Tarjeta'),
             ('transferencia', 'Transferencia'),
-            ('nequi', 'Nequi'),
-            ('daviplata', 'Daviplata'),
         ],
         validators=[DataRequired(message='El método de pago es obligatorio')]
     )

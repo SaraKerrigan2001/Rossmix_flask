@@ -1,5 +1,6 @@
 """Lógica de negocio para la gestión de citas."""
 import random
+import secrets
 import string
 from datetime import datetime, timedelta
 from decimal import Decimal
@@ -68,6 +69,11 @@ class CitaService:
         return ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
 
     @staticmethod
+    def generar_token_gestion():
+        """Genera un token URL-safe de 32 caracteres para el link de gestión."""
+        return secrets.token_urlsafe(24)  # 24 bytes → 32 caracteres base64url
+
+    @staticmethod
     def bloquear_agenda_cita(cita_id):
         cita = Cita.query.get(cita_id)
         if not cita:
@@ -94,6 +100,7 @@ class CitaService:
             raise ValueError('Servicio no encontrado')
 
         codigo_reserva = CitaService.generar_codigo_reserva()
+        token_gestion  = CitaService.generar_token_gestion()
         monto_total = Decimal(str(servicio.precio_total))
         saldo_pendiente = monto_total - CitaService.DEFAULT_ABONO
 
@@ -109,6 +116,7 @@ class CitaService:
             estado='pendiente_pago',
             reembolsado=False,
             codigo_reserva=codigo_reserva,
+            token_gestion=token_gestion,
             fecha_creacion=datetime.utcnow(),
         )
 
