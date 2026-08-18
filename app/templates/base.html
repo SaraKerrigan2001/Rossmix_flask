@@ -486,7 +486,7 @@
 <nav>
     <div class="nav-inner">
         <a href="{{ url_for('main.index') }}" class="logo">
-            <img src="{{ url_for('static', filename='images/logo_rossmix_r.jpg') }}" alt="Rossmix Luxury Beauty">
+            <img src="{{ url_for('static', filename='images/logo_rossmix_r.png') }}" alt="Rossmix Luxury Beauty">
             <span class="logo-text">Rossmix<small>Luxury Beauty</small></span>
         </a>
         <ul>
@@ -1051,5 +1051,75 @@ function rossmixConfirm({ titulo='Confirmar', mensaje='', tipo='danger', okText=
     });
 </script>
 {% block extra_js %}{% endblock %}
+    <!-- CHATBOT WIDGET -->
+    <div id="rossmix-bot-container">
+        <button id="rossmix-bot-toggle" onclick="toggleBot()">
+            <i class="bi bi-chat-dots-fill"></i>
+        </button>
+        <div id="rossmix-bot-window" class="hidden">
+            <div class="bot-header">
+                <span>Rossmix Asistente</span>
+                <button onclick="toggleBot()"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <div class="bot-body" id="bot-body">
+                <div class="bot-msg">¡Hola! Soy el asistente virtual de Rossmix Beauty Salon. ¿En qué te puedo ayudar hoy?</div>
+            </div>
+            <div class="bot-footer">
+                <input type="text" id="bot-input" placeholder="Escribe tu mensaje..." onkeypress="handleBotInput(event)">
+                <button onclick="sendBotMsg()"><i class="bi bi-send-fill"></i></button>
+            </div>
+        </div>
+    </div>
+    <style>
+    #rossmix-bot-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; }
+    #rossmix-bot-toggle {
+        background: #c41e3a; color: white; border: none; border-radius: 50%;
+        width: 60px; height: 60px; font-size: 1.8rem; cursor: pointer;
+        box-shadow: 0 4px 15px rgba(196,30,58,0.3);
+        transition: transform 0.2s; display: flex; align-items: center; justify-content: center;
+    }
+    #rossmix-bot-toggle:hover { transform: scale(1.05); }
+    #rossmix-bot-window {
+        position: absolute; bottom: 75px; right: 0; width: 320px;
+        background: white; border-radius: 12px; box-shadow: 0 5px 25px rgba(0,0,0,0.15);
+        display: flex; flex-direction: column; overflow: hidden;
+        transition: all 0.3s ease; opacity: 1; transform: translateY(0);
+    }
+    #rossmix-bot-window.hidden { opacity: 0; transform: translateY(20px); pointer-events: none; }
+    .bot-header {
+        background: linear-gradient(135deg, #c41e3a, #ff1493); color: white;
+        padding: 1rem; display: flex; justify-content: space-between; align-items: center;
+        font-weight: 600;
+    }
+    .bot-header button { background: none; border: none; color: white; cursor: pointer; font-size: 1.1rem; }
+    .bot-body { height: 300px; padding: 1rem; overflow-y: auto; background: #fafafa; display: flex; flex-direction: column; gap: 0.8rem; }
+    .bot-msg { background: #fff0f6; color: #333; padding: 0.8rem 1rem; border-radius: 15px; border-bottom-left-radius: 2px; max-width: 85%; font-size: 0.9rem; align-self: flex-start; }
+    .user-msg { background: #C5A059; color: white; padding: 0.8rem 1rem; border-radius: 15px; border-bottom-right-radius: 2px; max-width: 85%; font-size: 0.9rem; align-self: flex-end; }
+    .bot-footer { display: flex; padding: 0.8rem; background: white; border-top: 1px solid #eee; }
+    .bot-footer input { flex: 1; border: 1px solid #ddd; padding: 0.5rem 0.8rem; border-radius: 20px; outline: none; font-size: 0.9rem; }
+    .bot-footer button { background: #c41e3a; color: white; border: none; width: 35px; height: 35px; border-radius: 50%; margin-left: 0.5rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    </style>
+    <script>
+    function toggleBot() { document.getElementById('rossmix-bot-window').classList.toggle('hidden'); }
+    function sendBotMsg() {
+        const input = document.getElementById('bot-input');
+        const text = input.value.trim();
+        if(!text) return;
+        addMsg(text, 'user-msg');
+        input.value = '';
+        setTimeout(() => {
+            addMsg('Gracias por tu mensaje. Un especialista se pondrá en contacto pronto o puedes agendar tu cita directamente en tu panel.', 'bot-msg');
+        }, 1000);
+    }
+    function handleBotInput(e) { if(e.key === 'Enter') sendBotMsg(); }
+    function addMsg(text, className) {
+        const body = document.getElementById('bot-body');
+        const msg = document.createElement('div');
+        msg.className = className;
+        msg.innerText = text;
+        body.appendChild(msg);
+        body.scrollTop = body.scrollHeight;
+    }
+    </script>
 </body>
 </html>
