@@ -1,4 +1,4 @@
-﻿{% extends 'base.html' %}
+{% extends 'base.html' %}
 
 {% block title %}Iniciar Sesión - Rossmix{% endblock %}
 
@@ -7,11 +7,13 @@
     .login-container {
         max-width: 500px;
         margin: 3rem auto;
-        background: linear-gradient(135deg, #ffffff 0%, #fff5fa 100%);
+        background: rgba(255, 255, 255, 0.65);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
         padding: 3.5rem;
         border-radius: 30px;
-        box-shadow: 0 15px 50px rgba(255, 105, 180, 0.3);
-        border: 3px solid rgba(255, 215, 0, 0.4);
+        box-shadow: 0 15px 50px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.6);
         position: relative;
         overflow: hidden;
     }
@@ -87,16 +89,16 @@
     .btn-submit {
         width: 100%;
         padding: 1.2rem;
-        background: linear-gradient(135deg, #ff69b4 0%, #ff1493 50%, #c71585 100%);
-        color: white;
-        border: none;
+        background: linear-gradient(135deg, #fce4ec 0%, #f48fb1 100%);
+        color: #880e4f;
+        border: 1px solid #f06292;
         border-radius: 25px;
         font-size: 1.2rem;
         cursor: pointer;
         transition: all 0.4s;
         font-weight: 700;
         font-family: 'Poppins', sans-serif;
-        box-shadow: 0 8px 25px rgba(255, 105, 180, 0.4);
+        box-shadow: 0 8px 25px rgba(240, 98, 146, 0.3);
         position: relative;
         overflow: hidden;
         z-index: 1;
@@ -173,7 +175,10 @@
 
 {% block content %}
 <div class="login-container">
-    <h2>🔐 Iniciar Sesión</h2>
+    <div style="text-align:center; margin-bottom:1.5rem;">
+        <img src="{{ url_for('static', filename='images/logo_rossmix.jpg') }}" alt="Rossmix Luxury Beauty" style="height:80px; width:auto; margin:0 auto;">
+    </div>
+    <h2>Iniciar Sesión</h2>
     
     <div class="info-box">
         <strong>👨‍💼 Usuario admin de prueba:</strong><br>

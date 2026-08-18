@@ -38,13 +38,13 @@
 
 {% block content %}
 <!-- Saludo -->
-<div style="background:linear-gradient(135deg,#c41e3a,#ff1493);border-radius:20px;
-            padding:1.8rem 2rem;margin-bottom:2rem;color:white;
-            display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
+<div style="background:rgba(147, 112, 219, 0.25);backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px);border:1px solid rgba(255,255,255,0.7);border-radius:20px;
+            padding:1.8rem 2rem;margin-bottom:2rem;color:#1a1a1a;
+            display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;box-shadow:0 8px 32px rgba(147,112,219,0.1);">
     <div>
         <div style="font-size:0.88rem;opacity:0.85;margin-bottom:0.3rem;">Portal Especialista</div>
-        <h1 style="font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:800;margin:0;">
-            ¡Hola, {{ empleado.nombre }}! 💅
+        <h1 style="font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:700;margin:0;color:#1a1a1a;">
+            Hola, <span style="color:#6b21a8;">{{ empleado.nombre }}</span>
         </h1>
         <div style="font-size:0.9rem;opacity:0.9;margin-top:0.4rem;">
             {{ empleado.especialidad or 'Especialista Rossmix' }}

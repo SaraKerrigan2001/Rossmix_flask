@@ -50,16 +50,17 @@
     cursor: pointer;
 }
 .topbar-btn-primary {
-    background: linear-gradient(135deg, #c41e3a, #ff1493);
-    color: white;
+    background: linear-gradient(135deg, #fce4ec 0%, #f48fb1 100%);
+    color: #880e4f; border: 1px solid #f06292;
 }
-.topbar-btn-primary:hover { opacity: 0.88; color: white; transform: translateY(-2px); }
+.topbar-btn-primary:hover { opacity: 0.95; color: #880e4f; transform: translateY(-2px); }
 .topbar-btn-outline {
-    background: white;
-    color: #c41e3a;
-    border: 1.5px solid #e0e0e0;
+    background: rgba(255, 255, 255, 0.65);
+    color: #880e4f;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(8px);
 }
-.topbar-btn-outline:hover { border-color: #c41e3a; transform: translateY(-2px); }
+.topbar-btn-outline:hover { background: rgba(255,255,255,0.85); transform: translateY(-2px); }
 
 /* ── Tarjetas de estadísticas ───────────────────────── */
 .stats-row {
@@ -72,17 +73,20 @@
 @media (max-width: 576px)  { .stats-row { grid-template-columns: 1fr; } }
 
 .stat-card {
-    background: white;
+    background: rgba(253, 246, 227, 0.4); /* Soft champagne glass */
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.7);
     border-radius: 18px;
     padding: 1.8rem 1.5rem;
-    box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+    box-shadow: 0 8px 32px rgba(218, 165, 32, 0.05);
     display: flex;
     align-items: center;
     gap: 1.2rem;
     border-left: 5px solid transparent;
     transition: transform 0.25s, box-shadow 0.25s;
 }
-.stat-card:hover { transform: translateY(-4px); box-shadow: 0 8px 28px rgba(0,0,0,0.1); }
+.stat-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(218, 165, 32, 0.15); }
 .stat-card.pink   { border-color: #ff1493; }
 .stat-card.purple { border-color: #8b5cf6; }
 .stat-card.gold   { border-color: #f59e0b; }
