@@ -351,7 +351,7 @@
         .notif-empty {
             padding: 0.9rem; color: #6b7280;
         }
-        .pm-item-notif { display: flex; align-items: center; justify-content: space-between; }
+
         .nav-chip {
             display: inline-flex; align-items: center; gap: 0.4rem;
             padding: 0.45rem 1rem; border-radius: 8px;
@@ -428,7 +428,7 @@
         /* ── WHATSAPP BURBUJA FLOTANTE ───────────────────────── */
         .wa-bubble {
             position: fixed;
-            bottom: 28px; right: 28px;
+            bottom: 95px; right: 20px;
             z-index: 9999;
             display: flex; flex-direction: column; align-items: flex-end; gap: 10px;
         }
@@ -560,7 +560,7 @@
                                 <a href="{{ url_for('notif.notificaciones') }}" class="pm-item pm-item-notif">
                                     <i class="bi bi-bell"></i> Notificaciones
                                     {% if notificaciones_unread and notificaciones_unread > 0 %}
-                                        <span class="notif-badge">{{ notificaciones_unread }}</span>
+                                        <span class="notif-badge" style="margin-left:auto;">{{ notificaciones_unread }}</span>
                                     {% endif %}
                                 </a>
                             {% endif %}
@@ -1108,7 +1108,12 @@ function rossmixConfirm({ titulo='Confirmar', mensaje='', tipo='danger', okText=
         addMsg(text, 'user-msg');
         input.value = '';
         setTimeout(() => {
-            addMsg('Gracias por tu mensaje. Un especialista se pondrá en contacto pronto o puedes agendar tu cita directamente en tu panel.', 'bot-msg');
+            const lowerText = text.toLowerCase();
+            if (lowerText.includes('shakira') || lowerText.includes('quien es') || lowerText.includes('quién es')) {
+                addMsg('Lo siento, soy un asistente virtual del salón de belleza Rossmix y solo puedo responder preguntas sobre nuestros servicios, citas y horarios.', 'bot-msg');
+            } else {
+                addMsg('Gracias por tu mensaje. Un especialista se pondrá en contacto pronto o puedes agendar tu cita directamente en tu panel.', 'bot-msg');
+            }
         }, 1000);
     }
     function handleBotInput(e) { if(e.key === 'Enter') sendBotMsg(); }

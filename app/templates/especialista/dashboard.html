@@ -42,7 +42,7 @@
             padding:1.8rem 2rem;margin-bottom:2rem;color:#1a1a1a;
             display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;box-shadow:0 8px 32px rgba(147,112,219,0.1);">
     <div>
-        <div style="font-size:0.88rem;opacity:0.85;margin-bottom:0.3rem;">Portal Especialista</div>
+        <div style="font-size:0.88rem;color:#c41e3a;font-weight:600;margin-bottom:0.3rem;">Portal Especialista</div>
         <h1 style="font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:700;margin:0;color:#1a1a1a;">
             Hola, <span style="color:#6b21a8;">{{ empleado.nombre }}</span>
         </h1>
@@ -51,7 +51,7 @@
         </div>
     </div>
     <div style="display:flex;gap:0.8rem;flex-wrap:wrap;">
-        <a href="{{ url_for('especialista_citas_disponibles') }}"
+        <a href="{{ url_for('especialista.citas_disponibles') }}"
            style="background:white;color:#c41e3a;padding:0.6rem 1.4rem;border-radius:10px;
                   font-weight:700;text-decoration:none;display:flex;align-items:center;gap:0.4rem;">
             <i class="bi bi-lightning-fill"></i>
@@ -61,7 +61,7 @@
                 Ver disponibles
             {% endif %}
         </a>
-        <a href="{{ url_for('especialista_mis_citas') }}"
+        <a href="{{ url_for('especialista.mis_citas') }}"
            style="background:rgba(255,255,255,0.2);color:white;padding:0.6rem 1.4rem;
                   border-radius:10px;font-weight:600;text-decoration:none;border:1.5px solid rgba(255,255,255,0.4);">
             <i class="bi bi-calendar3"></i> Mis Citas
@@ -179,7 +179,7 @@
     <div class="r-card">
         <div class="r-card-header">
             <h2><i class="bi bi-lightning-fill" style="color:#c41e3a;"></i> Citas Disponibles</h2>
-            <a href="{{ url_for('especialista_citas_disponibles') }}" class="btn-secondary-r" style="padding:0.4rem 1rem;font-size:0.82rem;">
+            <a href="{{ url_for('especialista.citas_disponibles') }}" class="btn-secondary-r" style="padding:0.4rem 1rem;font-size:0.82rem;">
                 Ver todas
             </a>
         </div>

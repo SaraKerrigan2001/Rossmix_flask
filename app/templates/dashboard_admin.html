@@ -198,6 +198,8 @@
 .ql-gold   { background: #fffbeb; color: #d97706; }
 .ql-blue   { background: #eff6ff; color: #2563eb; }
 .quick-link:hover { filter: brightness(0.93); transform: translateY(-2px); }
+.text-growth-up   { color: #10b981; }
+.text-growth-down { color: #ef4444; }
 </style>
 {% endblock %}
 
@@ -208,7 +210,7 @@
     <div class="admin-topbar">
         <div class="admin-topbar-left">
             <h1>Panel de Administración</h1>
-            <p>Bienvenido, <strong style="color: #C5A059;">{{ session.nombre }}</strong> — Rossmix Beauty Salon</p>
+            <p style="color: #c41e3a;">Bienvenido, <strong style="color: #C5A059;">{{ session.nombre }}</strong> — Rossmix Beauty Salon</p>
         </div>
         <div class="admin-topbar-right">
             <button onclick="abrirModalEmpleado()" class="topbar-btn topbar-btn-primary">
@@ -249,7 +251,7 @@
                 <div class="stat-num">${{ "{:,.0f}".format(stats.ingresos_mes) }}</div>
                 <div class="stat-lbl">
                     Ingresos del Mes
-                    <span style="font-size:0.75rem; font-weight:700; margin-left:0.4rem; color: {% if stats.crecimiento_ingresos >= 0 %}#10b981{% else %}#ef4444{% endif %};">
+                    <span class="{% if stats.crecimiento_ingresos >= 0 %}text-growth-up{% else %}text-growth-down{% endif %}" style="font-size:0.75rem; font-weight:700; margin-left:0.4rem;">
                         <i class="bi bi-arrow-{% if stats.crecimiento_ingresos >= 0 %}up{% else %}down{% endif %}-right"></i>
                         {{ "{:.1f}".format(stats.crecimiento_ingresos|abs if stats.crecimiento_ingresos else 0) }}%
                     </span>
