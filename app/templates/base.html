@@ -47,9 +47,11 @@
             text-decoration: none;
         }
         .logo img {
-            height: 44px;
-            width: auto;
-            object-fit: contain;
+            height: 48px;
+            width: 48px;
+            object-fit: cover;
+            border-radius: 50%;
+            box-shadow: 0 4px 10px rgba(197, 160, 89, 0.2);
         }
         .logo-text {
             font-size: 1.5rem;
@@ -484,7 +486,7 @@
 <nav>
     <div class="nav-inner">
         <a href="{{ url_for('main.index') }}" class="logo">
-            <img src="{{ url_for('static', filename='images/logo_rossmix.jpg') }}" alt="Rossmix Luxury Beauty">
+            <img src="{{ url_for('static', filename='images/logo_rossmix_r.jpg') }}" alt="Rossmix Luxury Beauty">
             <span class="logo-text">Rossmix<small>Luxury Beauty</small></span>
         </a>
         <ul>
