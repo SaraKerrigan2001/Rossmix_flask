@@ -665,6 +665,9 @@
                                 <a href="{{ url_for('admin.clientes') }}" class="pm-item">
                                     <i class="bi bi-people"></i> Clientes
                                 </a>
+                                <a href="{{ url_for('admin.empleados') }}" class="pm-item">
+                                    <i class="bi bi-person-badge"></i> Empleados
+                                </a>
                                 <a href="{{ url_for('admin.especialistas') }}" class="pm-item">
                                     <i class="bi bi-shield-lock"></i> Accesos Especialistas
                                 </a>
@@ -1176,13 +1179,28 @@ function rossmixConfirm({ titulo='Confirmar', mensaje='', tipo='danger', okText=
 <script>
     // Toggle dropdown de perfil
     document.addEventListener('DOMContentLoaded', function(){
+        const profileBtn = document.getElementById('profileBtn');
+        const profileMenu = document.getElementById('profileMenu');
+
+        if (!profileBtn || !profileMenu) return;
+
+        profileBtn.addEventListener('click', function(e){
+            e.preventDefault();
+            e.stopPropagation();
+            profileMenu.classList.toggle('open');
+        });
+
+        profileMenu.querySelectorAll('a').forEach(function(link){
+            link.addEventListener('click', function(){
+                profileMenu.classList.remove('open');
             });
-            document.addEventListener('click', function(e){
-                if (!profileBtn.contains(e.target) && !profileMenu.contains(e.target)) {
-                    profileMenu.classList.remove('open');
-                }
-            });
-        }
+        });
+
+        document.addEventListener('click', function(e){
+            if (!profileBtn.contains(e.target) && !profileMenu.contains(e.target)) {
+                profileMenu.classList.remove('open');
+            }
+        });
     });
 
     // Toggle notificaciones dropdown
