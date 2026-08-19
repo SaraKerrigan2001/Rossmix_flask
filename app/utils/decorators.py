@@ -1,6 +1,7 @@
-"""Decoradores de la aplicación."""
+﻿"""Decoradores de la aplicación."""
 from functools import wraps
 from flask import session, flash, redirect, url_for
+from app.extensions import db
 
 
 def _usuario_activo_en_bd(tipo_requerido):
@@ -13,7 +14,7 @@ def _usuario_activo_en_bd(tipo_requerido):
     usuario_id = session.get('usuario_id')
     if not usuario_id:
         return None
-    usuario = Usuario.query.get(usuario_id)
+    usuario = db.session.get(Usuario, usuario_id)
     if not usuario or not usuario.activo or usuario.tipo_usuario != tipo_requerido:
         return None
     return usuario

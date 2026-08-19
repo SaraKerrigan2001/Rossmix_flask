@@ -1,4 +1,4 @@
-"""Gestión de citas (admin) — incluye reasignación y distribución."""
+﻿"""Gestión de citas (admin) — incluye reasignación y distribución."""
 from datetime import datetime, timedelta
 from flask import render_template, request, jsonify
 from sqlalchemy import outerjoin
@@ -47,7 +47,7 @@ def citas():
     cliente_filtrado = None
     if cliente_id:
         try:
-            cliente_filtrado = Usuario.query.get(int(cliente_id))
+            cliente_filtrado = db.session.get(Usuario, int(cliente_id))
         except Exception:
             pass
 
@@ -87,8 +87,8 @@ def citas_cambiar_estado(id_cita):
 def citas_reasignar_empleado(id_cita):
     """GET: empleados disponibles para la cita | POST: asignar"""
     cita = Cita.query.get_or_404(id_cita)
-    cliente = Usuario.query.get(cita.id_cliente)
-    servicio = Servicio.query.get(cita.id_servicio)
+    cliente = db.session.get(Usuario, cita.id_cliente)
+    servicio = db.session.get(Servicio, cita.id_servicio)
 
     if request.method == 'GET':
         emp_ids = [e.id_empleado for e in EmpleadoServicio.query.filter_by(id_servicio=cita.id_servicio).all()]
@@ -202,8 +202,8 @@ def citas_asignar_batch():
     ok = 0
     for item in asignaciones:
         try:
-            cita = Cita.query.get(item['id_cita'])
-            emp  = Empleado.query.get(item['id_empleado'])
+            cita = db.session.get(Cita, item['id_cita'])
+            emp  = db.session.get(Empleado, item['id_empleado'])
             if not cita or not emp:
                 errores.append(f"Cita {item.get('id_cita')} o empleado no encontrado")
                 continue

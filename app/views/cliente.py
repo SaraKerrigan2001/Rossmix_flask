@@ -1,4 +1,4 @@
-"""Vistas del dashboard de cliente."""
+﻿"""Vistas del dashboard de cliente."""
 from flask import Blueprint, render_template, session, flash, redirect, url_for
 from datetime import datetime
 from app.extensions import db
@@ -44,6 +44,6 @@ def dashboard_cliente():
         'citas_completadas': citas_completadas
     }
     
-    usuario_obj = Usuario.query.get(id_cliente)
+    usuario_obj = db.session.get(Usuario, id_cliente)
 
     return render_template('dashboard_cliente.html', stats=stats, proxima_cita=proxima_cita, usuario=usuario_obj)

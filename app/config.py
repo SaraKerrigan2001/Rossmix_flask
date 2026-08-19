@@ -1,13 +1,8 @@
 """
 Configuración de la aplicación Flask.
-
-Todos los valores sensibles (clave secreta, credenciales de la base de
-datos) se leen desde variables de entorno en lugar de estar escritos
-directamente en el código. En desarrollo, estas variables se pueden
-definir en un archivo ".env" (ver ".env.example") que es cargado
-automáticamente por python-dotenv.
 """
 import os
+from datetime import timedelta
 from dotenv import load_dotenv
 
 # Carga las variables definidas en un archivo .env (si existe) al entorno
@@ -71,7 +66,6 @@ class Config:
     # Sesión permanente con tiempo de expiración
     # La sesión expira tras 8 horas de inactividad en producción
     PERMANENT_SESSION_LIFETIME_SECONDS = int(
-        os.environ.get('SESSION_LIFETIME_SECONDS', 8 * 60 * 60)  # 8 horas por defecto
+        os.environ.get('SESSION_LIFETIME_SECONDS', 8 * 60 * 60)
     )
-    from datetime import timedelta
     PERMANENT_SESSION_LIFETIME = timedelta(seconds=PERMANENT_SESSION_LIFETIME_SECONDS)

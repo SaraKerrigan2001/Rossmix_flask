@@ -123,9 +123,9 @@
             </div>
 
             <!-- Opciones de gestión -->
-            {% if cita.estado in ['confirmada', 'pendiente_pago'] %}
+            {% if puede_gestionar %}
             <div class="opciones-grid">
-                <a href="{{ url_for('reprogramar_cita_form', token=token) }}"
+                <a href="{{ url_for('citas.reprogramar_cita_form', id_cita=cita.id_cita) }}"
                    class="opcion-btn op-reprogramar">
                     <i class="bi bi-calendar-event"></i>
                     <span>Reprogramar Cita</span>

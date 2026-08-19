@@ -1,4 +1,4 @@
-"""Portal de especialistas — ver citas disponibles y aceptarlas (Opción B)."""
+﻿"""Portal de especialistas — ver citas disponibles y aceptarlas (Opción B)."""
 from datetime import datetime
 from flask import Blueprint, render_template, request, jsonify, session, redirect, url_for, flash
 from app.extensions import db
@@ -11,8 +11,8 @@ especialista_bp = Blueprint('especialista', __name__, url_prefix='/especialista'
 
 def _get_empleado():
     """Devuelve el Empleado vinculado a la sesión actual (ya validada por el decorador)."""
-    usuario = Usuario.query.get(session['usuario_id'])
-    return Empleado.query.get(usuario.id_empleado)
+    usuario = db.session.get(Usuario, session['usuario_id'])
+    return db.session.get(Empleado, usuario.id_empleado)
 
 
 # ── Dashboard ─────────────────────────────────────────────────────────────────
@@ -101,7 +101,7 @@ def cambiar_estado(id_cita):
     resultado = emp.cambiar_estado_cita(id_cita, nuevo_estado)
 
     if resultado['success']:
-        cita = Cita.query.get(id_cita)
+        cita = db.session.get(Cita, id_cita)
         if cita and nuevo_estado == 'en_atencion':
             try:
                 add_notificacion(

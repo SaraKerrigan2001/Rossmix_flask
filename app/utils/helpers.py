@@ -1,4 +1,4 @@
-"""Funciones auxiliares compartidas."""
+﻿"""Funciones auxiliares compartidas."""
 from flask import session, current_app
 from threading import Thread
 from flask_mail import Message
@@ -21,7 +21,7 @@ def add_notificacion(id_usuario, titulo, mensaje=None, target=None):
         db.session.commit()
 
         # Enviar correo electrónico
-        usuario = Usuario.query.get(id_usuario)
+        usuario = db.session.get(Usuario, id_usuario)
         if usuario and usuario.email and '@' in usuario.email:
             msg = Message(
                 subject=f"Rossmix - {titulo}",

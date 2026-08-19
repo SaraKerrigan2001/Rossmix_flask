@@ -1,4 +1,4 @@
-"""Gestión de pagos (admin)."""
+﻿"""Gestión de pagos (admin)."""
 from decimal import Decimal
 from flask import render_template, request, redirect, url_for, flash, jsonify
 from app.extensions import db
@@ -26,8 +26,8 @@ def pagos():
 def pagos_registrar(id_cita):
     """Registrar pago para una cita"""
     cita = Cita.query.get_or_404(id_cita)
-    cliente = Usuario.query.get(cita.id_cliente)
-    servicio = Servicio.query.get(cita.id_servicio)
+    cliente = db.session.get(Usuario, cita.id_cliente)
+    servicio = db.session.get(Servicio, cita.id_servicio)
 
     # Verificar que no tenga ya un pago
     if cita.pago:
@@ -107,10 +107,26 @@ def pagos_eliminar(id_pago):
     """Eliminar un pago (reembolso)"""
     pago = Pago.query.get_or_404(id_pago)
     monto = float(pago.monto)
+    id_cliente = pago.cita.id_cliente
+    codigo = pago.cita.codigo_reserva or f'#{pago.cita.id_cita}'
+
     pago.cita.reembolsado = True
     pago.cita.estado = 'cancelada'
     db.session.delete(pago)
     db.session.commit()
+
+    # Notificar al cliente del reembolso
+    try:
+        add_notificacion(
+            id_cliente,
+            'Reembolso procesado',
+            f'Se procesó un reembolso de ${monto:,.0f} COP para tu cita {codigo}. '
+            f'Tu cita ha sido cancelada.',
+            target=url_for('citas.mis_citas')
+        )
+    except Exception:
+        pass
+
     return jsonify({'success': True, 'message': f'Reembolso de ${monto:,.0f} procesado. Cita cancelada.'})
 
 

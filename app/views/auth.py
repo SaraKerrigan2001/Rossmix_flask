@@ -9,6 +9,21 @@ from app.models.auditoria import registrar_auditoria
 auth_bp = Blueprint('auth', __name__)
 
 
+def _redirect_por_rol(tipo_usuario):
+    """Redirige al dashboard correcto preservando el host actual (local o IP de red)."""
+    rutas = {
+        'admin':       url_for('admin.dashboard'),
+        'especialista': url_for('especialista.dashboard'),
+    }
+    ruta = rutas.get(tipo_usuario, url_for('cliente.dashboard_cliente'))
+
+    # Preservar el host del request para que funcione tanto en
+    # localhost como en 192.168.x.x desde el celular
+    host = request.host  # ej: "192.168.20.25:5000" o "localhost:5000"
+    scheme = request.scheme  # "http"
+    return redirect(f'{scheme}://{host}{ruta}')
+
+
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
@@ -42,13 +57,7 @@ def login():
             db.session.commit()
 
             flash(f'¡Bienvenido/a {usuario.nombre}!', 'success')
-
-            if usuario.tipo_usuario == 'admin':
-                return redirect(url_for('admin.dashboard'))
-            elif usuario.tipo_usuario == 'especialista':
-                return redirect(url_for('especialista.dashboard'))
-            else:
-                return redirect(url_for('cliente.dashboard_cliente'))
+            return _redirect_por_rol(usuario.tipo_usuario)
         else:
             flash('Email o contraseña incorrectos', 'error')
 
@@ -81,7 +90,9 @@ def registro():
         db.session.commit()
 
         flash('¡Registro exitoso! Ya puedes iniciar sesión', 'success')
-        return redirect(url_for('auth.login'))
+        host = request.host
+        scheme = request.scheme
+        return redirect(f'{scheme}://{host}{url_for("auth.login")}')
 
     return render_template('registro.html', form=form)
 

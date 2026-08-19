@@ -1,4 +1,4 @@
-"""Lógica de negocio para la gestión de citas."""
+﻿"""Lógica de negocio para la gestión de citas."""
 import random
 import secrets
 import string
@@ -39,7 +39,7 @@ class CitaService:
                 return []
             id_empleado = random.choice(empleados_ids)
 
-        servicio = Servicio.query.get(id_servicio)
+        servicio = db.session.get(Servicio, id_servicio)
         if not servicio:
             return []
 
@@ -52,6 +52,14 @@ class CitaService:
         hora_actual = datetime.combine(fecha, horario.hora_inicio)
         hora_fin = datetime.combine(fecha, horario.hora_fin)
         duracion = timedelta(minutes=servicio.duracion_minutos)
+
+        # Si la fecha es hoy, descartar slots que ya pasaron o están muy próximos
+        ahora = datetime.now()
+        if fecha == ahora.date():
+            # Saltar slots que ya iniciaron o faltan menos de 30 min
+            minimo = ahora + timedelta(minutes=30)
+            while hora_actual < minimo:
+                hora_actual += timedelta(minutes=30)
 
         while hora_actual + duracion <= hora_fin:
             if CitaService.validar_disponibilidad_cita(id_empleado, hora_actual, hora_actual + duracion):
@@ -75,7 +83,7 @@ class CitaService:
 
     @staticmethod
     def bloquear_agenda_cita(cita_id):
-        cita = Cita.query.get(cita_id)
+        cita = db.session.get(Cita, cita_id)
         if not cita:
             return False
 
@@ -85,7 +93,7 @@ class CitaService:
 
     @staticmethod
     def desbloquear_agenda_cita(cita_id):
-        cita = Cita.query.get(cita_id)
+        cita = db.session.get(Cita, cita_id)
         if not cita:
             return False
 
@@ -95,7 +103,7 @@ class CitaService:
 
     @staticmethod
     def crear_cita(id_cliente, id_servicio, id_empleado, fecha_hora_inicio, fecha_hora_fin):
-        servicio = Servicio.query.get(id_servicio)
+        servicio = db.session.get(Servicio, id_servicio)
         if not servicio:
             raise ValueError('Servicio no encontrado')
 

@@ -1,4 +1,4 @@
-"""Vistas del sistema de citas (agendamiento, cancelación, pagos cliente)."""
+﻿"""Vistas del sistema de citas (agendamiento, cancelación, pagos cliente)."""
 import random
 import string
 from datetime import datetime, timedelta
@@ -103,8 +103,7 @@ def horarios_disponibles():
         return jsonify({'error': 'Fecha inválida'}), 400
 
     # Delegar completamente al servicio — evita duplicación de lógica
-    horarios = CitaService.obtener_horarios_disponibles(
-        fecha=fecha,
+    horarios = CitaService.obtener_horarios_disponibles(        fecha=fecha,
         id_servicio=id_servicio,
         id_empleado=id_empleado or 0,
     )
@@ -114,7 +113,6 @@ def horarios_disponibles():
     # Re-ejecutamos solo para obtener el id_empleado resuelto.
     id_empleado_resuelto = id_empleado or 0
     if id_empleado_resuelto == 0 and horarios:
-        from app.models import EmpleadoServicio
         ids = [e.id_empleado for e in EmpleadoServicio.query.filter_by(id_servicio=id_servicio).all()]
         if ids:
             id_empleado_resuelto = random.choice(ids)
@@ -199,7 +197,7 @@ def confirmar_cita():
         return redirect(url_for('citas.agendar_paso1'))
 
     # Obtener servicio
-    servicio = Servicio.query.get(id_servicio)
+    servicio = db.session.get(Servicio, id_servicio)
     if not servicio:
         flash('Servicio no encontrado', 'error')
         return redirect(url_for('citas.agendar_paso1'))
@@ -258,8 +256,8 @@ def cita_confirmada(codigo):
         return redirect(url_for('auth.login'))
 
     cita = Cita.query.filter_by(codigo_reserva=codigo, id_cliente=session['usuario_id']).first_or_404()
-    servicio = Servicio.query.get(cita.id_servicio)
-    empleado = Empleado.query.get(cita.id_empleado)
+    servicio = db.session.get(Servicio, cita.id_servicio)
+    empleado = db.session.get(Empleado, cita.id_empleado)
 
     return render_template('citas/confirmada.html', cita=cita, servicio=servicio, empleado=empleado)
 
@@ -362,8 +360,8 @@ def cliente_pagos_registrar(id_cita):
         flash('No tienes permiso para pagar esta cita', 'error')
         return redirect(url_for('citas.mis_citas'))
 
-    cliente = Usuario.query.get(cita.id_cliente)
-    servicio = Servicio.query.get(cita.id_servicio)
+    cliente = db.session.get(Usuario, cita.id_cliente)
+    servicio = db.session.get(Servicio, cita.id_servicio)
 
     # Verificar que no tenga ya un pago o no esté cancelada
     if cita.pago:
@@ -449,9 +447,9 @@ def descargar_cita_pdf(id_cita):
         from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
         from reportlab.lib.units import cm
 
-        servicio = Servicio.query.get(cita.id_servicio)
-        empleado = Empleado.query.get(cita.id_empleado) if cita.id_empleado else None
-        cliente  = Usuario.query.get(cita.id_cliente)
+        servicio = db.session.get(Servicio, cita.id_servicio)
+        empleado = db.session.get(Empleado, cita.id_empleado) if cita.id_empleado else None
+        cliente  = db.session.get(Usuario, cita.id_cliente)
 
         buffer = BytesIO()
         doc    = SimpleDocTemplate(buffer, pagesize=A4,
@@ -529,10 +527,19 @@ def gestionar_cita(token):
         flash('No tienes permiso para gestionar esta cita', 'error')
         return redirect(url_for('citas.mis_citas'))
 
-    servicio = Servicio.query.get(cita.id_servicio)
-    empleado = Empleado.query.get(cita.id_empleado) if cita.id_empleado else None
-    return render_template('citas/confirmada.html', cita=cita,
-                           servicio=servicio, empleado=empleado)
+    servicio = db.session.get(Servicio, cita.id_servicio)
+    empleado = db.session.get(Empleado, cita.id_empleado) if cita.id_empleado else None
+
+    # Determinar si aún se puede reprogramar/cancelar (≥2h de anticipación)
+    puede_gestionar = (cita.fecha_hora_inicio - datetime.now()) >= timedelta(hours=2)
+    puede_gestionar = puede_gestionar and cita.estado in ('confirmada', 'pendiente_pago')
+
+    return render_template('citas/gestionar_cita.html',
+                           cita=cita,
+                           servicio=servicio,
+                           empleado=empleado,
+                           token=token,
+                           puede_gestionar=puede_gestionar)
 
 
 @citas_bp.route('/citas/reagendar-no-asistio/<int:id_cita>')
@@ -572,8 +579,8 @@ def reprogramar_cita_form(id_cita):
     cita = Cita.query.filter_by(
         id_cita=id_cita, id_cliente=session['usuario_id']
     ).first_or_404()
-    servicio = Servicio.query.get(cita.id_servicio)
-    empleado = Empleado.query.get(cita.id_empleado) if cita.id_empleado else None
+    servicio = db.session.get(Servicio, cita.id_servicio)
+    empleado = db.session.get(Empleado, cita.id_empleado) if cita.id_empleado else None
 
     hoy      = datetime.now().strftime('%Y-%m-%d')
     max_fecha = (datetime.now() + timedelta(days=90)).strftime('%Y-%m-%d')
@@ -638,8 +645,7 @@ def reprogramar_cita_submit(id_cita):
         return redirect(url_for('citas.reprogramar_cita_form', id_cita=id_cita))
 
     if id_empleado == 0:
-        from app.models import EmpleadoServicio as ES
-        ids = [e.id_empleado for e in ES.query.filter_by(id_servicio=id_servicio).all()]
+        ids = [e.id_empleado for e in EmpleadoServicio.query.filter_by(id_servicio=id_servicio).all()]
         if not ids:
             flash('No hay especialistas disponibles para ese servicio.', 'error')
             return redirect(url_for('citas.reprogramar_cita_form', id_cita=id_cita))
