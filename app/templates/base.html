@@ -255,38 +255,7 @@
             .nav-hamburger { display: flex; }
             nav ul { display: none !important; }
             nav { position: relative; }
-            /* Links de guest visibles en móvil */
-            .nav-guest-links {
-                display: flex;
-                align-items: center;
-                gap: 0.5rem;
-            }
-            .nav-guest-login {
-                color: #555;
-                font-weight: 600;
-                font-size: 0.88rem;
-                text-decoration: none;
-                padding: 0.45rem 0.9rem;
-                border-radius: 8px;
-                white-space: nowrap;
-                transition: all 0.2s;
-            }
-            .nav-guest-login:hover { background: #fff0f6; color: #c41e3a; }
-            .nav-guest-register {
-                background: linear-gradient(135deg, #c41e3a, #ff1493);
-                color: white !important;
-                font-weight: 600;
-                font-size: 0.88rem;
-                text-decoration: none;
-                padding: 0.45rem 1rem;
-                border-radius: 20px;
-                white-space: nowrap;
-                transition: all 0.2s;
-            }
-            .nav-guest-register:hover { opacity: 0.88; color: white; }
         }
-        /* Ocultar en desktop — en desktop se usan los links del <ul> */
-        .nav-guest-links { display: none; }
         .page-wrap {
             flex: 1;
             width: 100%;
@@ -590,7 +559,7 @@
             100% { box-shadow: 0 0 0 0   rgba(188,24,136,0); }
         }
     </style>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v='20260818') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v='20260818-2') }}">
     {% block extra_css %}{% endblock %}
 </head>
 <body>
@@ -604,17 +573,9 @@
         </a>
 
         <!-- Botón hamburguesa — solo visible en móvil CON sesión -->
-        {% if session.usuario_id %}
         <button class="nav-hamburger" id="navHamburger" aria-label="Menú">
             <span></span><span></span><span></span>
         </button>
-        {% else %}
-        <!-- Sin sesión: mostrar links directamente en la navbar móvil -->
-        <div class="nav-guest-links">
-            <a href="{{ url_for('auth.login') }}" class="nav-guest-login">Iniciar Sesión</a>
-            <a href="{{ url_for('auth.registro') }}" class="nav-guest-register">Registrarse</a>
-        </div>
-        {% endif %}
 
         <!-- Menú móvil desplegable -->
         <div class="nav-mobile-menu" id="navMobileMenu">

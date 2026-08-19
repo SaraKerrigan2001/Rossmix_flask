@@ -15,17 +15,17 @@
     nav .nav-inner { min-width: 0; }
     nav .logo { min-width: 0; }
     nav .logo-text { font-size: 1.25rem; white-space: nowrap; }
-    nav .nav-guest-links { min-width: 0; gap: 0.25rem; }
-    nav .nav-guest-login,
-    nav .nav-guest-register { font-size: 0.78rem; padding: 0.4rem 0.6rem; }
+    nav .nav-hamburger { flex-shrink: 0; }
+    .hero-main, .hero-container, .cta-banner-wrap { width: 100%; max-width: 100%; }
+    .hero-text h1 { font-size: clamp(2rem, 9vw, 2.6rem); }
+    .hero-text, .hero-text p { min-width: 0; max-width: 100%; }
 }
 @media (max-width: 480px) {
     nav { padding: 0.65rem 0.8rem; }
     nav .logo img { width: 40px; height: 40px; }
     nav .logo-text { font-size: 1.05rem; }
     nav .logo-text small { display: none; }
-    nav .nav-guest-login,
-    nav .nav-guest-register { font-size: 0.72rem; padding: 0.35rem 0.45rem; }
+    .hero-text h1 { font-size: 1.85rem; }
 }
 
 /* =============================================
