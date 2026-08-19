@@ -4,9 +4,192 @@
    ============================================================================= */
 
 
-/* =============================================================================
-   1. HERO / IMAGEN DE FONDO
-   ============================================================================= */
+/* =============================================
+   RESPONSIVE MÓVIL — NAVBAR
+============================================= */
+@media (max-width: 768px) {
+    nav { padding: 0.75rem 1rem; }
+    /* Forzar ocultar menú desktop en móvil */
+    nav ul { display: none !important; }
+    .nav-chip { display: none !important; }
+    nav .nav-inner { min-width: 0; }
+    nav .logo { min-width: 0; }
+    nav .logo-text { font-size: 1.25rem; white-space: nowrap; }
+    nav .nav-guest-links { min-width: 0; gap: 0.25rem; }
+    nav .nav-guest-login,
+    nav .nav-guest-register { font-size: 0.78rem; padding: 0.4rem 0.6rem; }
+}
+@media (max-width: 480px) {
+    nav { padding: 0.65rem 0.8rem; }
+    nav .logo img { width: 40px; height: 40px; }
+    nav .logo-text { font-size: 1.05rem; }
+    nav .logo-text small { display: none; }
+    nav .nav-guest-login,
+    nav .nav-guest-register { font-size: 0.72rem; padding: 0.35rem 0.45rem; }
+}
+
+/* =============================================
+   RESPONSIVE MÓVIL — HERO
+============================================= */
+@media (max-width: 768px) {
+    .hero-main { padding: 2rem 1rem 1.5rem; }
+    .hero-container {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    .hero-text h1 {
+        font-size: 2.2rem;
+        line-height: 1.2;
+    }
+    .hero-text p {
+        font-size: 0.95rem;
+        margin-bottom: 1.5rem;
+    }
+    .hero-buttons {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.8rem;
+    }
+    .btn-pink, .btn-outline-pink {
+        text-align: center;
+        padding: 0.85rem 1.5rem;
+        font-size: 0.95rem;
+        justify-content: center;
+    }
+    .hero-gallery {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.7rem;
+    }
+    .hero-img-box { border-radius: 12px; }
+}
+@media (max-width: 430px) {
+    .hero-text h1 { font-size: 1.8rem; }
+    .hero-badge { font-size: 0.78rem; padding: 0.3rem 0.9rem; }
+}
+
+/* =============================================
+   RESPONSIVE MÓVIL — SECCIONES
+============================================= */
+@media (max-width: 768px) {
+    .section-wrap { margin: 2.5rem auto; padding: 0 1rem; }
+    .section-title { font-size: 1.35rem; }
+    .categories-grid { grid-template-columns: repeat(2, 1fr); gap: 0.8rem; }
+    .cat-card { height: 175px; }
+    .cat-info h3 { font-size: 0.9rem; }
+    .forecast-grid { grid-template-columns: repeat(2, 1fr); gap: 0.9rem; }
+    .forecast-pct { font-size: 1.9rem; }
+    .forecast-card { padding: 1.4rem 1rem; }
+    .collections-grid { grid-template-columns: repeat(2, 1fr); gap: 0.7rem; }
+}
+@media (max-width: 430px) {
+    .section-title { font-size: 1.2rem; }
+    .coll-name { font-size: 0.75rem; padding: 0.4rem; }
+}
+
+/* =============================================
+   RESPONSIVE MÓVIL — CTA BANNER
+============================================= */
+@media (max-width: 768px) {
+    .cta-banner-wrap { padding: 0 1rem; margin: 2rem auto; }
+    .cta-banner {
+        padding: 2rem 1.5rem;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        border-radius: 20px;
+        gap: 1.5rem;
+    }
+    .cta-text h2 { font-size: 1.7rem; line-height: 1.25; }
+    .cta-text p  { font-size: 0.9rem; margin: 0 auto; max-width: 320px; }
+    .cta-actions {
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        gap: 0.8rem;
+    }
+    .cta-actions .btn-white,
+    .cta-actions .btn-outline-white {
+        text-align: center;
+        padding: 0.9rem 1.5rem;
+        font-size: 0.95rem;
+        width: 100%;
+        max-width: 280px;
+        justify-content: center;
+        display: flex;
+    }
+}
+@media (max-width: 430px) {
+    .cta-banner { padding: 1.8rem 1.2rem; }
+    .cta-text h2 { font-size: 1.45rem; }
+}
+
+/* =============================================
+   RESPONSIVE MÓVIL — PÁGINA WRAP Y CARDS
+============================================= */
+@media (max-width: 768px) {
+    .page-wrap { padding: 1rem 0.75rem 2rem; }
+    .r-card-body { padding: 1rem; }
+    .r-card-header { padding: 0.9rem 1rem; }
+    .r-card-header h2 { font-size: 1rem; }
+}
+
+/* =============================================
+   RESPONSIVE MÓVIL — TABLAS ADMIN
+============================================= */
+@media (max-width: 768px) {
+    .r-table { font-size: 0.8rem; }
+    .r-table thead th { padding: 0.6rem 0.7rem; font-size: 0.75rem; }
+    .r-table tbody td { padding: 0.6rem 0.7rem; }
+    .r-table .hide-mobile { display: none; }
+}
+
+/* =============================================
+   RESPONSIVE MÓVIL — FORMULARIOS
+============================================= */
+@media (max-width: 768px) {
+    .field-row { grid-template-columns: 1fr; }
+    .field-group.full-span { grid-column: span 1; }
+    /* Evitar zoom automático en iOS (requiere font-size >= 16px) */
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="number"],
+    input[type="tel"],
+    select, textarea,
+    .r-form-control { font-size: 1rem !important; }
+}
+
+/* =============================================
+   RESPONSIVE MÓVIL — PAGE HEADER
+============================================= */
+@media (max-width: 768px) {
+    .page-header { flex-direction: column; align-items: flex-start; gap: 0.7rem; }
+    .page-header h1 { font-size: 1.35rem; }
+    .page-header .breadcrumb-r { font-size: 0.76rem; }
+}
+
+/* =============================================
+   RESPONSIVE MÓVIL — BURBUJA FLOTANTE
+   Evita que se superponga con el footer
+============================================= */
+@media (max-width: 768px) {
+    .wa-bubble { bottom: 90px; right: 16px; }
+    .wa-btn { width: 52px; height: 52px; }
+    #rossmix-bot-container { bottom: 20px; right: 16px; }
+}
+@media (max-width: 430px) {
+    .wa-bubble { bottom: 1rem; right: 14px; }
+    .wa-btn { width: 48px; height: 48px; }
+}
+
+/* =============================================
+   RESPONSIVE MÓVIL — FOOTER
+============================================= */
+@media (max-width: 768px) {
+    footer { padding: 1rem 1rem 5.5rem; }
+    .footer-inner { gap: 0.6rem; flex-direction: column; align-items: center; }
+    .ig-link { font-size: 0.82rem; padding: 0.4rem 0.9rem; }
+}
 
 .hero {
     background-image:

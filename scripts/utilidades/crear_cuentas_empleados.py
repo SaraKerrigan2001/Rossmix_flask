@@ -4,6 +4,10 @@ Sincroniza los empleados sin cuenta en la BD SQLite asignándoles un rol de espe
 from dotenv import load_dotenv
 load_dotenv()
 
+import os, sys
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+sys.path.insert(0, ROOT)
+
 from app import create_app
 from app.extensions import db
 from app.models.usuario import Usuario
