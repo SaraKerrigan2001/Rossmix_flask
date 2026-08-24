@@ -218,16 +218,16 @@
                         {{ form.nombre.label(class_='form-label') }}
                         {{ form.nombre(class_='form-control', placeholder='Tu nombre completo', autocomplete='name') }}
                         {% if form.nombre.errors %}
-                            <div class="field-error">{{ form.nombre.errors[0] }}</div>
+                            <div id="err-nombre" class="field-error">{{ form.nombre.errors[0] }}</div>
                         {% endif %}
                     </div>
                 </div>
 
                 <div class="field-group">
                     {{ form.email.label(class_='form-label') }}
-                    {{ form.email(class_='form-control', placeholder='tu@email.com', autocomplete='email') }}
+                    {{ form.email(class_='form-control', type='email', placeholder='tu@email.com', autocomplete='email', required=true, pattern='[^@\\s]+@[^@\\s]+\\.[A-Za-z]{2,}') }}
                     {% if form.email.errors %}
-                        <div class="field-error">{{ form.email.errors[0] }}</div>
+                            <div id="err-email" class="field-error">{{ form.email.errors[0] }}</div>
                     {% endif %}
                 </div>
 
@@ -236,7 +236,7 @@
                     {{ form.telefono(class_='form-control', placeholder='3001234567', autocomplete='tel') }}
                     <p class="field-hint">Para confirmar tus citas</p>
                     {% if form.telefono.errors %}
-                        <div class="field-error">{{ form.telefono.errors[0] }}</div>
+                            <div id="err-telefono" class="field-error">{{ form.telefono.errors[0] }}</div>
                     {% endif %}
                 </div>
 
@@ -248,7 +248,7 @@
                     </div>
                     <div class="strength-text" id="strengthText"></div>
                     {% if form.password.errors %}
-                        <div class="field-error">{{ form.password.errors[0] }}</div>
+                            <div id="err-password" class="field-error">{{ form.password.errors[0] }}</div>
                     {% endif %}
                 </div>
 
@@ -256,7 +256,7 @@
                     {{ form.confirmar_password.label(class_='form-label') }}
                     {{ form.confirmar_password(class_='form-control', placeholder='Repite tu contraseña', autocomplete='new-password') }}
                     {% if form.confirmar_password.errors %}
-                        <div class="field-error">{{ form.confirmar_password.errors[0] }}</div>
+                            <div id="err-confirmar" class="field-error">{{ form.confirmar_password.errors[0] }}</div>
                     {% endif %}
                 </div>
 
@@ -327,7 +327,7 @@ document.getElementById('formRegistro').addEventListener('submit', function(e) {
     }
 
     if (nombre.value.trim().length < 3)     showError(nombre,  'err-nombre');
-    if (!email.value.includes('@'))          showError(email,   'err-email');
+    if (!/^[^@\s]+@[^@\s]+\.[A-Za-z]{2,}$/.test(email.value.trim())) showError(email, 'err-email');
     if (tel.value.trim().length < 7)         showError(tel,     'err-telefono');
     if (pwd.value.length < 6)               showError(pwd,     'err-password');
     if (pwd.value !== confirm.value)         showError(confirm, 'err-confirmar');

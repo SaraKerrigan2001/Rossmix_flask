@@ -190,7 +190,7 @@
         {{ form.hidden_tag() }}
         <div class="form-group">
             {{ form.email.label(class_='form-label') }}
-            {{ form.email(class_='form-control', placeholder='tu@email.com') }}
+            {{ form.email(class_='form-control', type='email', placeholder='tu@email.com', autocomplete='email', required=true, pattern='[^@\\s]+@[^@\\s]+\\.[A-Za-z]{2,}') }}
             {% if form.email.errors %}
                 <div class="field-error">{{ form.email.errors[0] }}</div>
             {% endif %}

@@ -16,6 +16,7 @@ except ImportError:
 from app import create_app
 from app.extensions import db
 from app.models.usuario import Usuario
+from app.models.empleado import Empleado
 from werkzeug.security import generate_password_hash
 
 ADMIN_PWD   = os.environ.get('SEED_ADMIN_PASSWORD',  'admin123')
@@ -25,7 +26,7 @@ ESPEC_PWD   = os.environ.get('SEED_ESPEC_PASSWORD',   'especialista123')
 USUARIOS = [
     # (nombre, email, telefono, tipo, password, id_empleado)
     ('Administrador',    'admin@rossmix.com',            '3000000000', 'admin',   ADMIN_PWD, None),
-    ('María González',   'maria@rossmix.com',            '3001000000', 'admin',   ADMIN_PWD, 1),
+    ('María González',   'maria@rossmix.com',            '3001000000', 'admin',   ADMIN_PWD, None),
     ('Andrea Vargas',    'andrea.vargas@email.com',       '3001000001', 'cliente', CLIENTE_PWD, None),
     ('Patricia Silva',   'patricia.silva@email.com',      '3001000002', 'cliente', CLIENTE_PWD, None),
     ('Diana Gutierrez',  'diana.gutierrez@email.com',     '3001000003', 'cliente', CLIENTE_PWD, None),
@@ -57,6 +58,18 @@ app = create_app()
 with app.app_context():
     creados = actualizados = 0
     for nombre, email, telefono, tipo, pwd, id_emp in USUARIOS:
+        if tipo == 'especialista':
+            empleado = Empleado.query.filter_by(nombre=nombre).first()
+            if not empleado:
+                empleado = Empleado(
+                    nombre=nombre,
+                    especialidad='Especialista de belleza',
+                    activo=True,
+                )
+                db.session.add(empleado)
+                db.session.flush()
+            id_emp = empleado.id_empleado
+
         existente = Usuario.query.filter_by(email=email).first()
         if existente:
             existente.nombre       = nombre

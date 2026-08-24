@@ -9,16 +9,28 @@ from app.views.admin import admin_bp
 from app.models.auditoria import registrar_auditoria
 
 
+def _obtener_clientes():
+    """Obtiene todos los registros de cliente, tolerando formato heredado."""
+    from sqlalchemy import func
+
+    clientes = Usuario.query.filter(
+        func.lower(func.trim(Usuario.tipo_usuario)) == 'cliente'
+    ).order_by(Usuario.nombre).all()
+
+    for cliente in clientes:
+        cliente.citas_canceladas = Cita.query.filter_by(
+            id_cliente=cliente.id,
+            estado='cancelada'
+        ).count()
+
+    return clientes
+
+
 @admin_bp.route('/clientes')
 @admin_required
 def clientes():
     """Listar todos los clientes"""
-    lista = Usuario.query.filter_by(tipo_usuario='cliente').order_by(Usuario.nombre).all()
-    for c in lista:
-        try:
-            c.citas_canceladas = Cita.query.filter_by(id_cliente=c.id, estado='cancelada').count()
-        except Exception:
-            c.citas_canceladas = 0
+    lista = _obtener_clientes()
     return render_template('admin/clientes.html', clientes=lista, filter_label='Todos')
 
 
@@ -42,13 +54,12 @@ def clientes_datos(id_cliente):
 @admin_required
 def clientes_hoy():
     """Listar clientes registrados hoy"""
-    from sqlalchemy import func
-
     hoy = datetime.now().date()
-    lista = Usuario.query.filter(
-        Usuario.tipo_usuario == 'cliente',
-        func.date(Usuario.fecha_registro) == hoy
-    ).order_by(Usuario.nombre).all()
+    lista = _obtener_clientes()
+    lista = [
+        cliente for cliente in lista
+        if cliente.fecha_registro and cliente.fecha_registro.date() == hoy
+    ]
 
     return render_template(
         'admin/clientes.html',

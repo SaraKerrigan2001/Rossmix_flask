@@ -579,7 +579,7 @@
 
         <!-- Menú móvil desplegable -->
         <div class="nav-mobile-menu" id="navMobileMenu">
-            {% if session.usuario_id %}
+            {% if session.usuario_id and request.endpoint != 'main.index' %}
                 {% if session.tipo_usuario == 'admin' %}
                     <a href="{{ url_for('admin.dashboard') }}"><i class="bi bi-grid-fill"></i>Panel Admin</a>
                     <div class="nav-mobile-divider"></div>
@@ -630,7 +630,7 @@
         <div id="navOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:998;top:64px;"></div>
 
         <ul>
-            {% if session.usuario_id %}
+            {% if session.usuario_id and request.endpoint != 'main.index' %}
                 <!-- Perfil con dropdown -->
                 <li class="profile-dropdown-wrap">
                     <a href="#" class="profile-btn" id="profileBtn">

@@ -319,6 +319,16 @@
     .back-link a:hover {
         border-bottom-color: #ff1493;
     }
+
+        .services-empty {
+            grid-column: 1 / -1;
+            padding: 3rem 1.5rem;
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px dashed #ffb6c1;
+            border-radius: 20px;
+            color: #777;
+            text-align: center;
+        }
 </style>
 {% endblock %}
 
@@ -433,6 +443,11 @@
             <button class="btn-select">Seleccionar Servicio →</button>
         </div>
     </a>
+    {% else %}
+    <div class="services-empty">
+        <h2>No hay servicios disponibles</h2>
+        <p>El catálogo está temporalmente vacío. Intenta nuevamente más tarde.</p>
+    </div>
     {% endfor %}
 </div>
 

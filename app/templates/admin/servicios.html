@@ -22,6 +22,9 @@
 .metodo-label{display:flex;align-items:center;gap:0.6rem;padding:0.7rem 0.9rem;border:1.5px solid #e5e7eb;border-radius:10px;cursor:pointer;transition:all 0.15s;}
 .metodo-label:hover{border-color:#6ee7b7;background:#f0fdf4;}
 .metodo-label:has(input:checked){border-color:#059669;background:#ecfdf5;}
+.svc-input-group{display:flex;align-items:center;gap:0.5rem;width:100%;}
+.svc-input-group .r-form-control{flex:1 1 0;min-width:0;}
+.svc-input-unit{flex:0 0 auto;font-weight:600;color:#888;white-space:nowrap;}
 </style>
 {% endblock %}
 
@@ -151,7 +154,7 @@
                 <div class="row g-3 mb-3">
                     <div class="col-md-6">
                         <label class="r-form-label">Precio (COP) *</label>
-                        <div style="display:flex;align-items:center;gap:0.5rem;">
+                        <div class="svc-input-group">
                             <span style="font-weight:700;color:#888;">$</span>
                             <input type="number" class="r-form-control" id="svcPrecio" name="precio_total"
                                    min="0" step="1000" placeholder="50000" required>
@@ -160,10 +163,10 @@
                     </div>
                     <div class="col-md-6">
                         <label class="r-form-label">Duración *</label>
-                        <div style="display:flex;align-items:center;gap:0.5rem;">
+                        <div class="svc-input-group">
                             <input type="number" class="r-form-control" id="svcDuracion" name="duracion_minutos"
                                    min="15" step="15" placeholder="60" required>
-                            <span style="font-weight:600;color:#888;white-space:nowrap;">min</span>
+                            <span class="svc-input-unit">min</span>
                         </div>
                         <p class="r-form-hint">Múltiplo de 15 minutos</p>
                     </div>
