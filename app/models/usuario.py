@@ -1,19 +1,24 @@
-"""Modelo de Usuario (clientes, administradores y especialistas)."""
+﻿"""Modelo de Usuario (clientes, administradores y especialistas)."""
 from datetime import datetime
+from sqlalchemy import CheckConstraint
+
 from app.extensions import db
 
 
 class Usuario(db.Model):
     """Usuarios del sistema: cliente | admin | especialista"""
     __tablename__ = 'usuario'
+    __table_args__ = (
+        CheckConstraint("telefono ~ '^[0-9]{10}$'", name='ck_usuario_telefono_10_digitos'),
+    )
 
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(150), unique=True, nullable=False)
-    telefono = db.Column(db.String(20), nullable=False)
+    telefono = db.Column(db.String(10), nullable=False)
     password = db.Column(db.String(200), nullable=False)
     tipo_usuario = db.Column(db.String(20), nullable=False)  # 'cliente' | 'admin' | 'especialista'
-    fecha_registro = db.Column(db.DateTime, default=datetime.utcnow)
+    fecha_registro = db.Column(db.DateTime, default=datetime.now)
     activo = db.Column(db.Boolean, default=True)
 
     # Vínculo opcional con empleado (solo para tipo_usuario='especialista')

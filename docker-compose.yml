@@ -4,7 +4,7 @@
     environment:
       POSTGRES_DB: ${DB_NAME:-Rossmix}
       POSTGRES_USER: ${DB_USER:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-1234}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?La variable DB_PASSWORD es requerida. Define DB_PASSWORD en el .env}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:

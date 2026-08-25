@@ -72,6 +72,14 @@ def especialista_required(f):
             flash('Tu cuenta no tiene un empleado vinculado. Contacta al administrador.', 'error')
             return redirect(url_for('auth.login'))
 
+        # Verificar que el empleado vinculado también esté activo
+        from app.models.empleado import Empleado
+        empleado = db.session.get(Empleado, usuario.id_empleado)
+        if not empleado or not empleado.activo:
+            session.clear()
+            flash('Tu perfil de especialista ha sido desactivado. Contacta al administrador.', 'error')
+            return redirect(url_for('auth.login'))
+
         return f(*args, **kwargs)
     return decorated_function
 

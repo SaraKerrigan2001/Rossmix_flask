@@ -125,7 +125,7 @@ class CitaService:
             reembolsado=False,
             codigo_reserva=codigo_reserva,
             token_gestion=token_gestion,
-            fecha_creacion=datetime.utcnow(),
+            fecha_creacion=datetime.now(),
         )
 
         db.session.add(cita)

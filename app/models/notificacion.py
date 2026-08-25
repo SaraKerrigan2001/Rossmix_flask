@@ -1,4 +1,4 @@
-"""Modelo de Notificación."""
+﻿"""Modelo de Notificación."""
 from datetime import datetime
 from app.extensions import db
 
@@ -13,7 +13,7 @@ class Notificacion(db.Model):
     mensaje = db.Column(db.Text)
     target = db.Column(db.String(300))
     leido = db.Column(db.Boolean, default=False)
-    fecha = db.Column(db.DateTime, default=datetime.utcnow)
+    fecha = db.Column(db.DateTime, default=datetime.now)
 
     def __repr__(self):
         return f'<Notificacion {self.id} -> Usuario {self.id_usuario} - {self.titulo}>'

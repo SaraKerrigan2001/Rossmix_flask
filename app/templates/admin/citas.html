@@ -280,13 +280,21 @@ async function abrirReasignar(idCita) {
         const grid = document.getElementById('empleadosGrid');
         grid.innerHTML = '';
         data.empleados.forEach(emp => {
-            grid.innerHTML += `
-                <div class="emp-card" data-id="${emp.id}" onclick="seleccionarEmpleado(${emp.id}, '${emp.nombre}', this)"
-                     style="border:2px solid #e5e7eb;border-radius:12px;padding:0.8rem;
-                            cursor:pointer;transition:all 0.2s;">
-                    <div style="font-weight:700;font-size:0.9rem;color:#1a1a1a;">${emp.nombre}</div>
-                    <div style="font-size:0.78rem;color:#888;margin-top:0.2rem;">${emp.especialidad}</div>
-                </div>`;
+            // Usar textContent para prevenir XSS con nombres de empleados maliciosos
+            const div = document.createElement('div');
+            div.className = 'emp-card';
+            div.dataset.id = emp.id;
+            div.style.cssText = 'border:2px solid #e5e7eb;border-radius:12px;padding:0.8rem;cursor:pointer;transition:all 0.2s;';
+            div.addEventListener('click', function() { seleccionarEmpleado(emp.id, emp.nombre, this); });
+            const nombre = document.createElement('div');
+            nombre.style.cssText = 'font-weight:700;font-size:0.9rem;color:#1a1a1a;';
+            nombre.textContent = emp.nombre;
+            const espec = document.createElement('div');
+            espec.style.cssText = 'font-size:0.78rem;color:#888;margin-top:0.2rem;';
+            espec.textContent = emp.especialidad;
+            div.appendChild(nombre);
+            div.appendChild(espec);
+            grid.appendChild(div);
         });
     } catch(e) {
         document.getElementById('reasignarLoading').innerHTML =

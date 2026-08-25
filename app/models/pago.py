@@ -1,4 +1,4 @@
-"""Modelo de Pago."""
+﻿"""Modelo de Pago."""
 from datetime import datetime
 from app.extensions import db
 
@@ -26,7 +26,7 @@ class Pago(db.Model):
     )
     estado_pago = db.Column(db.String(20), nullable=False, default='completado')
     referencia = db.Column(db.String(100))
-    fecha_pago = db.Column(db.DateTime, default=datetime.utcnow)
+    fecha_pago = db.Column(db.DateTime, default=datetime.now)
     notas = db.Column(db.Text)
 
     def __repr__(self):

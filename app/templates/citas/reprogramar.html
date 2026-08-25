@@ -228,6 +228,7 @@
 
 <script>
 const TOKEN = "{{ token }}";
+const CITA_ID = {{ cita.id_cita }};
 let slotSeleccionado  = null;
 let empleadoSeleccionado = null;
 
@@ -277,8 +278,18 @@ async function confirmarReprogramacion() {
     form.append('id_empleado',  empleadoSeleccionado);
 
     try {
-        const res  = await fetch(`/citas/reprogramar/${TOKEN}/confirmar`, {
-            method: 'POST', body: form
+        // Usar el endpoint correcto: POST /citas/reprogramar/<id_cita>
+        // con los campos que espera SeleccionarHorarioForm
+        const [fecha, hora] = slotSeleccionado.split(' ');
+        const formData = new FormData();
+        formData.append('csrf_token', document.querySelector('[name=csrf_token]')?.value || '');
+        formData.append('id_servicio', document.getElementById('id_servicio_hidden')?.value || '');
+        formData.append('id_empleado', empleadoSeleccionado);
+        formData.append('fecha', fecha);
+        formData.append('hora', hora);
+
+        const res  = await fetch(`/citas/reprogramar/${CITA_ID}`, {
+            method: 'POST', body: formData
         });
         const data = await res.json();
 

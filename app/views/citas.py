@@ -196,25 +196,54 @@ def confirmar_cita():
         flash('Error en las fechas', 'error')
         return redirect(url_for('citas.agendar_paso1'))
 
-    # Obtener servicio
+    # ── Validaciones de negocio contra manipulación de campos ocultos ─────────
+
+    # 1. El servicio debe existir y estar activo
     servicio = db.session.get(Servicio, id_servicio)
-    if not servicio:
-        flash('Servicio no encontrado', 'error')
+    if not servicio or not servicio.activo:
+        flash('Servicio no válido o inactivo.', 'error')
         return redirect(url_for('citas.agendar_paso1'))
 
-    # Si empleado es 0, asignar aleatorio
+    # 2. El empleado debe estar activo y ofrecer el servicio
     if id_empleado == 0:
-        empleados_ids = db.session.query(EmpleadoServicio.id_empleado).filter_by(id_servicio=id_servicio).all()
+        empleados_ids = db.session.query(EmpleadoServicio.id_empleado).join(
+            Empleado, EmpleadoServicio.id_empleado == Empleado.id_empleado
+        ).filter(
+            EmpleadoServicio.id_servicio == id_servicio,
+            Empleado.activo == True
+        ).all()
         empleados_ids = [e[0] for e in empleados_ids]
-        if empleados_ids:
-            id_empleado = random.choice(empleados_ids)
-        else:
-            flash('No hay empleados disponibles para este servicio', 'error')
+        if not empleados_ids:
+            flash('No hay especialistas disponibles para este servicio.', 'error')
+            return redirect(url_for('citas.agendar_paso1'))
+        id_empleado = random.choice(empleados_ids)
+    else:
+        empleado = db.session.get(Empleado, id_empleado)
+        if not empleado or not empleado.activo:
+            flash('La especialista seleccionada no está disponible.', 'error')
+            return redirect(url_for('citas.agendar_paso1'))
+        ofrece_servicio = EmpleadoServicio.query.filter_by(
+            id_empleado=id_empleado, id_servicio=id_servicio
+        ).first()
+        if not ofrece_servicio:
+            flash('La especialista no realiza el servicio seleccionado.', 'error')
             return redirect(url_for('citas.agendar_paso1'))
 
+    # 3. La duración de la cita debe coincidir con la duración real del servicio
+    duracion_real = timedelta(minutes=servicio.duracion_minutos)
+    if (fecha_hora_fin - fecha_hora_inicio) != duracion_real:
+        # Corregir la fecha_hora_fin en lugar de rechazar
+        fecha_hora_fin = fecha_hora_inicio + duracion_real
+
+    # 4. La fecha debe ser futura (mínimo 30 min de anticipación)
+    if fecha_hora_inicio < datetime.now() + timedelta(minutes=30):
+        flash('La cita debe ser con al menos 30 minutos de anticipación.', 'error')
+        return redirect(url_for('citas.agendar_paso1'))
+
+    # 5. Verificar disponibilidad real del empleado
     if not CitaService.validar_disponibilidad_cita(id_empleado, fecha_hora_inicio, fecha_hora_fin):
         flash('El horario seleccionado ya no está disponible. Por favor elige otro.', 'error')
-        return redirect(url_for('citas.agendar_paso3', id_servicio=id_servicio, id_empleado=id_empleado or 0))
+        return redirect(url_for('citas.agendar_paso3', id_servicio=id_servicio, id_empleado=id_empleado))
 
     try:
         nueva_cita = CitaService.crear_cita(
@@ -379,6 +408,13 @@ def cliente_pagos_registrar(id_cita):
         referencia = form.referencia.data.strip() or None
         notas = form.notas.data.strip() or None
 
+        # ── Tarea 2: Limitar monto al saldo pendiente real ─────────────────────
+        saldo_real = float(cita.saldo_pendiente or cita.monto_total or 0)
+        if float(monto) > saldo_real + 0.01:
+            form.monto.errors.append(f'El monto no puede superar el saldo pendiente de ${saldo_real:,.0f}')
+            return render_template('citas/cliente_pagos_form.html',
+                                   cita=cita, cliente=cliente, servicio=servicio, form=form)
+
         nuevo_pago = Pago(
             id_cita=id_cita,
             monto=Decimal(str(monto)),
@@ -542,26 +578,36 @@ def gestionar_cita(token):
                            puede_gestionar=puede_gestionar)
 
 
-@citas_bp.route('/citas/reagendar-no-asistio/<int:id_cita>')
+@citas_bp.route('/citas/reagendar-no-asistio/<int:id_cita>', methods=['POST'])
 def reagendar_no_asistio(id_cita):
-    """Reagendar cita con estado no_asistio — guarda el abono como crédito en sesión"""
+    """Reagendar cita con estado no_asistio — guarda el crédito en BD para evitar reutilización."""
     if 'usuario_id' not in session:
-        flash('Debes iniciar sesión', 'error')
-        return redirect(url_for('auth.login'))
+        return jsonify({'error': 'No autorizado'}), 401
 
     cita = Cita.query.filter_by(
         id_cita=id_cita, id_cliente=session['usuario_id'], estado='no_asistio'
     ).first_or_404()
 
-    # Guardar el crédito y la cita original en sesión para aplicarlo al confirmar
+    # Verificar que el crédito no fue ya consumido (notas actúa como flag en BD)
+    if cita.notas and '[CREDITO_CONSUMIDO]' in cita.notas:
+        flash('El crédito de esta cita ya fue utilizado.', 'error')
+        return redirect(url_for('citas.mis_citas'))
+
+    monto_credito = float(cita.monto_abono or 0)
+
+    # Marcar el crédito como consumido en BD ANTES de guardarlo en sesión
+    cita.notas = (cita.notas or '') + f' [CREDITO_CONSUMIDO:{cita.id_cita}]'
+    db.session.commit()
+
+    # Guardar el crédito en sesión (ahora está marcado en BD — no puede reutilizarse)
     session['credito_reagenda'] = {
         'id_cita_origen': cita.id_cita,
-        'monto_credito': float(cita.monto_abono or 0),
+        'monto_credito': monto_credito,
         'codigo_origen': cita.codigo_reserva,
     }
 
     flash(
-        f'Tienes un crédito de ${float(cita.monto_abono or 0):,.0f} '
+        f'Tienes un crédito de ${monto_credito:,.0f} '
         f'del abono de tu cita anterior (#{cita.codigo_reserva}). '
         f'Se descontará automáticamente al confirmar tu nueva cita.',
         'success'

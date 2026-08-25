@@ -1,4 +1,4 @@
-"""Modelo de Empleado."""
+﻿"""Modelo de Empleado."""
 from datetime import datetime, timedelta
 from app.extensions import db
 
@@ -12,7 +12,7 @@ class Empleado(db.Model):
     nombre = db.Column(db.String(100), nullable=False)
     especialidad = db.Column(db.String(100))
     activo = db.Column(db.Boolean, default=True)
-    fecha_registro = db.Column(db.DateTime, default=datetime.utcnow)
+    fecha_registro = db.Column(db.DateTime, default=datetime.now)
 
     # ── Relaciones ────────────────────────────────────────────────────────
     horarios = db.relationship('HorarioEmpleado', backref='empleado', lazy=True, cascade='all, delete-orphan')

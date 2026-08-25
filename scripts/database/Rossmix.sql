@@ -51,7 +51,9 @@ CREATE TABLE usuario (
     id              SERIAL          PRIMARY KEY,
     nombre          VARCHAR(100)    NOT NULL,
     email           VARCHAR(150)    UNIQUE NOT NULL,
-    telefono        VARCHAR(20)     NOT NULL,
+    telefono        VARCHAR(10)     NOT NULL
+                                    CONSTRAINT ck_usuario_telefono_10_digitos
+                                    CHECK (telefono ~ '^[0-9]{10}$'),
     password        VARCHAR(200)    NOT NULL,
     tipo_usuario    VARCHAR(20)     NOT NULL DEFAULT 'cliente'
                                     CHECK (tipo_usuario IN ('admin','cliente','especialista')),
@@ -170,6 +172,16 @@ CREATE TABLE citas (
 COMMENT ON TABLE  citas                  IS 'Reservas agendadas por los clientes';
 COMMENT ON COLUMN citas.monto_abono      IS 'Abono mínimo para reservar ($5.000 COP)';
 COMMENT ON COLUMN citas.saldo_pendiente  IS 'Se calcula: monto_total - monto_abono';
+COMMENT ON COLUMN citas.codigo_reserva   IS 'ID generado por CitaService (8 chars)';
+COMMENT ON COLUMN citas.token_gestion    IS 'Token URL-safe para link de gestión';
+
+-- Índice parcial que previene solapamiento de citas del mismo empleado.
+-- Dos solicitudes simultáneas para el mismo empleado y hora_inicio no pueden
+-- ambas insertarse con éxito — la segunda recibirá un UniqueViolation.
+CREATE UNIQUE INDEX idx_no_solapamiento_citas
+    ON citas (id_empleado, fecha_hora_inicio)
+    WHERE estado IN ('pendiente_pago', 'confirmada', 'en_atencion')
+      AND id_empleado IS NOT NULL;
 COMMENT ON COLUMN citas.codigo_reserva   IS 'ID generado por ReservaService (RES-XXXXXX)';
 COMMENT ON COLUMN citas.token_gestion    IS 'Token URL-safe para link de gestión/reprogramación';
 
@@ -298,7 +310,36 @@ CREATE INDEX idx_audit_accion   ON auditoria_usuarios(accion);
 CREATE INDEX idx_audit_fecha    ON auditoria_usuarios(fecha);
 
 -- ============================================================================
--- 13. VISTAS
+-- 13. MIGRACIÓN: TELÉFONO DE USUARIO (EXACTAMENTE 10 DÍGITOS)
+--    Se eliminan temporalmente las vistas que dependen de usuario.telefono.
+--    Al ejecutar el archivo completo, se vuelven a crear en la sección 14.
+-- ============================================================================
+DROP VIEW IF EXISTS vista_agenda_diaria CASCADE;
+DROP VIEW IF EXISTS vista_pagos_pendientes CASCADE;
+
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM usuario
+        WHERE telefono !~ '^[0-9]{10}$'
+    ) THEN
+        RAISE EXCEPTION 'Existen teléfonos que no tienen exactamente 10 dígitos';
+    END IF;
+END $$;
+
+ALTER TABLE usuario
+    ALTER COLUMN telefono TYPE VARCHAR(10);
+
+ALTER TABLE usuario
+    DROP CONSTRAINT IF EXISTS ck_usuario_telefono_10_digitos;
+
+ALTER TABLE usuario
+    ADD CONSTRAINT ck_usuario_telefono_10_digitos
+    CHECK (telefono ~ '^[0-9]{10}$');
+
+-- ============================================================================
+-- 14. VISTAS
 -- ============================================================================
 
 -- Vista agenda diaria completa
@@ -353,7 +394,7 @@ WHERE c.estado IN ('confirmada', 'en_atencion')
 ORDER BY c.fecha_hora_inicio;
 
 -- ============================================================================
--- 14. DATOS INICIALES: SERVICIOS
+-- 15. DATOS INICIALES: SERVICIOS
 -- ============================================================================
 INSERT INTO servicios (nombre_servicio, descripcion, precio_total, duracion_minutos) VALUES
 -- Uñas
@@ -380,7 +421,7 @@ INSERT INTO servicios (nombre_servicio, descripcion, precio_total, duracion_minu
 ('Lifting de Pestañas',      'Rizado y definición de pestañas naturales',             55000,  60);
 
 -- ============================================================================
--- 15. DATOS INICIALES: EMPLEADOS
+-- 16. DATOS INICIALES: EMPLEADOS
 -- ============================================================================
 INSERT INTO empleados (nombre, especialidad) VALUES
 ('María González',   'Especialista en Uñas'),
@@ -395,7 +436,7 @@ INSERT INTO empleados (nombre, especialidad) VALUES
 ('Gabriela Morales', 'Estilista Integral');
 
 -- ============================================================================
--- 16. DATOS INICIALES: EMPLEADO_SERVICIOS
+-- 17. DATOS INICIALES: EMPLEADO_SERVICIOS
 -- ============================================================================
 -- Uñas: María(1), Ana(2), Laura(3)
 INSERT INTO empleado_servicios VALUES
@@ -425,7 +466,7 @@ INSERT INTO empleado_servicios VALUES
 (10,12),(10,13),(10,14),(10,15),(10,16),(10,17),(10,18);
 
 -- ============================================================================
--- 17. DATOS INICIALES: HORARIOS (Lun-Vie 8:00-18:00 | Sáb 9:00-16:00)
+-- 18. DATOS INICIALES: HORARIOS (Lun-Vie 8:00-18:00 | Sáb 9:00-16:00)
 -- ============================================================================
 INSERT INTO horarios_empleados (id_empleado, dia_semana, hora_inicio, hora_fin)
 SELECT id_empleado, dia, '08:00', '18:00'
@@ -436,7 +477,7 @@ SELECT id_empleado, 6, '09:00', '16:00'
 FROM empleados;
 
 -- ============================================================================
--- 18. TABLA: CONFIGURACIONES
+-- 19. TABLA: CONFIGURACIONES
 --    Parámetros configurables del sistema (clave-valor)
 --    creado_por → usuario(id)  [SET NULL: si se borra el usuario, la config se conserva]
 -- ============================================================================
@@ -478,7 +519,8 @@ INSERT INTO configuraciones (clave, valor, descripcion) VALUES
 ('moneda',              'COP',                        'Moneda utilizada en precios');
 
 -- ============================================================================
--- 19. VERIFICACIÓN FINAL
+-- ============================================================================
+-- 20. VERIFICACIÓN FINAL
 -- ============================================================================
 SELECT 'usuario'             AS tabla, COUNT(*) AS registros FROM usuario          UNION ALL
 SELECT 'servicios',                    COUNT(*) FROM servicios                     UNION ALL

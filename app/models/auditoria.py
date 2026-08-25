@@ -1,4 +1,4 @@
-"""Modelo de Auditoría de Usuarios."""
+﻿"""Modelo de Auditoría de Usuarios."""
 from datetime import datetime
 from app.extensions import db
 
@@ -39,7 +39,7 @@ class AuditoriaUsuario(db.Model):
     accion       = db.Column(db.String(50), nullable=False)  # crear|editar|desactivar|login|logout|reset_password
     detalle      = db.Column(db.Text)
     ip_address   = db.Column(db.String(45))
-    fecha        = db.Column(db.DateTime, default=datetime.utcnow)
+    fecha        = db.Column(db.DateTime, default=datetime.now)
 
     # Relaciones
     usuario_afectado = db.relationship(

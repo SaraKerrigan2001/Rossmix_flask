@@ -1,4 +1,4 @@
-"""Modelo de configuración del sistema."""
+﻿"""Modelo de configuración del sistema."""
 from datetime import datetime
 from app.extensions import db
 
@@ -32,9 +32,9 @@ class Configuracion(db.Model):
         nullable=True,
     )
 
-    fecha_creacion       = db.Column(db.DateTime, default=datetime.utcnow)
-    fecha_actualizacion  = db.Column(db.DateTime, default=datetime.utcnow,
-                                     onupdate=datetime.utcnow)
+    fecha_creacion       = db.Column(db.DateTime, default=datetime.now)
+    fecha_actualizacion  = db.Column(db.DateTime, default=datetime.now,
+                                     onupdate=datetime.now)
 
     # Relaciones
     usuario_creador = db.relationship(
@@ -64,7 +64,7 @@ class Configuracion(db.Model):
         if config:
             config.valor          = valor
             config.modificado_por = id_usuario
-            config.fecha_actualizacion = datetime.utcnow()
+            config.fecha_actualizacion = datetime.now()
         else:
             config = Configuracion(
                 clave=clave,

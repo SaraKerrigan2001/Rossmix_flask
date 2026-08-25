@@ -44,6 +44,12 @@ def pagos_registrar(id_cita):
             flash('El monto debe ser mayor a 0', 'error')
             return redirect(url_for('admin.pagos_registrar', id_cita=id_cita))
 
+        # ── Tarea 2: Limitar monto al saldo pendiente real ─────────────────────
+        saldo_real = float(cita.saldo_pendiente or cita.monto_total or 0)
+        if monto > saldo_real + 0.01:   # tolerancia de 1 centavo por redondeo
+            flash(f'El monto no puede superar el saldo pendiente de ${saldo_real:,.0f}', 'error')
+            return redirect(url_for('admin.pagos_registrar', id_cita=id_cita))
+
         metodos_validos = ['efectivo', 'tarjeta', 'transferencia']
         if metodo not in metodos_validos:
             flash('Método de pago inválido', 'error')
