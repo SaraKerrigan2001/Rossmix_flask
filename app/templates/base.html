@@ -13,6 +13,13 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
 
+        :root {
+            --rossmix-vino: #C41E3A;
+            --rossmix-dorado: #C5A059;
+            --rossmix-vino-oscuro: #880E4F;
+            --rossmix-vino-suave: #FFF0F6;
+        }
+
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
@@ -106,7 +113,7 @@
         .profile-btn:hover { background: #ffe0ef; color: #c41e3a; }
         .profile-btn .avatar {
             width: 28px; height: 28px; border-radius: 50%;
-            background: linear-gradient(135deg, #c41e3a, #ff1493);
+            background: linear-gradient(135deg, var(--rossmix-vino), var(--rossmix-dorado));
             color: white; display: flex; align-items: center;
             justify-content: center; font-size: 0.78rem; font-weight: 700;
             flex-shrink: 0;
@@ -133,7 +140,7 @@
         }
         .profile-menu-header .pm-avatar {
             width: 48px; height: 48px; border-radius: 50%;
-            background: linear-gradient(135deg, #c41e3a, #ff1493);
+            background: linear-gradient(135deg, var(--rossmix-vino), var(--rossmix-dorado));
             color: white; display: flex; align-items: center;
             justify-content: center; font-size: 1.3rem; font-weight: 700;
             margin-bottom: 0.6rem;
@@ -234,7 +241,7 @@
             height: 1px; background: #f0f0f0; margin: 0.3rem 0;
         }
         .nav-mobile-menu .btn-mobile-primary {
-            background: linear-gradient(135deg, #c41e3a, #ff1493);
+            background: linear-gradient(135deg, var(--rossmix-vino), var(--rossmix-dorado));
             color: white !important;
             text-align: center;
             font-weight: 600;
@@ -242,7 +249,7 @@
             border-radius: 25px;
             margin-top: 0.2rem;
         }
-        .nav-mobile-menu .btn-mobile-primary:hover { opacity: 0.9; background: linear-gradient(135deg, #c41e3a, #ff1493); }
+        .nav-mobile-menu .btn-mobile-primary:hover { opacity: 0.9; background: linear-gradient(135deg, var(--rossmix-vino), var(--rossmix-dorado)); }
         .nav-mobile-menu .btn-mobile-outline {
             border: 2px solid #c41e3a;
             color: #c41e3a !important;
@@ -292,15 +299,15 @@
 
         /* ── BOTONES GLOBALES ───────────────────────────────── */
         .btn-rossmix {
-            background: linear-gradient(135deg, #fce4ec 0%, #f48fb1 100%);
-            color: #880e4f; border: 1px solid #f06292;
+            background: linear-gradient(135deg, var(--rossmix-vino), var(--rossmix-dorado));
+            color: white; border: 1px solid var(--rossmix-vino);
             padding: 0.65rem 1.8rem; border-radius: 12px;
             font-size: 0.92rem; font-weight: 600;
             cursor: pointer; text-decoration: none;
             display: inline-flex; align-items: center; gap: 0.4rem;
             transition: all 0.25s;
         }
-        .btn-rossmix:hover { opacity: 0.95; color: #880e4f; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(240, 98, 146, 0.3); }
+        .btn-rossmix:hover { opacity: 0.95; color: white; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(196, 30, 58, 0.3); }
         .btn-secondary-r {
             background: white; color: #555;
             border: 1.5px solid #ddd;
@@ -339,7 +346,7 @@
             font-size: 0.9rem;
         }
         .r-table thead tr {
-            background: linear-gradient(135deg, #c41e3a, #ff1493);
+            background: linear-gradient(135deg, var(--rossmix-vino), var(--rossmix-dorado));
             color: white;
         }
         .r-table thead th {
@@ -377,8 +384,8 @@
         }
         .r-form-control:focus {
             outline: none;
-            border-color: #ff1493;
-            box-shadow: 0 0 0 3px rgba(255,20,147,0.1);
+            border-color: var(--rossmix-dorado);
+            box-shadow: 0 0 0 3px rgba(197,160,89,0.18);
         }
         .r-form-hint { font-size: 0.78rem; color: #9ca3af; margin-top: 0.3rem; }
 
@@ -443,7 +450,7 @@
         .nav-chip.yellow { background: #fef3c7; color: #d97706; }
         .nav-chip.blue   { background: #eff6ff; color: #2563eb; }
         .nav-chip.purple { background: #f5f3ff; color: #7c3aed; }
-        .nav-chip.pink   { background: linear-gradient(135deg, #fce4ec 0%, #f48fb1 100%); color: #880e4f; border: 1px solid #f06292; }
+        .nav-chip.pink   { background: var(--rossmix-vino-suave); color: var(--rossmix-vino); border: 1px solid var(--rossmix-dorado); }
 
         /* ── PAGE HEADER ────────────────────────────────────── */
         .page-header {
@@ -936,7 +943,7 @@ const IG_SVG = `<path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.6
 
 .rmx-confirm-band {
     height: 5px;
-    background: linear-gradient(90deg, #c41e3a, #ff1493);
+    background: linear-gradient(90deg, var(--rossmix-vino), var(--rossmix-dorado));
 }
 
 .rmx-confirm-body {
@@ -1304,7 +1311,7 @@ function rossmixConfirm({ titulo='Confirmar', mensaje='', tipo='danger', okText=
     }
     #rossmix-bot-window.hidden { opacity: 0; transform: translateY(20px); pointer-events: none; }
     .bot-header {
-        background: linear-gradient(135deg, #c41e3a, #ff1493); color: white;
+        background: linear-gradient(135deg, var(--rossmix-vino), var(--rossmix-dorado)); color: white;
         padding: 1rem; display: flex; justify-content: space-between; align-items: center;
         font-weight: 600;
     }

@@ -22,7 +22,10 @@ def dashboard():
     ).count()
 
     # Total clientes
-    total_clientes = Usuario.query.filter_by(tipo_usuario='cliente', activo=True).count()
+    total_clientes = Usuario.query.filter(
+        func.lower(func.trim(Usuario.tipo_usuario)) == 'cliente',
+        Usuario.activo.is_(True)
+    ).count()
 
     # Empleados activos
     empleados_activos = Empleado.query.filter_by(activo=True).count()

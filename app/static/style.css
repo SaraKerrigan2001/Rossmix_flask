@@ -283,12 +283,12 @@
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #ffe0ef, #ffc0d8);
+    background: linear-gradient(135deg, #fff0f6, #f3dfbd);
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    color: #c41e3a;
+    color: #C41E3A;
     font-size: 0.9rem;
     flex-shrink: 0;
 }
@@ -324,13 +324,13 @@
 }
 
 .btn-filter:hover {
-    color: #c41e3a;
+    color: #C41E3A;
     background: rgba(255, 255, 255, 0.7);
 }
 
 .btn-filter.active {
     background: #ffffff;
-    color: #c41e3a;
+    color: #C41E3A;
     font-weight: 600;
     box-shadow: 0 1px 6px rgba(196, 30, 58, 0.12);
 }
