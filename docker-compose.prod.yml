@@ -1,0 +1,20 @@
+# ============================================================
+# Rossmix — Override para PRODUCCIÓN
+# Uso: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+# ============================================================
+
+services:
+  web:
+    # En producción NO montar el código fuente
+    volumes: []
+    environment:
+      FLASK_ENV: production
+      GUNICORN_WORKERS: "4"
+      GUNICORN_THREADS: "2"
+      GUNICORN_TIMEOUT: "120"
+    restart: always
+
+  db:
+    # En producción no exponer el puerto de BD al host
+    ports: []
+    restart: always

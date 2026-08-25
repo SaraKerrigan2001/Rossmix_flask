@@ -1,23 +1,43 @@
-﻿.git
+﻿# Control de versiones
+.git
 .gitignore
-.venv
-venv
-__pycache__
+
+# Entornos virtuales
+.venv/
+.venv313/
+venv/
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Variables de entorno y credenciales
+.env
+.env.*
+!.env.example
+credenciales_login.md
+
+# Caché y compilados
 *.pyc
 *.pyo
-*.pyd
-.Python
-env
-pip-log.txt
-pip-delete-this-directory.txt
-.tox
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
+instance/
+*.db
+*.sqlite
+
+# Herramientas de desarrollo y docs
+.agents/
+.kiro/
+docs/
+*.md
+!README.md
+scripts/utilidades/
+ngrok/
+cloudflared.exe
+iniciar_ngrok.py
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+
+# Logs
 *.log
-.pytest_cache
-instance
-.env
