@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+﻿{% extends 'base.html' %}
 
 {% block title %}Rossmix - Salón de Belleza y Uñas{% endblock %}
 
@@ -112,10 +112,11 @@
     transition: transform 0.3s;
 }
 .hero-img-box:hover { transform: scale(1.03); }
-.hero-img-box.bg1 { background: linear-gradient(135deg, #ffe5f3, #ffc8e3); }
-.hero-img-box.bg2 { background: linear-gradient(135deg, #f5e5ff, #e8d0ff); }
-.hero-img-box.bg3 { background: linear-gradient(135deg, #ffe8cc, #ffd4a3); }
-.hero-img-box.bg4 { background: linear-gradient(135deg, #d4f0ff, #b8e3ff); }
+/* Fallbacks de imagen — todos en paleta Rossmix */
+.hero-img-box.bg1 { background: linear-gradient(135deg, #fff0f6, #ffd6e8); }
+.hero-img-box.bg2 { background: linear-gradient(135deg, #ffe5f3, #ffb3d1); }
+.hero-img-box.bg3 { background: linear-gradient(135deg, #ffc0d8, #ff8fb3); }
+.hero-img-box.bg4 { background: linear-gradient(135deg, #fff0f6, #ffd6e8); }
 
 /* =============================================
    SECTION TITLE GENERAL
@@ -171,10 +172,11 @@
     font-size: 4rem;
     overflow: hidden;
 }
-.cat-bg.c1 { background: linear-gradient(135deg, #ffb347, #ff8c00); }
-.cat-bg.c2 { background: linear-gradient(135deg, #ff69b4, #da70d6); }
-.cat-bg.c3 { background: linear-gradient(135deg, #b0c4de, #9bb3cf); }
-.cat-bg.c4 { background: linear-gradient(135deg, #c8a2e8, #9370db); }
+/* Categorías — solo paleta Rossmix */
+.cat-bg.c1 { background: linear-gradient(135deg, #fff0f6, #ffd6e8); }
+.cat-bg.c2 { background: linear-gradient(135deg, #ffe5f3, #ffb3d1); }
+.cat-bg.c3 { background: linear-gradient(135deg, #ffc0d8, #ff8fb3); }
+.cat-bg.c4 { background: linear-gradient(135deg, #fff0f6, #ffd6e8); }
 .cat-info {
     position: absolute; bottom: 16px; left: 16px; right: 16px;
     z-index: 2; color: white;
@@ -215,13 +217,14 @@
     transition: transform 0.3s, box-shadow 0.3s;
 }
 .saved-card:hover { transform: translateY(-5px); box-shadow: 0 10px 28px rgba(0,0,0,0.13); }
+/* Badge de ranking — paleta Rossmix */
 .saved-rank {
     position: absolute; top: 8px; left: 8px; z-index: 1;
     width: 24px; height: 24px; border-radius: 50%;
-    background: linear-gradient(135deg, #ffd700, #ffb300);
+    background: linear-gradient(135deg, #c41e3a, #ff1493);
     display: flex; align-items: center; justify-content: center;
-    font-size: 0.72rem; font-weight: 700; color: #333;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    font-size: 0.72rem; font-weight: 700; color: white;
+    box-shadow: 0 2px 8px rgba(196,30,58,0.3);
 }
 .saved-img {
     width: 100%;
@@ -229,12 +232,13 @@
     display: flex; align-items: center; justify-content: center;
     overflow: hidden;
 }
-.si1 { background: linear-gradient(135deg, #ffe5f3, #ffc0d8); }
-.si2 { background: linear-gradient(135deg, #f0e5ff, #d9b3ff); }
-.si3 { background: linear-gradient(135deg, #ffe5cc, #ffba80); }
-.si4 { background: linear-gradient(135deg, #e0f5e0, #aae0aa); }
-.si5 { background: linear-gradient(135deg, #e5eeff, #aabfff); }
-.si6 { background: linear-gradient(135deg, #ffe8e8, #ffb3b3); }
+/* Diseños más solicitados — paleta Rossmix */
+.si1 { background: linear-gradient(135deg, #fff0f6, #ffd6e8); }
+.si2 { background: linear-gradient(135deg, #ffe5f3, #ffb3d1); }
+.si3 { background: linear-gradient(135deg, #ffc0d8, #ff8fb3); }
+.si4 { background: linear-gradient(135deg, #fff0f6, #ffd6e8); }
+.si5 { background: linear-gradient(135deg, #ffe5f3, #ffb3d1); }
+.si6 { background: linear-gradient(135deg, #ffc0d8, #ff8fb3); }
 .saved-meta { padding: 0.8rem; }
 .saved-meta h4 { font-size: 0.88rem; font-weight: 600; margin-bottom: 0.3rem; color: #1a1a1a; }
 .saved-meta .stat { font-size: 0.78rem; color: #aaa; }
@@ -297,14 +301,15 @@
     font-weight: 700; font-size: 2rem; color: white;
     overflow: hidden;
 }
-.col1 { background: linear-gradient(135deg, #ffb3d1, #ff69b4); }
-.col2 { background: linear-gradient(135deg, #c8a2e8, #9370db); }
-.col3 { background: linear-gradient(135deg, #a8d8ea, #6baed6); }
-.col4 { background: linear-gradient(135deg, #ffe5a0, #ffc400); }
-.col5 { background: linear-gradient(135deg, #b8e6b8, #5cb85c); }
-.col6 { background: linear-gradient(135deg, #ffcba4, #ff8c42); }
-.col7 { background: linear-gradient(135deg, #ffd1dc, #ff9eb5); }
-.col8 { background: linear-gradient(135deg, #d4e1f7, #96b4e8); }
+/* Colecciones — solo paleta Rossmix */
+.col1 { background: linear-gradient(135deg, #fff0f6, #ffd6e8); }
+.col2 { background: linear-gradient(135deg, #ffe5f3, #ffb3d1); }
+.col3 { background: linear-gradient(135deg, #ffc0d8, #ff8fb3); }
+.col4 { background: linear-gradient(135deg, #fff0f6, #ffd6e8); }
+.col5 { background: linear-gradient(135deg, #ffe5f3, #ffb3d1); }
+.col6 { background: linear-gradient(135deg, #ffc0d8, #ff8fb3); }
+.col7 { background: linear-gradient(135deg, #fff0f6, #ffd6e8); }
+.col8 { background: linear-gradient(135deg, #ffe5f3, #ffb3d1); }
 .coll-name {
     background: white; padding: 0.6rem 0.8rem;
     font-size: 0.85rem; font-weight: 600; color: #333;
@@ -316,7 +321,7 @@
 ============================================= */
 .cta-banner-wrap { padding: 0 2rem; max-width: 1300px; margin: 4rem auto; }
 .cta-banner {
-    background: linear-gradient(135deg, #ffc0d4 0%, #ff69b4 50%, #c41e3a 100%);
+    background: linear-gradient(135deg, #c41e3a 0%, #ff1493 100%);
     border-radius: 28px;
     padding: 4rem 3rem;
     display: flex; align-items: center; justify-content: space-between;
@@ -428,7 +433,7 @@
             </div>
         </div>
         <div class="cat-card">
-            <div class="cat-bg c2"><img src="{{ url_for('static', filename='images/nails/Uñas en Gel.jpg') }}" alt="Uñas en Gel" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none';this.parentElement.style.background='linear-gradient(135deg,#ff69b4,#da70d6)';"></div>
+            <div class="cat-bg c2"><img src="{{ url_for('static', filename='images/nails/Uñas en Gel.jpg') }}" alt="Uñas en Gel" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none';this.parentElement.style.background='linear-gradient(135deg,#fff0f6,#ffd6e8)';"></div>
             <div class="cat-info">
                 <h3>Uñas en Gel</h3>
                 <p>Duración y brillo sin igual</p>

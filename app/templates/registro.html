@@ -125,8 +125,8 @@
 }
 .field-group input:focus {
     outline: none;
-    border-color: #ff1493;
-    box-shadow: 0 0 0 3px rgba(255,20,147,0.08);
+    border-color: #c41e3a;
+    box-shadow: 0 0 0 3px rgba(197,160,89,0.18);
 }
 .field-hint {
     font-size: 0.75rem; color: #9ca3af; margin-top: 0.25rem;
@@ -138,8 +138,8 @@
 
 .btn-register {
     width: 100%;
-    background: linear-gradient(135deg, #fce4ec 0%, #f48fb1 100%);
-    color: #880e4f; border: 1px solid #f06292;
+    background: linear-gradient(135deg, #c41e3a, #ff1493);
+    color: white; border: 1px solid #C41E3A;
     padding: 0.9rem; border-radius: 12px;
     font-size: 1rem; font-weight: 700;
     cursor: pointer; margin-top: 0.8rem;
@@ -233,7 +233,7 @@
 
                 <div class="field-group">
                     {{ form.telefono.label(class_='form-label') }}
-                    {{ form.telefono(class_='form-control', placeholder='3001234567', autocomplete='tel') }}
+                    {{ form.telefono(class_='form-control', placeholder='3001234567', autocomplete='tel', inputmode='numeric', minlength='10', maxlength='10', pattern='[0-9]{10}') }}
                     <p class="field-hint">Para confirmar tus citas</p>
                     {% if form.telefono.errors %}
                             <div id="err-telefono" class="field-error">{{ form.telefono.errors[0] }}</div>
@@ -328,7 +328,7 @@ document.getElementById('formRegistro').addEventListener('submit', function(e) {
 
     if (nombre.value.trim().length < 3)     showError(nombre,  'err-nombre');
     if (!/^[^@\s]+@[^@\s]+\.[A-Za-z]{2,}$/.test(email.value.trim())) showError(email, 'err-email');
-    if (tel.value.trim().length < 7)         showError(tel,     'err-telefono');
+    if (!/^\d{10}$/.test(tel.value.trim())) showError(tel,     'err-telefono');
     if (pwd.value.length < 6)               showError(pwd,     'err-password');
     if (pwd.value !== confirm.value)         showError(confirm, 'err-confirmar');
 
