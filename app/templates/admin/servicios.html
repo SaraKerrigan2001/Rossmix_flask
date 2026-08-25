@@ -20,8 +20,8 @@
 .rmx-toast.error{background:#fef2f2;color:#991b1b;border:1.5px solid #fca5a5;}
 @keyframes toastIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
 .metodo-label{display:flex;align-items:center;gap:0.6rem;padding:0.7rem 0.9rem;border:1.5px solid #e5e7eb;border-radius:10px;cursor:pointer;transition:all 0.15s;}
-.metodo-label:hover{border-color:#6ee7b7;background:#f0fdf4;}
-.metodo-label:has(input:checked){border-color:#c41e3a;background:#ecfdf5;}
+.metodo-label:hover{border-color:#ffb3d1;background:#fff0f6;}
+.metodo-label:has(input:checked){border-color:#c41e3a;background:#fff0f6;}
 .svc-input-group{display:flex;align-items:center;gap:0.5rem;width:100%;}
 .svc-input-group .r-form-control{flex:1 1 0;min-width:0;}
 .svc-input-unit{flex:0 0 auto;font-weight:600;color:#888;white-space:nowrap;}
@@ -37,7 +37,7 @@
             <i class="bi bi-chevron-right"></i> <span>Servicios</span>
         </div>
     </div>
-    <button onclick="abrirModalCrear()" class="btn-rossmix" style="background:linear-gradient(135deg,#c41e3a,#c41e3a);">
+    <button onclick="abrirModalCrear()" class="btn-rossmix">
         <i class="bi bi-plus-lg"></i> Nuevo Servicio
     </button>
 </div>
@@ -74,10 +74,9 @@
                     <td>
                         <div style="display:flex;align-items:center;gap:0.7rem;">
                             <div style="width:36px;height:36px;border-radius:10px;
-                                        background:linear-gradient(135deg,#d1fae5,#a7f3d0);
+                                        background:linear-gradient(135deg,#fff0f6,#ffd6e8);
                                         display:flex;align-items:center;justify-content:center;
-                                        font-size:1rem;flex-shrink:0;">✂️</div>
-                            <strong>{{ svc.nombre_servicio }}</strong>
+                                        font-size:1rem;flex-shrink:0;">✂️</div>                            <strong>{{ svc.nombre_servicio }}</strong>
                         </div>
                     </td>
                     <td style="color:#6b7280;max-width:220px;">
@@ -85,7 +84,7 @@
                     </td>
                     <td><strong style="color:#c41e3a;">${{ "{:,.0f}".format(svc.precio_total) }}</strong></td>
                     <td>
-                        <span style="background:#f0fdf4;color:#166534;padding:0.2rem 0.7rem;border-radius:20px;font-size:0.8rem;font-weight:600;">
+                        <span style="background:#fff0f6;color:#c41e3a;padding:0.2rem 0.7rem;border-radius:20px;font-size:0.8rem;font-weight:600;">
                             {{ svc.duracion_minutos }} min
                         </span>
                     </td>
@@ -185,7 +184,7 @@
                 <i class="bi bi-x-lg"></i> Cancelar
             </button>
             <button type="button" onclick="guardarServicio()" id="btnGuardarSvc"
-                    class="btn-rossmix" style="flex:2;background:linear-gradient(135deg,#c41e3a,#c41e3a);justify-content:center;">
+                    class="btn-rossmix" style="flex:2;justify-content:center;">
                 <i class="bi bi-check-lg"></i> Guardar Servicio
             </button>
         </div>

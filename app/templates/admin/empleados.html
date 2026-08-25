@@ -24,7 +24,7 @@
 }
 .rmx-modal-header {
     padding: 1.4rem 1.8rem;
-    background: linear-gradient(135deg, #c41e3a, #a855f7);
+    background: linear-gradient(135deg, #c41e3a, #ff1493);
     display: flex; align-items: center; gap: 1rem; flex-shrink: 0;
 }
 .rmx-modal-header .icon-wrap {
@@ -64,8 +64,8 @@
 /* ── Servicios checkbox grid ── */
 .svc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px,1fr)); gap: 0.5rem; max-height: 220px; overflow-y: auto; border: 1.5px solid #e5e7eb; border-radius: 12px; padding: 0.8rem; }
 .svc-label { display: flex; align-items: center; gap: 0.6rem; padding: 0.6rem 0.8rem; border-radius: 8px; cursor: pointer; border: 1.5px solid #f0f0f0; transition: all 0.15s; }
-.svc-label:hover { border-color: #d8b4fe; background: #faf5ff; }
-.svc-label:has(input:checked) { border-color: #c41e3a; background: #f5f3ff; }
+.svc-label:hover { border-color: #ffb3d1; background: #fff0f6; }
+.svc-label:has(input:checked) { border-color: #c41e3a; background: #fff0f6; }
 </style>
 {% endblock %}
 
@@ -78,7 +78,7 @@
             <i class="bi bi-chevron-right"></i> <span>Empleados</span>
         </div>
     </div>
-    <button onclick="abrirModalCrear()" class="btn-rossmix" style="background:linear-gradient(135deg,#c41e3a,#a855f7);">
+    <button onclick="abrirModalCrear()" class="btn-rossmix">
         <i class="bi bi-plus-lg"></i> Nuevo Empleado
     </button>
 </div>
@@ -118,7 +118,7 @@
                     <td>
                         <div style="display:flex;align-items:center;gap:0.7rem;">
                             <div style="width:36px;height:36px;border-radius:50%;
-                                        background:linear-gradient(135deg,#ede9ff,#d4caff);
+                                        background:linear-gradient(135deg,#fff0f6,#ffd6e8);
                                         display:flex;align-items:center;justify-content:center;
                                         font-weight:700;color:#c41e3a;font-size:0.9rem;flex-shrink:0;">
                                 {{ emp.nombre[0].upper() }}
@@ -240,7 +240,7 @@
                 <i class="bi bi-x-lg"></i> Cancelar
             </button>
             <button type="button" onclick="guardarEmpleado()" id="btnGuardarEmp"
-                    class="btn-rossmix" style="flex:2;background:linear-gradient(135deg,#c41e3a,#a855f7);justify-content:center;">
+                    class="btn-rossmix" style="flex:2;justify-content:center;">
                 <i class="bi bi-check-lg"></i> Guardar Empleado
             </button>
         </div>
