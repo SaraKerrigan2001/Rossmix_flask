@@ -18,7 +18,7 @@
 
 <div class="r-card">
     <div class="r-card-header">
-        <h2><i class="bi bi-calendar-week" style="color:#2563eb;"></i>
+        <h2><i class="bi bi-calendar-week" style="color:#c41e3a;"></i>
             Citas de hoy — {{ hoy.strftime('%A %d de %B de %Y') }}
         </h2>
         <span style="font-size:0.85rem;color:#888;">{{ citas|length }} cita(s)</span>
@@ -33,7 +33,7 @@
                 {% for cita, usuario, empleado, servicio in citas %}
                 <tr>
                     <td>
-                        <span style="background:#eff6ff;color:#2563eb;padding:0.25rem 0.7rem;border-radius:20px;font-weight:700;font-size:0.88rem;">
+                        <span style="background:#eff6ff;color:#c41e3a;padding:0.25rem 0.7rem;border-radius:20px;font-weight:700;font-size:0.88rem;">
                             {{ cita.fecha_hora_inicio.strftime('%H:%M') }}
                         </span>
                     </td>
@@ -53,11 +53,11 @@
                             {{ cita.estado.replace('_',' ').title() }}
                         </span>
                     </td>
-                    <td><strong style="color:#059669;">${{ "{:,.0f}".format(cita.monto_total) }}</strong></td>
+                    <td><strong style="color:#c41e3a;">${{ "{:,.0f}".format(cita.monto_total) }}</strong></td>
                     <td>
                         {% if not empleado %}
                         <button onclick="abrirReasignar({{ cita.id_cita }})"
-                                style="background:#eff6ff;color:#2563eb;border:1.5px solid #bfdbfe;
+                                style="background:#eff6ff;color:#c41e3a;border:1.5px solid #bfdbfe;
                                        padding:0.35rem 0.8rem;border-radius:8px;font-size:0.8rem;
                                        font-weight:700;cursor:pointer;">
                             <i class="bi bi-person-plus"></i> Asignar
@@ -65,7 +65,7 @@
                         {% endif %}
                         {% if not cita.pago %}
                         <a href="{{ url_for('admin_pagos_registrar', id_cita=cita.id_cita) }}"
-                           style="background:#ecfdf5;color:#059669;padding:0.35rem 0.8rem;
+                           style="background:#ecfdf5;color:#c41e3a;padding:0.35rem 0.8rem;
                                   border-radius:8px;font-size:0.8rem;font-weight:600;
                                   text-decoration:none;margin-left:0.3rem;">
                             <i class="bi bi-cash"></i> Pago

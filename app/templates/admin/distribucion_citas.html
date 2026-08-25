@@ -20,15 +20,15 @@
             font-size:0.88rem;font-weight:600;color:#333;background:white;
             transition:border-color 0.2s;}
 .esp-select:focus{outline:none;border-color:#c41e3a;box-shadow:0 0 0 3px rgba(196,30,58,0.1);}
-.esp-select.seleccionado{border-color:#059669;background:#f0fdf4;}
+.esp-select.seleccionado{border-color:#c41e3a;background:#f0fdf4;}
 
 /* Tarjeta de carga por especialista */
 .carga-card{background:white;border-radius:14px;padding:1rem 1.2rem;
             border:2px solid #f0f0f0;transition:all 0.2s;}
 .carga-bar{height:8px;border-radius:4px;background:#f0f0f0;overflow:hidden;margin-top:0.4rem;}
-.carga-bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#059669,#34d399);
+.carga-bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#c41e3a,#ff1493);
                 transition:width 0.5s ease;}
-.carga-bar-fill.media{background:linear-gradient(90deg,#f59e0b,#fbbf24);}
+.carga-bar-fill.media{background:linear-gradient(90deg,#ff1493,#fbbf24);}
 .carga-bar-fill.alta{background:linear-gradient(90deg,#dc2626,#ef4444);}
 </style>
 {% endblock %}
@@ -53,7 +53,7 @@
 <!-- Resumen de carga por especialista -->
 <div class="r-card" style="margin-bottom:1.5rem;">
     <div class="r-card-header">
-        <h2><i class="bi bi-bar-chart-fill" style="color:#7c3aed;"></i> Carga Actual por Especialista</h2>
+        <h2><i class="bi bi-bar-chart-fill" style="color:#c41e3a;"></i> Carga Actual por Especialista</h2>
         <span style="font-size:0.85rem;color:#888;">Citas futuras activas asignadas</span>
     </div>
     <div style="padding:1.2rem 1.4rem;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:0.8rem;">
@@ -64,7 +64,7 @@
                 <div style="display:flex;align-items:center;gap:0.6rem;">
                     <div style="width:34px;height:34px;border-radius:50%;
                                 background:linear-gradient(135deg,#ede9ff,#d4caff);
-                                color:#7c3aed;display:flex;align-items:center;
+                                color:#c41e3a;display:flex;align-items:center;
                                 justify-content:center;font-weight:800;font-size:0.9rem;flex-shrink:0;">
                         {{ emp.nombre[0].upper() }}
                     </div>
@@ -101,13 +101,13 @@
         {% if sin_asignar %}
         <div style="display:flex;gap:0.8rem;align-items:center;flex-wrap:wrap;">
             <button onclick="autoDistribuir()"
-                    style="background:linear-gradient(135deg,#7c3aed,#a855f7);color:white;border:none;
+                    style="background:linear-gradient(135deg,#c41e3a,#a855f7);color:white;border:none;
                            padding:0.55rem 1.3rem;border-radius:10px;font-weight:700;font-size:0.88rem;
                            cursor:pointer;display:flex;align-items:center;gap:0.4rem;">
                 <i class="bi bi-magic"></i> Auto-distribuir
             </button>
             <button onclick="guardarTodo()" id="btnGuardarTodo"
-                    style="background:linear-gradient(135deg,#059669,#10b981);color:white;border:none;
+                    style="background:linear-gradient(135deg,#c41e3a,#c41e3a);color:white;border:none;
                            padding:0.55rem 1.3rem;border-radius:10px;font-weight:700;font-size:0.88rem;
                            cursor:pointer;display:flex;align-items:center;gap:0.4rem;">
                 <i class="bi bi-check-all"></i> Guardar Asignaciones
@@ -142,7 +142,7 @@
             <!-- Fecha -->
             <div style="text-align:center;white-space:nowrap;">
                 <div style="font-weight:700;font-size:0.88rem;color:#1a1a1a;">{{ cita.fecha_hora_inicio.strftime('%d/%m/%Y') }}</div>
-                <div style="font-size:0.78rem;color:#2563eb;font-weight:600;">{{ cita.fecha_hora_inicio.strftime('%H:%M') }}</div>
+                <div style="font-size:0.78rem;color:#c41e3a;font-weight:600;">{{ cita.fecha_hora_inicio.strftime('%H:%M') }}</div>
             </div>
 
             <!-- Selector especialista -->
@@ -160,7 +160,7 @@
             <!-- Botón individual -->
             <button onclick="asignarIndividual({{ cita.id_cita }})"
                     id="btn-ind-{{ cita.id_cita }}"
-                    style="background:#eff6ff;color:#2563eb;border:1.5px solid #bfdbfe;
+                    style="background:#eff6ff;color:#c41e3a;border:1.5px solid #bfdbfe;
                            padding:0.45rem 0.9rem;border-radius:10px;font-weight:700;
                            font-size:0.82rem;cursor:pointer;white-space:nowrap;transition:all 0.2s;"
                     onmouseover="this.style.background='#dbeafe'"
@@ -178,10 +178,10 @@
             <span id="countAsignadas">0</span> de {{ sin_asignar|length }} asignadas
         </span>
         <button onclick="guardarTodo()" id="btnGuardarTodo2"
-                style="background:linear-gradient(135deg,#059669,#10b981);color:white;border:none;
+                style="background:linear-gradient(135deg,#c41e3a,#c41e3a);color:white;border:none;
                        padding:0.7rem 2rem;border-radius:12px;font-weight:700;font-size:0.9rem;
                        cursor:pointer;display:flex;align-items:center;gap:0.5rem;
-                       box-shadow:0 4px 16px rgba(5,150,105,0.3);">
+                       box-shadow:0 4px 16px rgba(196,30,58,0.2);">
             <i class="bi bi-check-all"></i> Guardar Todas las Asignaciones
         </button>
     </div>
@@ -284,7 +284,7 @@ async function asignarIndividual(idCita) {
             const row = document.getElementById(`asig-row-${idCita}`);
             row.classList.add('asignada');
             row.querySelector('.esp-select').disabled = true;
-            btn.innerHTML = '<i class="bi bi-check-circle-fill" style="color:#059669;"></i>';
+            btn.innerHTML = '<i class="bi bi-check-circle-fill" style="color:#c41e3a;"></i>';
             actualizarCargaBadge(idEmp, 1);
             showToast('Cita asignada y clienta notificada', 'success');
         } else {
@@ -330,7 +330,7 @@ async function guardarTodo() {
                     row.classList.add('asignada');
                     row.querySelector('.esp-select').disabled = true;
                     const btn = document.getElementById(`btn-ind-${item.id_cita}`);
-                    if (btn) btn.innerHTML = '<i class="bi bi-check-circle-fill" style="color:#059669;"></i>';
+                    if (btn) btn.innerHTML = '<i class="bi bi-check-circle-fill" style="color:#c41e3a;"></i>';
                     actualizarCargaBadge(item.id_empleado, 1);
                 }
             });

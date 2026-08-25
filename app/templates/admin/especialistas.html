@@ -81,7 +81,7 @@
                     <td>
                         <div style="display:flex;gap:0.4rem;">
                             <button onclick="abrirResetPassword({{ c.id }}, '{{ c.nombre }}')"
-                                    style="background:#fef3c7;color:#d97706;border:none;padding:0.4rem 0.8rem;
+                                    style="background:#fef3c7;color:#c41e3a;border:none;padding:0.4rem 0.8rem;
                                            border-radius:8px;font-size:0.82rem;font-weight:600;cursor:pointer;"
                                     title="Cambiar contraseña">
                                 <i class="bi bi-key-fill"></i>
@@ -122,7 +122,7 @@
         <div style="background:#f8f9fa;border:1.5px solid #e5e7eb;border-radius:12px;
                     padding:0.7rem 1rem;display:flex;align-items:center;gap:0.6rem;">
             <div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#ede9ff,#d4caff);
-                        color:#7c3aed;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.82rem;">
+                        color:#c41e3a;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.82rem;">
                 {{ emp.nombre[0].upper() }}
             </div>
             <span style="font-size:0.88rem;font-weight:600;">{{ emp.nombre }}</span>
@@ -187,7 +187,7 @@
 <!-- ── MODAL RESET PASSWORD ── -->
 <div id="modalResetPwd" class="rmx-modal-overlay">
     <div class="rmx-modal" style="max-width:420px;">
-        <div class="rmx-modal-header" style="background:linear-gradient(135deg,#d97706,#f59e0b);">
+        <div class="rmx-modal-header" style="background:linear-gradient(135deg,#c41e3a,#ff1493);">
             <div class="icon-wrap">🔑</div>
             <div>
                 <h3>Cambiar Contraseña</h3>
@@ -205,7 +205,7 @@
         <div class="rmx-modal-footer">
             <button onclick="cerrarReset()" class="btn-secondary-r" style="flex:1;">Cancelar</button>
             <button onclick="guardarPassword()" id="btnGuardarPwd"
-                    style="flex:2;background:linear-gradient(135deg,#d97706,#f59e0b);color:white;
+                    style="flex:2;background:linear-gradient(135deg,#c41e3a,#ff1493);color:white;
                            border:none;padding:0.75rem;border-radius:12px;font-weight:700;cursor:pointer;
                            display:flex;align-items:center;justify-content:center;gap:0.4rem;">
                 <i class="bi bi-check-lg"></i> Actualizar

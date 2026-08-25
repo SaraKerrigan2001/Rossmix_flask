@@ -7,7 +7,7 @@
 .rmx-modal-overlay.open{display:flex;}
 .rmx-modal{background:white;border-radius:24px;width:100%;max-width:620px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,0.3);animation:rmxSlideUp 0.3s cubic-bezier(0.34,1.56,0.64,1);}
 @keyframes rmxSlideUp{from{opacity:0;transform:translateY(40px) scale(0.96);}to{opacity:1;transform:translateY(0) scale(1);}}
-.rmx-modal-header{padding:1.4rem 1.8rem;background:linear-gradient(135deg,#059669,#10b981);display:flex;align-items:center;gap:1rem;flex-shrink:0;}
+.rmx-modal-header{padding:1.4rem 1.8rem;background:linear-gradient(135deg,#c41e3a,#c41e3a);display:flex;align-items:center;gap:1rem;flex-shrink:0;}
 .rmx-modal-header .icon-wrap{width:48px;height:48px;border-radius:14px;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;}
 .rmx-modal-header h3{margin:0;color:white;font-size:1.1rem;font-weight:800;}
 .rmx-modal-header p{margin:0;color:rgba(255,255,255,0.8);font-size:0.82rem;}
@@ -21,7 +21,7 @@
 @keyframes toastIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
 .metodo-label{display:flex;align-items:center;gap:0.6rem;padding:0.7rem 0.9rem;border:1.5px solid #e5e7eb;border-radius:10px;cursor:pointer;transition:all 0.15s;}
 .metodo-label:hover{border-color:#6ee7b7;background:#f0fdf4;}
-.metodo-label:has(input:checked){border-color:#059669;background:#ecfdf5;}
+.metodo-label:has(input:checked){border-color:#c41e3a;background:#ecfdf5;}
 .svc-input-group{display:flex;align-items:center;gap:0.5rem;width:100%;}
 .svc-input-group .r-form-control{flex:1 1 0;min-width:0;}
 .svc-input-unit{flex:0 0 auto;font-weight:600;color:#888;white-space:nowrap;}
@@ -37,7 +37,7 @@
             <i class="bi bi-chevron-right"></i> <span>Servicios</span>
         </div>
     </div>
-    <button onclick="abrirModalCrear()" class="btn-rossmix" style="background:linear-gradient(135deg,#059669,#10b981);">
+    <button onclick="abrirModalCrear()" class="btn-rossmix" style="background:linear-gradient(135deg,#c41e3a,#c41e3a);">
         <i class="bi bi-plus-lg"></i> Nuevo Servicio
     </button>
 </div>
@@ -45,12 +45,12 @@
 <div class="r-card">
     <div class="r-card-header d-flex justify-content-between align-items-center">
         <div>
-            <h2><i class="bi bi-scissors" style="color:#059669;"></i> Servicios</h2>
+            <h2><i class="bi bi-scissors" style="color:#c41e3a;"></i> Servicios</h2>
             <span style="font-size:0.85rem;color:#888;">{{ servicios|length }} servicio(s)</span>
         </div>
         <div class="dropdown">
             <button class="btn-rossmix dropdown-toggle" type="button" id="exportServiciosDropdown"
-                    data-bs-toggle="dropdown" aria-expanded="false" style="background:#059669;">
+                    data-bs-toggle="dropdown" aria-expanded="false" style="background:#c41e3a;">
                 <i class="bi bi-file-earmark-excel"></i> Exportar
             </button>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="exportServiciosDropdown">
@@ -83,7 +83,7 @@
                     <td style="color:#6b7280;max-width:220px;">
                         <small>{{ (svc.descripcion[:55]+'…') if svc.descripcion and svc.descripcion|length>55 else (svc.descripcion or '—') }}</small>
                     </td>
-                    <td><strong style="color:#059669;">${{ "{:,.0f}".format(svc.precio_total) }}</strong></td>
+                    <td><strong style="color:#c41e3a;">${{ "{:,.0f}".format(svc.precio_total) }}</strong></td>
                     <td>
                         <span style="background:#f0fdf4;color:#166534;padding:0.2rem 0.7rem;border-radius:20px;font-size:0.8rem;font-weight:600;">
                             {{ svc.duracion_minutos }} min
@@ -96,7 +96,7 @@
                     <td>
                         <div style="display:flex;gap:0.4rem;">
                             <button onclick="abrirModalEditar({{ svc.id_servicio }}, '{{ svc.nombre_servicio }}')"
-                                    style="background:#fef3c7;color:#d97706;border:none;padding:0.4rem 0.8rem;
+                                    style="background:#fef3c7;color:#c41e3a;border:none;padding:0.4rem 0.8rem;
                                            border-radius:8px;font-size:0.82rem;font-weight:600;cursor:pointer;transition:all 0.2s;"
                                     title="Editar"
                                     onmouseover="this.style.background='#fde68a'" onmouseout="this.style.background='#fef3c7'">
@@ -120,7 +120,7 @@
     <div class="r-card-body" style="text-align:center;padding:3rem;color:#9ca3af;">
         <i class="bi bi-scissors" style="font-size:2.5rem;display:block;margin-bottom:0.8rem;"></i>
         No hay servicios registrados.
-        <button onclick="abrirModalCrear()" style="color:#059669;font-weight:600;background:none;border:none;cursor:pointer;">Crear el primero</button>
+        <button onclick="abrirModalCrear()" style="color:#c41e3a;font-weight:600;background:none;border:none;cursor:pointer;">Crear el primero</button>
     </div>
     {% endif %}
 </div>
@@ -174,7 +174,7 @@
                 <div id="wrapSvcActivo" style="display:none;">
                     <label style="display:flex;align-items:center;gap:0.7rem;cursor:pointer;">
                         <input type="checkbox" id="svcActivo" name="activo"
-                               style="width:18px;height:18px;accent-color:#059669;">
+                               style="width:18px;height:18px;accent-color:#c41e3a;">
                         <span class="r-form-label" style="margin:0;">Servicio activo (visible para agendar)</span>
                     </label>
                 </div>
@@ -185,7 +185,7 @@
                 <i class="bi bi-x-lg"></i> Cancelar
             </button>
             <button type="button" onclick="guardarServicio()" id="btnGuardarSvc"
-                    class="btn-rossmix" style="flex:2;background:linear-gradient(135deg,#059669,#10b981);justify-content:center;">
+                    class="btn-rossmix" style="flex:2;background:linear-gradient(135deg,#c41e3a,#c41e3a);justify-content:center;">
                 <i class="bi bi-check-lg"></i> Guardar Servicio
             </button>
         </div>

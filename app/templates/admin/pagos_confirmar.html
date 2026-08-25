@@ -17,7 +17,7 @@
 
 <div class="r-card">
     <div class="r-card-header">
-        <h2><i class="bi bi-clock-history" style="color:#d97706;"></i> Citas sin Pago Registrado</h2>
+        <h2><i class="bi bi-clock-history" style="color:#c41e3a;"></i> Citas sin Pago Registrado</h2>
         <span style="font-size:0.85rem;color:#888;">{{ citas|length }} pendiente(s)</span>
     </div>
     {% if citas %}
@@ -32,7 +32,7 @@
                     <td><code style="background:#f8f8f8;padding:0.2rem 0.5rem;border-radius:6px;font-size:0.82rem;">{{ cita.codigo_reserva }}</code></td>
                     <td><strong>{{ usuario.nombre }}</strong><br><small style="color:#9ca3af;">{{ usuario.telefono }}</small></td>
                     <td>{{ servicio.nombre_servicio }}</td>
-                    <td><strong>{{ cita.fecha_hora_inicio.strftime('%d/%m/%Y') }}</strong><br><small style="color:#2563eb;font-weight:600;">{{ cita.fecha_hora_inicio.strftime('%H:%M') }}</small></td>
+                    <td><strong>{{ cita.fecha_hora_inicio.strftime('%d/%m/%Y') }}</strong><br><small style="color:#c41e3a;font-weight:600;">{{ cita.fecha_hora_inicio.strftime('%H:%M') }}</small></td>
                     <td>
                         <strong style="color:#c41e3a;">${{ "{:,.0f}".format(cita.monto_total) }}</strong><br>
                         <small style="color:#888;">Saldo: ${{ "{:,.0f}".format(cita.saldo_pendiente or cita.monto_total) }}</small>
@@ -44,7 +44,7 @@
                     </td>
                     <td>
                         <a href="{{ url_for('admin_pagos_registrar', id_cita=cita.id_cita) }}"
-                           style="background:linear-gradient(135deg,#059669,#10b981);color:white;
+                           style="background:linear-gradient(135deg,#c41e3a,#c41e3a);color:white;
                                   padding:0.45rem 1rem;border-radius:10px;font-weight:700;
                                   font-size:0.82rem;text-decoration:none;display:inline-flex;
                                   align-items:center;gap:0.4rem;">
@@ -58,7 +58,7 @@
     </div>
     {% else %}
     <div style="text-align:center;padding:3rem;color:#9ca3af;">
-        <i class="bi bi-check-circle" style="font-size:2.5rem;display:block;margin-bottom:0.8rem;color:#059669;"></i>
+        <i class="bi bi-check-circle" style="font-size:2.5rem;display:block;margin-bottom:0.8rem;color:#c41e3a;"></i>
         <strong style="color:#166534;">¡Todo al día!</strong><br>No hay pagos pendientes.
     </div>
     {% endif %}

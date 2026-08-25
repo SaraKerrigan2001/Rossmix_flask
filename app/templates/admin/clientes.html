@@ -22,17 +22,17 @@
 .actions-row{display:flex;align-items:center;gap:0.35rem;}
 .action-btn{width:32px;height:32px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:0.85rem;text-decoration:none;border:none;cursor:pointer;transition:all 0.2s;}
 .action-btn:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.15);}
-.edit-action{background:#fef3c7;color:#d97706;}
+.edit-action{background:#fef3c7;color:#c41e3a;}
 .edit-action:hover{background:#fde68a;color:#b45309;}
-.history-action{background:#eff6ff;color:#2563eb;}
-.history-action:hover{background:#dbeafe;color:#1d4ed8;}
+.history-action{background:#eff6ff;color:#c41e3a;}
+.history-action:hover{background:#dbeafe;color:#9f1239;}
 .delete-action{background:#fee2e2;color:#dc2626;}
 .delete-action:hover{background:#fecaca;color:#b91c1c;}
 .filter-btn-group{display:flex;gap:0.3rem;}
 .btn-filter{padding:0.4rem 1rem;border-radius:20px;font-size:0.85rem;font-weight:600;text-decoration:none;color:#666;background:#f3f4f6;border:1.5px solid #e5e7eb;transition:all 0.2s;}
 .btn-filter.active,.btn-filter:hover{background:linear-gradient(135deg,#c41e3a,#ff1493);color:white;border-color:transparent;}
 .avatar-circle{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#fff0f6,#ffd6e8);color:#c41e3a;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.85rem;flex-shrink:0;}
-.pill-count{background:#f0f4ff;color:#2563eb;border-radius:20px;padding:0.15rem 0.65rem;font-size:0.8rem;font-weight:700;}
+.pill-count{background:#f0f4ff;color:#c41e3a;border-radius:20px;padding:0.15rem 0.65rem;font-size:0.8rem;font-weight:700;}
 .meta-badge{background:#fff0f6;color:#c41e3a;border:1.5px solid #ffd6e8;border-radius:20px;padding:0.35rem 0.9rem;font-size:0.82rem;font-weight:600;}
 </style>
 {% endblock %}
@@ -60,7 +60,7 @@
         <h2><i class="bi bi-people-fill" style="color:#c41e3a;"></i> Clientes Registrados</h2>
         <div class="dropdown">
             <button class="btn-rossmix dropdown-toggle" type="button" id="exportClientesDropdown"
-                    data-bs-toggle="dropdown" aria-expanded="false" style="background:#059669;">
+                    data-bs-toggle="dropdown" aria-expanded="false" style="background:#c41e3a;">
                 <i class="bi bi-file-earmark-excel"></i> Exportar
             </button>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="exportClientesDropdown">
@@ -92,7 +92,7 @@
                     <td><span class="pill-count">{{ cliente.citas|length }}</span></td>
                     <td>
                         <a href="{{ url_for('admin_citas') }}?estado=cancelada&cliente_id={{ cliente.id }}"
-                           style="color:#2563eb;font-size:0.82rem;font-weight:600;">
+                           style="color:#c41e3a;font-size:0.82rem;font-weight:600;">
                             {{ cliente.citas_canceladas or 0 }} cancelada(s)
                         </a>
                     </td>

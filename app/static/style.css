@@ -207,7 +207,7 @@
 
 .text-nowrap        { white-space: nowrap; }
 .overflow-x-auto    { overflow-x: auto; }
-.icon-accent        { color: #d97706; }
+.icon-accent        { color: #c41e3a; }
 .small-muted        { color: #6b7280; }
 
 .cell-muted {
@@ -256,7 +256,7 @@
 
 .pill-count {
     background: #f0f4ff;
-    color: #2563eb;
+    color: #c41e3a;
     padding: 0.2rem 0.7rem;
     border-radius: 20px;
     font-size: 0.8rem;
@@ -366,16 +366,16 @@
 }
 
 /* Editar — amarillo pastel */
-.edit-action            { background: #fff9e6; color: #f59e0b; }
-.edit-action:hover      { background: #fef3c7; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(245,158,11,0.22); }
+.edit-action            { background: #fff9e6; color: #ff1493; }
+.edit-action:hover      { background: #fef3c7; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(196,30,58,0.22); }
 
 /* Historial — azul pastel */
-.history-action         { background: #eff6ff; color: #3b82f6; }
-.history-action:hover   { background: #dbeafe; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(59,130,246,0.22); }
+.history-action         { background: #eff6ff; color: #ff1493; }
+.history-action:hover   { background: #dbeafe; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(255,20,147,0.22); }
 
 /* Eliminar — rojo pastel */
 .delete-action          { background: #fff1f2; color: #f87171; }
-.delete-action:hover    { background: #fee2e2; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(248,113,113,0.25); }
+.delete-action:hover    { background: #fee2e2; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(196,30,58,0.2); }
 
 .btn-danger-gradient { background: linear-gradient(135deg, #dc2626, #ef4444); }
 

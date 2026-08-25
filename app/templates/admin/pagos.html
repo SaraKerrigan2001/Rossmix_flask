@@ -28,7 +28,7 @@
 <!-- Resumen rápido -->
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.2rem;margin-bottom:2rem;">
     <div class="r-card" style="padding:1.4rem;display:flex;align-items:center;gap:1rem;">
-        <div style="background:#ecfdf5;color:#059669;width:46px;height:46px;border-radius:12px;
+        <div style="background:#ecfdf5;color:#c41e3a;width:46px;height:46px;border-radius:12px;
                     display:flex;align-items:center;justify-content:center;font-size:1.3rem;">
             <i class="bi bi-cash-stack"></i>
         </div>
@@ -67,12 +67,12 @@
 <div class="r-card">
     <div class="r-card-header d-flex justify-content-between align-items-center">
         <div>
-            <h2><i class="bi bi-credit-card" style="color:#059669;"></i> Pagos Registrados</h2>
+            <h2><i class="bi bi-credit-card" style="color:#c41e3a;"></i> Pagos Registrados</h2>
             <span style="font-size:0.85rem;color:#888;">{{ pagos|length }} pago(s)</span>
         </div>
         <div class="dropdown">
             <button class="btn-rossmix dropdown-toggle" type="button" id="exportPagosDropdown"
-                    data-bs-toggle="dropdown" aria-expanded="false" style="background:#059669;">
+                    data-bs-toggle="dropdown" aria-expanded="false" style="background:#c41e3a;">
                 <i class="bi bi-file-earmark-excel"></i> Exportar
             </button>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="exportPagosDropdown">
@@ -113,7 +113,7 @@
                         </div>
                     </td>
                     <td style="color:#6b7280;">{{ servicio.nombre_servicio }}</td>
-                    <td><strong style="color:#059669;">${{ "{:,.0f}".format(pago.monto) }}</strong></td>
+                    <td><strong style="color:#c41e3a;">${{ "{:,.0f}".format(pago.monto) }}</strong></td>
                     <td>
                         <span style="background:#f0f9ff;color:#0369a1;padding:0.25rem 0.7rem;
                                      border-radius:20px;font-size:0.78rem;font-weight:600;text-transform:capitalize;">
