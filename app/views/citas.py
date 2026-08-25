@@ -89,7 +89,7 @@ def agendar_paso3(id_servicio, id_empleado):
 
 @citas_bp.route('/citas/horarios-disponibles')
 def horarios_disponibles():
-    """API: Obtener horarios disponibles para una fecha y empleado"""
+    """API: Obtener horarios disponibles para una fecha y empleado."""
     fecha_str   = request.args.get('fecha')
     id_empleado = request.args.get('id_empleado', type=int)
     id_servicio = request.args.get('id_servicio', type=int)
@@ -102,20 +102,27 @@ def horarios_disponibles():
     except ValueError:
         return jsonify({'error': 'Fecha inválida'}), 400
 
-    # Delegar completamente al servicio — evita duplicación de lógica
-    horarios = CitaService.obtener_horarios_disponibles(        fecha=fecha,
-        id_servicio=id_servicio,
-        id_empleado=id_empleado or 0,
-    )
-
-    # Si el empleado fue 0, el servicio elige uno aleatoriamente internamente;
-    # necesitamos devolver cuál fue elegido para que el paso 4 lo use.
-    # Re-ejecutamos solo para obtener el id_empleado resuelto.
+    # FIX race condition: si id_empleado es 0 (aleatorio), elegimos UNO aquí
+    # y lo usamos para obtener horarios Y lo devolvemos al cliente.
+    # Así confirmar_cita recibe exactamente el mismo empleado que tiene slots.
     id_empleado_resuelto = id_empleado or 0
-    if id_empleado_resuelto == 0 and horarios:
-        ids = [e.id_empleado for e in EmpleadoServicio.query.filter_by(id_servicio=id_servicio).all()]
-        if ids:
-            id_empleado_resuelto = random.choice(ids)
+    if id_empleado_resuelto == 0:
+        ids_activos = db.session.query(EmpleadoServicio.id_empleado).join(
+            Empleado, EmpleadoServicio.id_empleado == Empleado.id_empleado
+        ).filter(
+            EmpleadoServicio.id_servicio == id_servicio,
+            Empleado.activo == True
+        ).all()
+        ids_activos = [e[0] for e in ids_activos]
+        if not ids_activos:
+            return jsonify({'horarios': [], 'id_empleado': 0})
+        id_empleado_resuelto = random.choice(ids_activos)
+
+    horarios = CitaService.obtener_horarios_disponibles(
+        fecha=fecha,
+        id_servicio=id_servicio,
+        id_empleado=id_empleado_resuelto,
+    )
 
     return jsonify({
         'horarios': horarios,

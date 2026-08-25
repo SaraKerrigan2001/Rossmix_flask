@@ -1,9 +1,10 @@
 """Dashboard de administrador."""
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
 from sqlalchemy import func
 from flask import render_template
 from app.extensions import db
-from app.models import Usuario, Empleado, Cita
+from app.models import Usuario, Empleado, Cita, Servicio, Pago
 from app.utils.decorators import admin_required
 from app.views.admin import admin_bp
 
@@ -12,9 +13,6 @@ from app.views.admin import admin_bp
 @admin_required
 def dashboard():
     """Dashboard principal de administrador con estadísticas"""
-    from dateutil.relativedelta import relativedelta
-    
-    # Citas de hoy
     hoy = datetime.now().date()
     citas_hoy = Cita.query.filter(
         func.date(Cita.fecha_hora_inicio) == hoy,
@@ -51,7 +49,6 @@ def dashboard():
         crecimiento_ingresos = ((ingresos_mes - ingresos_mes_anterior) / ingresos_mes_anterior) * 100
 
     # Pagos pendientes (citas confirmadas sin pago registrado)
-    from app.models import Pago
     pagos_pendientes = db.session.query(func.count(Cita.id_cita)).filter(
         Cita.estado.in_(['confirmada', 'en_atencion']),
         ~db.session.query(Pago.id_pago).filter(
@@ -88,9 +85,6 @@ def dashboard():
 @admin_required
 def agenda_diaria():
     """Agenda del día — vista de todas las citas de hoy"""
-    from app.models import Servicio, Empleado
-    from sqlalchemy import func
-
     hoy = datetime.now().date()
     citas_hoy = db.session.query(Cita, Usuario, Empleado, Servicio)\
         .join(Usuario, Cita.id_cliente == Usuario.id)\

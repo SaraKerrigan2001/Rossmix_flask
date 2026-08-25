@@ -290,7 +290,7 @@
             display: flex; align-items: center; gap: 0.6rem;
             border-left: 4px solid transparent;
         }
-        .flash-success { background: #f0fdf4; color: #166534; border-color: #22c55e; }
+        .flash-success { background: #f0fdf4; color: #166534; border-color: #c41e3a; }
         .flash-error   { background: #fff1f2; color: #9f1239; border-color: #f43f5e; }
         @keyframes slideIn {
             from { transform: translateX(350px); opacity: 0; }
@@ -364,14 +364,14 @@
         .r-table tbody td { padding: 1rem 1.2rem; color: #444; vertical-align: middle; }
 
         /* ── BADGES ─────────────────────────────────────────── */
-        .badge-active   { background: #dcfce7; color: #166534; padding: 0.25rem 0.8rem; border-radius: 20px; font-size: 0.78rem; font-weight: 600; }
+        .badge-active   { background: #fff0f6; color: #c41e3a; padding: 0.25rem 0.8rem; border-radius: 20px; font-size: 0.78rem; font-weight: 600; }
         .badge-inactive { background: #f3f4f6; color: #6b7280; padding: 0.25rem 0.8rem; border-radius: 20px; font-size: 0.78rem; font-weight: 600; }
         .badge-estado   { padding: 0.25rem 0.8rem; border-radius: 20px; font-size: 0.78rem; font-weight: 600; }
-        .be-pendiente   { background: #fef9c3; color: #854d0e; }
-        .be-confirmada  { background: #dbeafe; color: #1e40af; }
+        .be-pendiente   { background: #fff0f6; color: #c41e3a; }
+        .be-confirmada  { background: #fff0f6; color: #c41e3a; }
         .be-completada  { background: #dcfce7; color: #166534; }
         .be-cancelada   { background: #fee2e2; color: #991b1b; }
-        .be-atencion    { background: #ede9ff; color: #5b21b6; }
+        .be-atencion    { background: #ffd6e8; color: #9f1239; }
 
         /* ── FORMULARIOS ────────────────────────────────────── */
         .r-form-label { font-size: 0.88rem; font-weight: 600; color: #444; margin-bottom: 0.4rem; display: block; }
@@ -447,9 +447,9 @@
             transition: all 0.2s;
         }
         .nav-chip:hover { transform: translateY(-1px); }
-        .nav-chip.yellow { background: #fef3c7; color: #d97706; }
-        .nav-chip.blue   { background: #eff6ff; color: #2563eb; }
-        .nav-chip.purple { background: #f5f3ff; color: #7c3aed; }
+        .nav-chip.yellow { background: #fff0f6; color: #c41e3a; }
+        .nav-chip.blue   { background: #fff0f6; color: #c41e3a; }
+        .nav-chip.purple { background: #fff0f6; color: #c41e3a; }
         .nav-chip.pink   { background: var(--rossmix-vino-suave); color: var(--rossmix-vino); border: 1px solid var(--rossmix-dorado); }
 
         /* ── PAGE HEADER ────────────────────────────────────── */
@@ -757,7 +757,7 @@
                     <li>
                         <a href="{{ url_for('admin.pagos_confirmar') }}" class="nav-chip yellow">
                             <i class="bi bi-clock-history"></i> Pagos por Confirmar
-                            <span style="background:#d97706;color:white;border-radius:10px;padding:0.1rem 0.5rem;font-size:0.75rem;font-weight:700;margin-left:0.2rem;">{{ pagos_por_confirmar }}</span>
+                            <span style="background:#c41e3a;color:white;border-radius:10px;padding:0.1rem 0.5rem;font-size:0.75rem;font-weight:700;margin-left:0.2rem;">{{ pagos_por_confirmar }}</span>
                         </a>
                     </li>
                     {% endif %}
@@ -1045,18 +1045,18 @@ function rossmixConfirm({ titulo='Confirmar', mensaje='', tipo='danger', okText=
                        ibg:'linear-gradient(135deg,#fee2e2,#fecaca)',
                        grad:'linear-gradient(135deg,#dc2626,#ef4444)',
                        shadow:'rgba(220,38,38,0.4)', emoji:'🗑️' },
-            warning: { band:'linear-gradient(90deg,#f59e0b,#fbbf24)',
-                       ibg:'linear-gradient(135deg,#fef3c7,#fde68a)',
-                       grad:'linear-gradient(135deg,#f59e0b,#d97706)',
-                       shadow:'rgba(245,158,11,0.4)', emoji:'⚠️' },
+            warning: { band:'linear-gradient(90deg,#c41e3a,#ff1493)',
+                       ibg:'linear-gradient(135deg,#fff0f6,#ffd6e8)',
+                       grad:'linear-gradient(135deg,#c41e3a,#c41e3a)',
+                       shadow:'rgba(196,30,58,0.3)', emoji:'⚠️' },
             info:    { band:'linear-gradient(90deg,#2563eb,#3b82f6)',
-                       ibg:'linear-gradient(135deg,#dbeafe,#bfdbfe)',
+                       ibg:'linear-gradient(135deg,#fff0f6,#ffd6e8)',
                        grad:'linear-gradient(135deg,#2563eb,#3b82f6)',
-                       shadow:'rgba(37,99,235,0.4)', emoji:'ℹ️' },
-            success: { band:'linear-gradient(90deg,#10b981,#34d399)',
-                       ibg:'linear-gradient(135deg,#dcfce7,#bbf7d0)',
-                       grad:'linear-gradient(135deg,#10b981,#059669)',
-                       shadow:'rgba(16,185,129,0.4)', emoji:'✅' },
+                       shadow:'rgba(196,30,58,0.4)', emoji:'ℹ️' },
+            success: { band:'linear-gradient(90deg,#c41e3a,#ff1493)',
+                       ibg:'linear-gradient(135deg,#fff0f6,#ffd6e8)',
+                       grad:'linear-gradient(135deg,#c41e3a,#c41e3a)',
+                       shadow:'rgba(196,30,58,0.4)', emoji:'✅' },
         };
         const c = cfg[tipo] || cfg.danger;
 

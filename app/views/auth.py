@@ -74,9 +74,10 @@ def login():
             _limpiar_intentos(ip)
 
             session.permanent = True
-            session['usuario_id'] = usuario.id
-            session['nombre']      = usuario.nombre
+            session['usuario_id']   = usuario.id
+            session['nombre']       = usuario.nombre
             session['tipo_usuario'] = usuario.tipo_usuario
+            session['email']        = usuario.email   # usado en base.html dropdown
 
             registrar_auditoria(
                 accion='login',

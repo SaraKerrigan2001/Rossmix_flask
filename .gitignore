@@ -28,7 +28,7 @@ __pycache__/
 app.py.bak
 *.bak
 
-# IDEs
+# IDEs y herramientas de desarrollo
 .vscode/
 .idea/
 .gemini/
@@ -38,3 +38,14 @@ antigravity-ide/
 *.njsproj
 *.sln
 *.swp
+
+# Binarios y herramientas externas — NO versionar
+cloudflared.exe
+ngrok/
+ngrok.exe
+iniciar_ngrok.py
+
+# Base de datos SQLite local (instancia de desarrollo)
+instance/
+*.db
+*.sqlite3

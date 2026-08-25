@@ -255,7 +255,7 @@
 }
 
 .pill-count {
-    background: #f0f4ff;
+    background: #fff0f6;
     color: #c41e3a;
     padding: 0.2rem 0.7rem;
     border-radius: 20px;
@@ -265,7 +265,7 @@
 
 .cancel-count-link {
     background: #fff5f5;
-    color: #b91c1c;
+    color: #dc2626;
     padding: 0.2rem 0.6rem;
     border-radius: 16px;
     font-size: 0.78rem;
@@ -283,7 +283,7 @@
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #fff0f6, #f3dfbd);
+    background: linear-gradient(135deg, #fff0f6, #ffd6e8);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -366,18 +366,18 @@
 }
 
 /* Editar — amarillo pastel */
-.edit-action            { background: #fff9e6; color: #ff1493; }
-.edit-action:hover      { background: #fef3c7; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(196,30,58,0.22); }
+.edit-action            { background: #fff0f6; color: #ff1493; }
+.edit-action:hover      { background: #ffe5f3; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(196,30,58,0.22); }
 
 /* Historial — azul pastel */
-.history-action         { background: #eff6ff; color: #ff1493; }
-.history-action:hover   { background: #dbeafe; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(255,20,147,0.22); }
+.history-action         { background: #fff0f6; color: #ff1493; }
+.history-action:hover   { background: #ffe5f3; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(255,20,147,0.22); }
 
 /* Eliminar — rojo pastel */
-.delete-action          { background: #fff1f2; color: #f87171; }
-.delete-action:hover    { background: #fee2e2; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(196,30,58,0.2); }
+.delete-action          { background: #fff0f6; color: #c41e3a; }
+.delete-action:hover    { background: #ffd6e8; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(196,30,58,0.2); }
 
-.btn-danger-gradient { background: linear-gradient(135deg, #dc2626, #ef4444); }
+.btn-danger-gradient { background: linear-gradient(135deg, #dc2626, #c41e3a); }
 
 
 /* =============================================================================
@@ -472,7 +472,7 @@
     cursor: pointer;
 }
 
-.notif-item.unread  { background: #fff7f7; }
+.notif-item.unread  { background: #fff0f6; }
 .notif-title        { font-size: 0.95rem; }
 .notif-time         { color: #9ca3af; font-size: 0.78rem; }
 .notif-message      { color: #6b7280; font-size: 0.9rem; margin-top: 0.25rem; }

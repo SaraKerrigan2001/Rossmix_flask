@@ -182,8 +182,6 @@ CREATE UNIQUE INDEX idx_no_solapamiento_citas
     ON citas (id_empleado, fecha_hora_inicio)
     WHERE estado IN ('pendiente_pago', 'confirmada', 'en_atencion')
       AND id_empleado IS NOT NULL;
-COMMENT ON COLUMN citas.codigo_reserva   IS 'ID generado por ReservaService (RES-XXXXXX)';
-COMMENT ON COLUMN citas.token_gestion    IS 'Token URL-safe para link de gestión/reprogramación';
 
 -- ============================================================================
 -- 9. TABLA: PAGOS
