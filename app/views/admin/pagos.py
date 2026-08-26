@@ -25,7 +25,7 @@ def pagos():
 @admin_required
 def pagos_registrar(id_cita):
     """Registrar pago para una cita"""
-    cita = Cita.query.get_or_404(id_cita)
+    cita = db.get_or_404(Cita, id_cita)
     cliente = db.session.get(Usuario, cita.id_cliente)
     servicio = db.session.get(Servicio, cita.id_servicio)
 
@@ -111,7 +111,7 @@ def pagos_registrar(id_cita):
 @admin_required
 def pagos_eliminar(id_pago):
     """Eliminar un pago (reembolso)"""
-    pago = Pago.query.get_or_404(id_pago)
+    pago = db.get_or_404(Pago, id_pago)
     monto = float(pago.monto)
     id_cliente = pago.cita.id_cliente
     codigo = pago.cita.codigo_reserva or f'#{pago.cita.id_cita}'

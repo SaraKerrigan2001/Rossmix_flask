@@ -17,9 +17,9 @@ class Usuario(db.Model):
     email = db.Column(db.String(150), unique=True, nullable=False)
     telefono = db.Column(db.String(10), nullable=False)
     password = db.Column(db.String(200), nullable=False)
-    tipo_usuario = db.Column(db.String(20), nullable=False)  # 'cliente' | 'admin' | 'especialista'
+    tipo_usuario   = db.Column(db.String(20), nullable=False, index=True)
     fecha_registro = db.Column(db.DateTime, default=datetime.now)
-    activo = db.Column(db.Boolean, default=True)
+    activo         = db.Column(db.Boolean, default=True)
 
     # Vínculo opcional con empleado (solo para tipo_usuario='especialista')
     id_empleado = db.Column(db.Integer, db.ForeignKey('empleados.id_empleado', ondelete='SET NULL'), nullable=True)
@@ -47,7 +47,12 @@ class Usuario(db.Model):
 
     @property
     def citas_completadas(self):
-        return sum(1 for c in self.citas if c.estado == 'completada')
+        """Cuenta citas completadas directamente en BD — evita cargar todas en memoria."""
+        from app.models.cita import Cita as CitaModel
+        return db.session.query(db.func.count(CitaModel.id_cita)).filter(
+            CitaModel.id_cliente == self.id,
+            CitaModel.estado == 'completada'
+        ).scalar() or 0
 
     @property
     def nivel_fidelidad(self):

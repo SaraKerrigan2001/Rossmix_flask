@@ -16,20 +16,16 @@ class Cita(db.Model):
     monto_total = db.Column(db.Numeric(10, 2))
     monto_abono = db.Column(db.Numeric(10, 2), default=5000)
     saldo_pendiente = db.Column(db.Numeric(10, 2))
-    estado = db.Column(
+    estado            = db.Column(
         db.Enum(
-            'pendiente_pago',
-            'confirmada',
-            'en_atencion',
-            'completada',
-            'cancelada',
-            'no_asistio',
-            name='estado_cita_enum',
-            create_type=False,   # el tipo ya existe en PostgreSQL (creado por Rossmix.sql)
+            'pendiente_pago', 'confirmada', 'en_atencion',
+            'completada', 'cancelada', 'no_asistio',
+            name='estado_cita_enum', create_type=False,
         ),
-        nullable=False,
-        default='pendiente_pago',
+        nullable=False, default='pendiente_pago', index=True,
     )
+    fecha_hora_inicio = db.Column(db.DateTime, nullable=False, index=True)
+    fecha_hora_fin    = db.Column(db.DateTime, nullable=False)
     reembolsado = db.Column(db.Boolean, default=False)
     codigo_reserva = db.Column(db.String(20), unique=True)
     token_gestion = db.Column(db.String(32), unique=True)  # Token URL-safe para link de gestión/reprogramación

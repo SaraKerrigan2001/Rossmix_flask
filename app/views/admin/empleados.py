@@ -10,18 +10,19 @@ from app.views.admin import admin_bp
 @admin_bp.route('/empleados')
 @admin_required
 def empleados():
-    """Listar todos los empleados"""
-    lista = Empleado.query.order_by(Empleado.nombre).all()
+    """Listar todos los empleados — una sola query para contar servicios (evita N+1)."""
+    from sqlalchemy import func
+    lista     = Empleado.query.order_by(Empleado.nombre).all()
     servicios = Servicio.query.filter_by(activo=True).all()
 
-    # Pre-calcular número de servicios por empleado para evitar error en template
-    # (Empleado no tiene atributo 'servicios' directamente en el modelo ORM)
-    conteo_servicios = {}
+    # Una sola query con GROUP BY en lugar de N queries individuales
+    conteos = dict(
+        db.session.query(EmpleadoServicio.id_empleado, func.count())
+        .group_by(EmpleadoServicio.id_empleado)
+        .all()
+    )
     for emp in lista:
-        conteo_servicios[emp.id_empleado] = EmpleadoServicio.query.filter_by(
-            id_empleado=emp.id_empleado
-        ).count()
-        emp.num_servicios = conteo_servicios[emp.id_empleado]
+        emp.num_servicios = conteos.get(emp.id_empleado, 0)
 
     return render_template('admin/empleados.html', empleados=lista, servicios=servicios)
 
@@ -30,7 +31,7 @@ def empleados():
 @admin_required
 def empleados_datos(id_empleado):
     """Retorna datos del empleado para modal AJAX"""
-    empleado = Empleado.query.get_or_404(id_empleado)
+    empleado = db.get_or_404(Empleado, id_empleado)
     servicios_empleado = [es.id_servicio for es in EmpleadoServicio.query.filter_by(id_empleado=id_empleado).all()]
     return jsonify({
         'id_empleado': empleado.id_empleado,
@@ -98,7 +99,7 @@ def empleados_crear():
 @admin_required
 def empleados_editar(id_empleado):
     """Editar empleado existente — soporta JSON (modal) y form normal"""
-    empleado = Empleado.query.get_or_404(id_empleado)
+    empleado = db.get_or_404(Empleado, id_empleado)
     is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
 
     if request.method == 'POST':
@@ -145,7 +146,7 @@ def empleados_editar(id_empleado):
 @admin_required
 def empleados_eliminar(id_empleado):
     """Eliminar empleado"""
-    empleado = Empleado.query.get_or_404(id_empleado)
+    empleado = db.get_or_404(Empleado, id_empleado)
 
     # Verificar si tiene citas futuras
     citas_futuras = Cita.query.filter(

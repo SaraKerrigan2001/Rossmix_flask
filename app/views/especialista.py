@@ -56,7 +56,7 @@ def citas_disponibles():
 @especialista_required
 def aceptar_cita(id_cita):
     emp  = _get_empleado()
-    cita = Cita.query.get_or_404(id_cita)
+    cita = db.get_or_404(Cita, id_cita)
 
     if cita.id_empleado is not None:
         return jsonify({'success': False, 'message': 'Esta cita ya fue tomada por otra especialista'}), 409

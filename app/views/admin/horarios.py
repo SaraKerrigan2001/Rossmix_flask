@@ -24,7 +24,7 @@ def horarios():
 @admin_required
 def horarios_crear(id_empleado):
     """Crear horario para empleado — soporta JSON (modal) y form normal"""
-    empleado = Empleado.query.get_or_404(id_empleado)
+    empleado = db.get_or_404(Empleado, id_empleado)
     is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
 
     if request.method == 'POST':
@@ -86,7 +86,7 @@ def horarios_crear(id_empleado):
 @admin_required
 def horarios_editar(id_horario):
     """Editar horario — soporta JSON (modal) y form normal"""
-    horario = HorarioEmpleado.query.get_or_404(id_horario)
+    horario = db.get_or_404(HorarioEmpleado, id_horario)
     is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
 
     if request.method == 'POST':
@@ -131,7 +131,7 @@ def horarios_editar(id_horario):
 @admin_required
 def horarios_eliminar(id_horario):
     """Eliminar horario"""
-    horario = HorarioEmpleado.query.get_or_404(id_horario)
+    horario = db.get_or_404(HorarioEmpleado, id_horario)
 
     db.session.delete(horario)
     db.session.commit()

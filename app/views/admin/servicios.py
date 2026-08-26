@@ -20,7 +20,7 @@ def servicios():
 @admin_required
 def servicios_datos(id_servicio):
     """Retorna datos del servicio para modal AJAX"""
-    svc = Servicio.query.get_or_404(id_servicio)
+    svc = db.get_or_404(Servicio, id_servicio)
     return jsonify({
         'id_servicio': svc.id_servicio,
         'nombre_servicio': svc.nombre_servicio,
@@ -82,7 +82,7 @@ def servicios_crear():
 @admin_required
 def servicios_editar(id_servicio):
     """Editar servicio existente — soporta JSON (modal) y form normal"""
-    servicio = Servicio.query.get_or_404(id_servicio)
+    servicio = db.get_or_404(Servicio, id_servicio)
     is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
 
     if request.method == 'POST':
@@ -117,7 +117,7 @@ def servicios_editar(id_servicio):
 @admin_required
 def servicios_eliminar(id_servicio):
     """Eliminar servicio"""
-    servicio = Servicio.query.get_or_404(id_servicio)
+    servicio = db.get_or_404(Servicio, id_servicio)
 
     # Verificar si tiene citas futuras
     citas_futuras = Cita.query.filter(

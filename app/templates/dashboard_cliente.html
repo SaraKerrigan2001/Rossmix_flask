@@ -49,7 +49,7 @@
     color: #1a1a1a; margin-bottom: 0.5rem;
     position: relative; z-index: 1;
 }
-.hero-text-block h1 span { color: #d81b60; }
+.hero-text-block h1 span { color: #c41e3a; }
 .hero-text-block p {
     color: #555; font-size: 1.05rem;
     position: relative; z-index: 1; margin: 0;
@@ -59,9 +59,9 @@
     position: relative; z-index: 1;
 }
 .hero-btn-white {
-    background: linear-gradient(135deg, #fce4ec 0%, #f48fb1 100%);
-    color: #880e4f;
-    border: 1px solid #f06292;
+    background: linear-gradient(135deg, #fff0f6, #ffd6e8);
+    color: #c41e3a;
+    border: 1px solid #ffb3d1;
     padding: 0.8rem 2rem; border-radius: 10px;
     font-weight: 700; font-size: 0.95rem;
     text-decoration: none; display: inline-flex;
@@ -69,7 +69,7 @@
     transition: all 0.25s; border: none;
 }
 .hero-btn-white:hover {
-    background: #ffd700; color: #333;
+    background: #ffe5f3; color: #c41e3a;
     transform: translateY(-3px);
     box-shadow: 0 8px 20px rgba(0,0,0,0.2);
 }
@@ -81,7 +81,7 @@
     text-decoration: none; display: inline-flex;
     align-items: center; justify-content: center; gap: 0.5rem;
     transition: all 0.3s;
-    color: #880e4f;
+    color: #c41e3a;
     backdrop-filter: blur(4px);
 }
 .hero-btn-outline:hover {
@@ -92,7 +92,7 @@
 /* ── Tarjetas de estado rápido ──────────────────────── */
 .quick-stats {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 1.2rem;
     margin-bottom: 2.5rem;
 }
@@ -109,18 +109,18 @@
 }
 .qs-card:hover { transform: translateY(-3px); }
 .qs-card.c-pink   { border-color: #ff1493; }
-.qs-card.c-purple { border-color: #8b5cf6; }
-.qs-card.c-gold   { border-color: #f59e0b; }
-.qs-card.c-teal   { border-color: #10b981; }
+.qs-card.c-purple { border-color: #ff1493; }
+.qs-card.c-gold   { border-color: #c41e3a; }
+.qs-card.c-teal   { border-color: #c41e3a; }
 .qs-ico {
     width: 46px; height: 46px; border-radius: 12px;
     display: flex; align-items: center; justify-content: center;
     font-size: 1.3rem; flex-shrink: 0;
 }
 .qs-ico.c-pink   { background: #fff0f6; color: #ff1493; }
-.qs-ico.c-purple { background: #f5f0ff; color: #8b5cf6; }
-.qs-ico.c-gold   { background: #fffbeb; color: #f59e0b; }
-.qs-ico.c-teal   { background: #ecfdf5; color: #10b981; }
+.qs-ico.c-purple { background: #fff0f6; color: #ff1493; }
+.qs-ico.c-gold   { background: #fff0f6; color: #c41e3a; }
+.qs-ico.c-teal   { background: #fff0f6; color: #c41e3a; }
 .qs-info .qs-num { font-size: 1.6rem; font-weight: 800; color: #1a1a1a; line-height: 1; }
 .qs-info .qs-lbl { font-size: 0.8rem; color: #999; margin-top: 0.2rem; }
 
@@ -182,9 +182,9 @@
     font-size: 1.6rem; font-weight: 700; flex-shrink: 0;
 }
 .sl-pink   { background: #fff0f6; color: #c41e3a; }
-.sl-purple { background: #f5f0ff; color: #7c3aed; }
-.sl-teal   { background: #ecfdf5; color: #059669; }
-.sl-gold   { background: #fffbeb; color: #d97706; }
+.sl-purple { background: #fff0f6; color: #c41e3a; }
+.sl-teal   { background: #fff0f6; color: #c41e3a; }
+.sl-gold   { background: #fff0f6; color: #c41e3a; }
 
 .svc-details h4 { font-size: 0.95rem; font-weight: 700; margin: 0 0 0.2rem; color: #1a1a1a; }
 .svc-details p  { font-size: 0.8rem; color: #999; margin: 0; }
@@ -222,7 +222,7 @@
     text-decoration: none; transition: all 0.2s;
 }
 .appt-btn-white { background: white; color: #c41e3a; }
-.appt-btn-white:hover { background: #ffd700; color: #333; }
+.appt-btn-white:hover { background: #ffe5f3; color: #c41e3a; }
 .appt-btn-border { border: 1.5px solid rgba(255,255,255,0.6); color: white; }
 .appt-btn-border:hover { background: rgba(255,255,255,0.15); color: white; }
 .no-appt {
@@ -256,8 +256,8 @@
     font-size: 1rem; flex-shrink: 0; margin-top: 1px;
 }
 .tip-icon.pink   { background: #fff0f6; color: #c41e3a; }
-.tip-icon.gold   { background: #fffbeb; color: #d97706; }
-.tip-icon.teal   { background: #ecfdf5; color: #059669; }
+.tip-icon.gold   { background: #fff0f6; color: #c41e3a; }
+.tip-icon.teal   { background: #fff0f6; color: #c41e3a; }
 .tip-text h4 { font-size: 0.88rem; font-weight: 600; color: #1a1a1a; margin: 0 0 0.15rem; }
 .tip-text p  { font-size: 0.8rem; color: #888; margin: 0; line-height: 1.5; }
 </style>
@@ -296,25 +296,6 @@
             <div class="qs-info">
                 <div class="qs-num">{{ stats.citas_completadas }}</div>
                 <div class="qs-lbl">Citas Completadas</div>
-            </div>
-        </div>
-        <div class="qs-card c-gold">
-            <div class="qs-ico c-gold"><i class="bi bi-award"></i></div>
-            <div class="qs-info">
-                <div class="qs-num">{{ usuario.nivel_fidelidad }}</div>
-                <div class="qs-lbl">Nivel Actual</div>
-            </div>
-        </div>
-        <div class="qs-card c-teal">
-            <div class="qs-ico c-teal"><i class="bi bi-star"></i></div>
-            <div class="qs-info">
-                {% if usuario.faltantes_siguiente_nivel > 0 %}
-                <div class="qs-num">{{ usuario.faltantes_siguiente_nivel }}</div>
-                <div class="qs-lbl">Citas para el sig. nivel</div>
-                {% else %}
-                <div class="qs-num">¡Oro!</div>
-                <div class="qs-lbl">Nivel Máximo</div>
-                {% endif %}
             </div>
         </div>
     </div>
@@ -366,8 +347,8 @@
             <!-- Aviso de cancelación -->
             <div style="margin-top:1.5rem; background:white; border-radius:14px; padding:1.2rem 1.6rem;
                         box-shadow:0 2px 14px rgba(0,0,0,0.06); display:flex; align-items:center; gap:1rem;
-                        border-left: 4px solid #f59e0b;">
-                <div style="background:#fffbeb; color:#d97706; width:40px; height:40px; border-radius:10px;
+                        border-left: 4px solid #c41e3a;">
+                <div style="background:#fff0f6; color:#c41e3a; width:40px; height:40px; border-radius:10px;
                             display:flex; align-items:center; justify-content:center; font-size:1.2rem; flex-shrink:0;">
                     <i class="bi bi-exclamation-triangle"></i>
                 </div>
@@ -427,7 +408,7 @@
 
             <!-- Tips -->
             <div class="tip-card">
-                <h3><i class="bi bi-lightbulb" style="color:#d97706;"></i> Consejos</h3>
+                <h3><i class="bi bi-lightbulb" style="color:#c41e3a;"></i> Consejos</h3>
                 <div class="tip-item">
                     <div class="tip-icon pink"><i class="bi bi-clock"></i></div>
                     <div class="tip-text">

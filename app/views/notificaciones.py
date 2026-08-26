@@ -26,7 +26,7 @@ def notificaciones():
 def marcar_leida(notif_id):
     if 'usuario_id' not in session:
         return jsonify({'success': False, 'message': 'No autorizado'}), 401
-    n = Notificacion.query.get_or_404(notif_id)
+    n = db.get_or_404(Notificacion, notif_id)
     # permitir solo al propietario de la notificación o a admins
     if n.id_usuario != session['usuario_id'] and session.get('tipo_usuario') != 'admin':
         return jsonify({'success': False, 'message': 'No autorizado'}), 403

@@ -21,7 +21,10 @@ class LoginForm(FlaskForm):
 class RegisterForm(FlaskForm):
     nombre = StringField('Nombre completo', validators=[DataRequired(message='El nombre es obligatorio'), Length(min=3, max=100)])
     email = StringField('Correo electrónico', validators=VALIDADORES_EMAIL)
-    telefono = StringField('Teléfono', validators=[DataRequired(message='El teléfono es obligatorio'), Length(min=6, max=20)])
+    telefono = StringField('Teléfono', validators=[
+        DataRequired(message='El teléfono es obligatorio'),
+        Regexp(r'^[0-9]{10}$', message='El teléfono debe tener exactamente 10 dígitos'),
+    ])
     password = PasswordField('Contraseña', validators=[DataRequired(message='La contraseña es obligatoria'), Length(min=6, message='La contraseña debe tener al menos 6 caracteres')])
     confirmar_password = PasswordField('Confirmar contraseña', validators=[DataRequired(message='La confirmación es obligatoria'), EqualTo('password', message='Las contraseñas no coinciden')])
     submit = SubmitField('Crear Cuenta')

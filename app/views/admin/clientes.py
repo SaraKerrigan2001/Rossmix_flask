@@ -10,18 +10,26 @@ from app.models.auditoria import registrar_auditoria
 
 
 def _obtener_clientes():
-    """Obtiene todos los registros de cliente, tolerando formato heredado."""
+    """Obtiene todos los clientes con conteo de canceladas en una sola query (evita N+1)."""
     from sqlalchemy import func
 
     clientes = Usuario.query.filter(
         func.lower(func.trim(Usuario.tipo_usuario)) == 'cliente'
     ).order_by(Usuario.nombre).all()
 
+    if not clientes:
+        return clientes
+
+    # Una sola query de agregación para todas las canceladas — evita N+1
+    ids = [c.id for c in clientes]
+    canceladas_map = dict(
+        db.session.query(Cita.id_cliente, func.count())
+        .filter(Cita.id_cliente.in_(ids), Cita.estado == 'cancelada')
+        .group_by(Cita.id_cliente)
+        .all()
+    )
     for cliente in clientes:
-        cliente.citas_canceladas = Cita.query.filter_by(
-            id_cliente=cliente.id,
-            estado='cancelada'
-        ).count()
+        cliente.citas_canceladas = canceladas_map.get(cliente.id, 0)
 
     return clientes
 
@@ -38,7 +46,7 @@ def clientes():
 @admin_required
 def clientes_datos(id_cliente):
     """Retorna datos del cliente para modal AJAX"""
-    cliente = Usuario.query.get_or_404(id_cliente)
+    cliente = db.get_or_404(Usuario, id_cliente)
     return jsonify({
         'id': cliente.id,
         'nombre': cliente.nombre,
@@ -73,14 +81,41 @@ def clientes_hoy():
 @admin_required
 def clientes_editar(id_cliente):
     """Editar cliente — soporta JSON (modal) y form normal"""
-    cliente = Usuario.query.get_or_404(id_cliente)
+    cliente = db.get_or_404(Usuario, id_cliente)
     is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
 
     if request.method == 'POST':
-        cliente.nombre = request.form.get('nombre', '').strip()
-        cliente.email = request.form.get('email', '').strip()
-        cliente.telefono = request.form.get('telefono', '').strip()
-        cliente.activo = request.form.get('activo') == 'on'
+        nombre   = request.form.get('nombre', '').strip()
+        email    = request.form.get('email', '').strip()
+        telefono = request.form.get('telefono', '').strip()
+
+        # ── Validaciones explícitas (sin WTForms en este endpoint) ────────────
+        import re as _re
+        errores = []
+        if not nombre:
+            errores.append('El nombre es obligatorio.')
+        if not email or not _re.match(r'^[^@\s]+@[^@\s]+\.[A-Za-z]{2,}$', email):
+            errores.append('El email no es válido.')
+        if not _re.match(r'^\d{10}$', telefono):
+            errores.append('El teléfono debe tener exactamente 10 dígitos.')
+        # Verificar email duplicado (otro cliente con mismo email)
+        existente = Usuario.query.filter(
+            Usuario.email == email, Usuario.id != id_cliente
+        ).first()
+        if existente:
+            errores.append('Este email ya está registrado por otro usuario.')
+
+        if errores:
+            msg = ' '.join(errores)
+            if is_ajax:
+                return jsonify({'success': False, 'message': msg}), 400
+            flash(msg, 'error')
+            return render_template('admin/clientes_form.html', cliente=cliente)
+
+        cliente.nombre   = nombre
+        cliente.email    = email
+        cliente.telefono = telefono
+        cliente.activo   = request.form.get('activo') == 'on'
 
         nueva_password = request.form.get('nueva_password', '').strip()
         if nueva_password:
@@ -123,7 +158,7 @@ def clientes_editar(id_cliente):
 @admin_required
 def clientes_eliminar(id_cliente):
     """Eliminar cliente"""
-    cliente = Usuario.query.get_or_404(id_cliente)
+    cliente = db.get_or_404(Usuario, id_cliente)
 
     # Verificar si tiene citas futuras
     citas_futuras = Cita.query.filter(

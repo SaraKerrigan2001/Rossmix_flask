@@ -1,6 +1,5 @@
 ﻿"""Vistas del sistema de citas (agendamiento, cancelación, pagos cliente)."""
 import random
-import string
 from datetime import datetime, timedelta
 from decimal import Decimal
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify
@@ -46,7 +45,7 @@ def agendar_paso2(id_servicio):
         return redirect(url_for('auth.login'))
 
     # Obtener servicio seleccionado
-    servicio = Servicio.query.get_or_404(id_servicio)
+    servicio = db.get_or_404(Servicio, id_servicio)
 
     # Obtener empleados que realizan este servicio
     empleados_ids = db.session.query(EmpleadoServicio.id_empleado).filter_by(id_servicio=id_servicio).all()
@@ -67,8 +66,8 @@ def agendar_paso3(id_servicio, id_empleado):
         flash('Debes iniciar sesión para agendar una cita', 'error')
         return redirect(url_for('auth.login'))
 
-    servicio = Servicio.query.get_or_404(id_servicio)
-    empleado = Empleado.query.get_or_404(id_empleado) if id_empleado > 0 else None
+    servicio = db.get_or_404(Servicio, id_servicio)
+    empleado = db.get_or_404(Empleado, id_empleado) if id_empleado > 0 else None
 
     # Fechas para el template
     hoy = datetime.now().strftime('%Y-%m-%d')
@@ -148,8 +147,8 @@ def agendar_paso4():
     hora_str = form.hora.data
 
     # Obtener información
-    servicio = Servicio.query.get_or_404(id_servicio)
-    empleado = Empleado.query.get_or_404(id_empleado) if id_empleado > 0 else None
+    servicio = db.get_or_404(Servicio, id_servicio)
+    empleado = db.get_or_404(Empleado, id_empleado) if id_empleado > 0 else None
 
     # Parsear fecha y hora
     try:
@@ -278,9 +277,9 @@ def confirmar_cita():
 
         flash('¡Cita agendada exitosamente!', 'success')
         return redirect(url_for('citas.cita_confirmada', codigo=nueva_cita.codigo_reserva))
-    except Exception as e:
+    except Exception:
         db.session.rollback()
-        flash(f'Error al crear la cita: {str(e)}', 'error')
+        flash('No fue posible crear la cita. Por favor inténtalo de nuevo.', 'error')
         return redirect(url_for('citas.agendar_paso1'))
 
 
@@ -389,7 +388,7 @@ def cliente_pagos_registrar(id_cita):
 
     from app.models import Pago
 
-    cita = Cita.query.get_or_404(id_cita)
+    cita = db.get_or_404(Cita, id_cita)
 
     # Ensure the appointment belongs to the logged in user
     if cita.id_cliente != session['usuario_id']:
@@ -474,7 +473,7 @@ def descargar_cita_pdf(id_cita):
         flash('Debes iniciar sesión', 'error')
         return redirect(url_for('auth.login'))
 
-    cita = Cita.query.get_or_404(id_cita)
+    cita = db.get_or_404(Cita, id_cita)
     # Verificar que la cita pertenece al usuario (o es admin)
     if session.get('tipo_usuario') not in ('admin', 'especialista'):
         if cita.id_cliente != session['usuario_id']:
@@ -684,7 +683,7 @@ def reprogramar_cita_submit(id_cita):
     fecha_str   = form.fecha.data
     hora_str    = form.hora.data
 
-    servicio = Servicio.query.get_or_404(id_servicio)
+    servicio = db.get_or_404(Servicio, id_servicio)
 
     try:
         fecha_hora_inicio = datetime.strptime(f'{fecha_str} {hora_str}', '%Y-%m-%d %H:%M')
@@ -698,7 +697,13 @@ def reprogramar_cita_submit(id_cita):
         return redirect(url_for('citas.reprogramar_cita_form', id_cita=id_cita))
 
     if id_empleado == 0:
-        ids = [e.id_empleado for e in EmpleadoServicio.query.filter_by(id_servicio=id_servicio).all()]
+        # Solo empleados ACTIVOS que ofrezcan el servicio
+        ids = [e.id_empleado for e in db.session.query(EmpleadoServicio).join(
+            Empleado, EmpleadoServicio.id_empleado == Empleado.id_empleado
+        ).filter(
+            EmpleadoServicio.id_servicio == id_servicio,
+            Empleado.activo == True
+        ).all()]
         if not ids:
             flash('No hay especialistas disponibles para ese servicio.', 'error')
             return redirect(url_for('citas.reprogramar_cita_form', id_cita=id_cita))
@@ -756,7 +761,7 @@ def reprogramar_cita_submit(id_cita):
         flash('¡Cita reprogramada exitosamente!', 'success')
         return redirect(url_for('citas.cita_confirmada', codigo=nueva_cita.codigo_reserva))
 
-    except Exception as e:
+    except Exception:
         db.session.rollback()
-        flash(f'Error al reprogramar la cita: {str(e)}', 'error')
+        flash('No fue posible reprogramar la cita. Por favor inténtalo de nuevo.', 'error')
         return redirect(url_for('citas.reprogramar_cita_form', id_cita=id_cita))

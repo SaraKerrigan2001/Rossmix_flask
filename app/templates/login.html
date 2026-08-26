@@ -180,11 +180,13 @@
     </div>
     <h2>Iniciar Sesión</h2>
     
+    {% if config.DEBUG %}
     <div class="info-box">
         <strong>👨‍💼 Usuario admin de prueba:</strong><br>
         Email: admin@rossmix.com<br>
         Contraseña: admin123
     </div>
+    {% endif %}
 
     <form method="POST" action="{{ url_for('login') }}">
         {{ form.hidden_tag() }}

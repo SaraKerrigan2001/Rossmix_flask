@@ -63,3 +63,9 @@ class Config:
     PERMANENT_SESSION_LIFETIME = timedelta(
         seconds=int(os.environ.get('SESSION_LIFETIME_SECONDS', 8 * 60 * 60))
     )
+
+    # ── Seguridad de cookies ──────────────────────────────────────────────────
+    # Secure=True solo en producción (requiere HTTPS)
+    SESSION_COOKIE_SECURE   = os.environ.get('FLASK_ENV') == 'production'
+    SESSION_COOKIE_HTTPONLY = True    # JS no puede leer la cookie de sesión
+    SESSION_COOKIE_SAMESITE = 'Lax'  # Protege contra CSRF cross-site

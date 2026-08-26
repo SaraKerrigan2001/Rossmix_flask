@@ -1,7 +1,5 @@
 ﻿"""Lógica de negocio para la gestión de citas."""
-import random
 import secrets
-import string
 from datetime import datetime, timedelta
 from decimal import Decimal
 from app.extensions import db
@@ -74,7 +72,8 @@ class CitaService:
 
     @staticmethod
     def generar_codigo_reserva():
-        return ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+        """Genera un código de reserva criptográficamente seguro (8 chars)."""
+        return secrets.token_urlsafe(6)[:8].upper()
 
     @staticmethod
     def generar_token_gestion():

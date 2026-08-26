@@ -1,7 +1,6 @@
 ﻿"""Gestión de citas (admin) — incluye reasignación y distribución."""
 from datetime import datetime, timedelta
 from flask import render_template, request, jsonify
-from sqlalchemy import outerjoin
 from app.extensions import db
 from app.models import Usuario, Empleado, Servicio, Cita, EmpleadoServicio
 from app.utils.decorators import admin_required
@@ -70,7 +69,7 @@ def citas():
 @admin_required
 def citas_cambiar_estado(id_cita):
     """Cambiar estado de una cita"""
-    cita = Cita.query.get_or_404(id_cita)
+    cita = db.get_or_404(Cita, id_cita)
     nuevo_estado = request.form.get('estado')
     estados_validos = ['pendiente_pago', 'confirmada', 'en_atencion', 'completada', 'cancelada', 'no_asistio']
     if nuevo_estado not in estados_validos:
@@ -86,7 +85,7 @@ def citas_cambiar_estado(id_cita):
 @admin_required
 def citas_reasignar_empleado(id_cita):
     """GET: empleados disponibles para la cita | POST: asignar"""
-    cita = Cita.query.get_or_404(id_cita)
+    cita = db.get_or_404(Cita, id_cita)
     cliente = db.session.get(Usuario, cita.id_cliente)
     servicio = db.session.get(Servicio, cita.id_servicio)
 
@@ -109,7 +108,7 @@ def citas_reasignar_empleado(id_cita):
     if not id_empleado:
         return jsonify({'success': False, 'message': 'Falta id_empleado'}), 400
 
-    empleado = Empleado.query.get_or_404(id_empleado)
+    empleado = db.get_or_404(Empleado, id_empleado)
     cita.id_empleado = id_empleado
     if cita.estado == 'pendiente_pago':
         cita.estado = 'confirmada'
@@ -206,6 +205,16 @@ def citas_asignar_batch():
             emp  = db.session.get(Empleado, item['id_empleado'])
             if not cita or not emp:
                 errores.append(f"Cita {item.get('id_cita')} o empleado no encontrado")
+                continue
+            if not emp.activo:
+                errores.append(f"Empleado {emp.nombre} está inactivo")
+                continue
+            # Validar disponibilidad antes de asignar — evita solapamientos
+            from app.services.citas_service import CitaService
+            if not CitaService.validar_disponibilidad_cita(
+                emp.id_empleado, cita.fecha_hora_inicio, cita.fecha_hora_fin
+            ):
+                errores.append(f"Empleado {emp.nombre} no está disponible para esa hora")
                 continue
             cita.id_empleado = emp.id_empleado
             if cita.estado == 'pendiente_pago':

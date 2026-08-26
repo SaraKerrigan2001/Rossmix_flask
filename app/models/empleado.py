@@ -143,7 +143,7 @@ class Empleado(db.Model):
         }
 
         try:
-            cita = Cita.query.get(id_cita)
+            cita = db.session.get(Cita, id_cita)
             if not cita:
                 return {'success': False, 'message': 'Cita no encontrada'}
 

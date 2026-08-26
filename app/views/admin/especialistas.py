@@ -42,7 +42,7 @@ def especialistas_crear():
         flash(msg, 'error')
         return redirect(url_for('admin.especialistas'))
 
-    empleado = Empleado.query.get_or_404(id_empleado)
+    empleado = db.get_or_404(Empleado, id_empleado)
 
     if Usuario.query.filter_by(email=email).first():
         msg = f'El email {email} ya está registrado'
@@ -76,7 +76,7 @@ def especialistas_crear():
 @admin_required
 def especialistas_eliminar(id_usuario):
     """Eliminar cuenta de especialista"""
-    usuario = Usuario.query.get_or_404(id_usuario)
+    usuario = db.get_or_404(Usuario, id_usuario)
     if usuario.tipo_usuario != 'especialista':
         return jsonify({'success': False, 'message': 'No es una cuenta de especialista'}), 400
     nombre = usuario.nombre
@@ -89,7 +89,7 @@ def especialistas_eliminar(id_usuario):
 @admin_required
 def especialistas_reset_password(id_usuario):
     """Resetear contraseña de especialista"""
-    usuario = Usuario.query.get_or_404(id_usuario)
+    usuario = db.get_or_404(Usuario, id_usuario)
     nueva = request.form.get('nueva_password', '').strip()
     if len(nueva) < 6:
         return jsonify({'success': False, 'message': 'Mínimo 6 caracteres'}), 400

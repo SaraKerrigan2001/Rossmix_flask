@@ -4,6 +4,7 @@ Application Factory de Rossmix Flask.
 import os
 from flask import Flask
 from werkzeug.security import generate_password_hash
+from werkzeug.middleware.proxy_fix import ProxyFix
 from app.config import Config
 from app.extensions import db, mail, cache, csrf
 from app.utils.helpers import inject_notificaciones
@@ -12,6 +13,8 @@ from app.utils.helpers import inject_notificaciones
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
+
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 
     # Inicializar extensiones
     db.init_app(app)

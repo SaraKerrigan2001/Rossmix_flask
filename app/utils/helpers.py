@@ -14,13 +14,14 @@ def send_async_email(app, msg):
             print('Error al enviar correo asíncrono:', e)
 
 def add_notificacion(id_usuario, titulo, mensaje=None, target=None):
-    """Crear una notificación para un usuario y opcionalmente enviar email."""
+    """Crear una notificación. NO hace commit propio — el llamador es responsable."""
     try:
         n = Notificacion(id_usuario=id_usuario, titulo=titulo, mensaje=mensaje, target=target)
         db.session.add(n)
-        db.session.commit()
+        # No hacemos commit aquí para respetar la transacción del llamador.
+        # Si el llamador no hace commit, la notificación no persiste — es intencional.
 
-        # Enviar correo electrónico
+        # Enviar correo electrónico en background (no bloquea la transacción)
         usuario = db.session.get(Usuario, id_usuario)
         if usuario and usuario.email and '@' in usuario.email:
             msg = Message(
@@ -29,9 +30,8 @@ def add_notificacion(id_usuario, titulo, mensaje=None, target=None):
                 body=f"Hola {usuario.nombre},\n\n{mensaje or titulo}\n\nRevisa tu portal para más detalles."
             )
             Thread(target=send_async_email, args=(current_app._get_current_object(), msg)).start()
-            
+
     except Exception as e:
-        db.session.rollback()
         print('Error al crear notificacion:', e)
 
 

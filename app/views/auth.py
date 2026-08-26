@@ -122,15 +122,23 @@ def login():
 
 @auth_bp.route('/registro', methods=['GET', 'POST'])
 def registro():
+    ip = request.remote_addr or '0.0.0.0'
+
+    # Rate limiting — misma protección que el login
+    if _ip_bloqueada(ip):
+        flash('Demasiados intentos. Por favor espera 30 minutos antes de intentar de nuevo.', 'error')
+        return redirect(url_for('auth.registro'))
+
     form = RegisterForm()
     if form.validate_on_submit():
-        nombre = form.nombre.data.strip()
-        email = form.email.data.strip()
+        nombre   = form.nombre.data.strip()
+        email    = form.email.data.strip()
         telefono = form.telefono.data.strip()
         password = form.password.data
 
         usuario_existente = Usuario.query.filter_by(email=email).first()
         if usuario_existente:
+            _registrar_intento_fallido(ip)   # contar intentos con email duplicado
             flash('Este email ya está registrado', 'error')
             return redirect(url_for('auth.registro'))
 
@@ -141,7 +149,6 @@ def registro():
             password=generate_password_hash(password),
             tipo_usuario='cliente'
         )
-
         db.session.add(nuevo_usuario)
         db.session.commit()
 

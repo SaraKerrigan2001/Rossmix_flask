@@ -103,6 +103,12 @@ Esquema PostgreSQL en `scripts/database/Rossmix.sql`. Incluye:
 - 9 tablas, 2 tipos ENUM, 2 vistas, índices de rendimiento y datos semilla
 - Para inicializar: ejecutar el SQL en pgAdmin sobre la BD `Rossmix`
 
+Para que `localhost` y el dominio de Cloudflare/Render muestren los mismos
+clientes, citas y usuarios, ambos entornos deben usar el mismo valor de
+`DATABASE_URL`. El dominio solo cambia la dirección web; no comparte datos
+entre bases distintas. Cuando `DATABASE_URL` está definida, tiene prioridad
+sobre `DB_HOST`, `DB_PORT` y `DB_NAME`.
+
 ---
 
 ## Configuración
