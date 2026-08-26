@@ -433,11 +433,11 @@
                         </a>
                         {% if cita.token_gestion %}
                         <a href="{{ url_for('gestionar_cita', token=cita.token_gestion) }}"
-                           class="btn" style="background:linear-gradient(135deg,#c41e3a,#ff1493);color:white;">
+                           class="btn" style="background:#c41e3a;color:white;">
                             🔄 Gestionar / Reprogramar
                         </a>
                         {% endif %}
-                        <a href="{{ url_for('descargar_cita_pdf', id_cita=cita.id_cita) }}" class="btn" style="background:linear-gradient(135deg,#c41e3a,#ff1493);color:white;">
+                        <a href="{{ url_for('descargar_cita_pdf', id_cita=cita.id_cita) }}" class="btn" style="background:#c41e3a;color:white;">
                             📄 Descargar PDF
                         </a>
                         {% if cita.estado == 'pendiente_pago' %}
@@ -536,7 +536,7 @@
                         </a>
                         {% endif %}
                         <a href="{{ url_for('descargar_cita_pdf', id_cita=cita.id_cita) }}"
-                           class="btn" style="background:linear-gradient(135deg,#c41e3a,#ff1493);color:white;">
+                           class="btn" style="background:#c41e3a;color:white;">
                             📄 Descargar PDF
                         </a>
                     </div>

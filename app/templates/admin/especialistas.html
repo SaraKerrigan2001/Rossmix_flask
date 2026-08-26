@@ -7,7 +7,7 @@
 .rmx-modal-overlay.open{display:flex;}
 .rmx-modal{background:white;border-radius:24px;width:100%;max-width:520px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,0.3);animation:rmxSlideUp 0.3s cubic-bezier(0.34,1.56,0.64,1);}
 @keyframes rmxSlideUp{from{opacity:0;transform:translateY(40px) scale(0.96);}to{opacity:1;transform:translateY(0) scale(1);}}
-.rmx-modal-header{padding:1.4rem 1.8rem;background:linear-gradient(135deg,#c41e3a,#ff1493);display:flex;align-items:center;gap:1rem;flex-shrink:0;}
+.rmx-modal-header{padding:1.4rem 1.8rem;background:#c41e3a;display:flex;align-items:center;gap:1rem;flex-shrink:0;}
 .rmx-modal-header .icon-wrap{width:48px;height:48px;border-radius:14px;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;}
 .rmx-modal-header h3{margin:0;color:white;font-size:1.1rem;font-weight:800;}
 .rmx-modal-header p{margin:0;color:rgba(255,255,255,0.8);font-size:0.82rem;}
@@ -187,7 +187,7 @@
 <!-- ── MODAL RESET PASSWORD ── -->
 <div id="modalResetPwd" class="rmx-modal-overlay">
     <div class="rmx-modal" style="max-width:420px;">
-        <div class="rmx-modal-header" style="background:linear-gradient(135deg,#c41e3a,#ff1493);">
+        <div class="rmx-modal-header" style="background:#c41e3a;">
             <div class="icon-wrap">🔑</div>
             <div>
                 <h3>Cambiar Contraseña</h3>
@@ -205,7 +205,7 @@
         <div class="rmx-modal-footer">
             <button onclick="cerrarReset()" class="btn-secondary-r" style="flex:1;">Cancelar</button>
             <button onclick="guardarPassword()" id="btnGuardarPwd"
-                    style="flex:2;background:linear-gradient(135deg,#c41e3a,#ff1493);color:white;
+                    style="flex:2;background:#c41e3a;color:white;
                            border:none;padding:0.75rem;border-radius:12px;font-weight:700;cursor:pointer;
                            display:flex;align-items:center;justify-content:center;gap:0.4rem;">
                 <i class="bi bi-check-lg"></i> Actualizar

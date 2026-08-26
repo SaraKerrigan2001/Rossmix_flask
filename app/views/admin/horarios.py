@@ -7,8 +7,8 @@ from app.utils.decorators import admin_required
 from app.views.admin import admin_bp
 
 DIAS_SEMANA = {
-    0: 'Domingo', 1: 'Lunes', 2: 'Martes', 3: 'Miércoles',
-    4: 'Jueves', 5: 'Viernes', 6: 'Sábado'
+    0: 'Dom', 1: 'Lun', 2: 'Mar', 3: 'Mié',
+    4: 'Jue', 5: 'Vie', 6: 'Sáb'
 }
 
 

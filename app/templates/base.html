@@ -113,7 +113,7 @@
         .profile-btn:hover { background: #ffe0ef; color: #c41e3a; }
         .profile-btn .avatar {
             width: 28px; height: 28px; border-radius: 50%;
-            background: linear-gradient(135deg, var(--rossmix-vino), var(--rossmix-dorado));
+            background: #c41e3a;
             color: white; display: flex; align-items: center;
             justify-content: center; font-size: 0.78rem; font-weight: 700;
             flex-shrink: 0;
@@ -140,7 +140,7 @@
         }
         .profile-menu-header .pm-avatar {
             width: 48px; height: 48px; border-radius: 50%;
-            background: linear-gradient(135deg, var(--rossmix-vino), var(--rossmix-dorado));
+            background: #c41e3a;
             color: white; display: flex; align-items: center;
             justify-content: center; font-size: 1.3rem; font-weight: 700;
             margin-bottom: 0.6rem;
@@ -241,7 +241,7 @@
             height: 1px; background: #f0f0f0; margin: 0.3rem 0;
         }
         .nav-mobile-menu .btn-mobile-primary {
-            background: linear-gradient(135deg, var(--rossmix-vino), var(--rossmix-dorado));
+            background: #c41e3a;
             color: white !important;
             text-align: center;
             font-weight: 600;
@@ -249,7 +249,7 @@
             border-radius: 25px;
             margin-top: 0.2rem;
         }
-        .nav-mobile-menu .btn-mobile-primary:hover { opacity: 0.9; background: linear-gradient(135deg, var(--rossmix-vino), var(--rossmix-dorado)); }
+        .nav-mobile-menu .btn-mobile-primary:hover { opacity: 0.9; background: #c41e3a; }
         .nav-mobile-menu .btn-mobile-outline {
             border: 2px solid #c41e3a;
             color: #c41e3a !important;
@@ -299,7 +299,7 @@
 
         /* ── BOTONES GLOBALES ───────────────────────────────── */
         .btn-rossmix {
-            background: linear-gradient(135deg, var(--rossmix-vino), var(--rossmix-dorado));
+            background: #c41e3a;
             color: white; border: 1px solid var(--rossmix-vino);
             padding: 0.65rem 1.8rem; border-radius: 12px;
             font-size: 0.92rem; font-weight: 600;
@@ -346,7 +346,7 @@
             font-size: 0.9rem;
         }
         .r-table thead tr {
-            background: linear-gradient(135deg, var(--rossmix-vino), var(--rossmix-dorado));
+            background: #c41e3a;
             color: white;
         }
         .r-table thead th {
@@ -626,6 +626,7 @@
                     <a href="{{ url_for('citas.agendar_paso1') }}" class="btn-mobile-primary"><i class="bi bi-plus-circle-fill"></i>Agendar Cita</a>
                 {% endif %}
                 <div class="nav-mobile-divider"></div>
+                <a href="{{ url_for('perfil.mi_perfil') }}" style="color:#c41e3a;font-weight:600;"><i class="bi bi-person-circle"></i>Mi Perfil</a>
                 <a href="{{ url_for('auth.logout') }}" style="color:#dc2626;"><i class="bi bi-box-arrow-right"></i>Cerrar Sesión</a>
             {% else %}
                 <a href="{{ url_for('main.index') }}"><i class="bi bi-house-fill"></i>Inicio</a>
@@ -660,6 +661,10 @@
                         <!-- Links del menú -->
                         <div class="profile-menu-body">
                             {% if session.tipo_usuario == 'admin' %}
+                                <a href="{{ url_for('perfil.mi_perfil') }}" class="pm-item">
+                                    <i class="bi bi-person-circle"></i> Mi Perfil
+                                </a>
+                                <div class="pm-divider"></div>
                                 <a href="{{ url_for('admin.dashboard') }}" class="pm-item">
                                     <i class="bi bi-grid"></i> Panel Admin
                                 </a>
@@ -688,6 +693,10 @@
                                     <i class="bi bi-calendar-week"></i> Agenda Diaria
                                 </a>
                             {% elif session.tipo_usuario == 'especialista' %}
+                                <a href="{{ url_for('perfil.mi_perfil') }}" class="pm-item">
+                                    <i class="bi bi-person-circle"></i> Mi Perfil
+                                </a>
+                                <div class="pm-divider"></div>
                                 <a href="{{ url_for('especialista.dashboard') }}" class="pm-item">
                                     <i class="bi bi-house"></i> Mi Portal
                                 </a>
@@ -698,6 +707,10 @@
                                     <i class="bi bi-calendar3"></i> Mis Citas
                                 </a>
                             {% else %}
+                                <a href="{{ url_for('perfil.mi_perfil') }}" class="pm-item">
+                                    <i class="bi bi-person-circle"></i> Mi Perfil
+                                </a>
+                                <div class="pm-divider"></div>
                                 <a href="{{ url_for('cliente.dashboard_cliente') }}" class="pm-item">
                                     <i class="bi bi-house"></i> Mi Panel
                                 </a>
@@ -943,7 +956,7 @@ const IG_SVG = `<path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.6
 
 .rmx-confirm-band {
     height: 5px;
-    background: linear-gradient(90deg, var(--rossmix-vino), var(--rossmix-dorado));
+    background: #c41e3a;
 }
 
 .rmx-confirm-body {
@@ -1311,7 +1324,7 @@ function rossmixConfirm({ titulo='Confirmar', mensaje='', tipo='danger', okText=
     }
     #rossmix-bot-window.hidden { opacity: 0; transform: translateY(20px); pointer-events: none; }
     .bot-header {
-        background: linear-gradient(135deg, var(--rossmix-vino), var(--rossmix-dorado)); color: white;
+        background: #c41e3a; color: white;
         padding: 1rem; display: flex; justify-content: space-between; align-items: center;
         font-weight: 600;
     }

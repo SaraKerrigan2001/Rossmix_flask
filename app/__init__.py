@@ -101,6 +101,7 @@ def create_app(config_class=Config):
 
     # Registrar blueprints
     from app.views import main_bp, auth_bp, cliente_bp, citas_bp, notif_bp, admin_bp, especialista_bp
+    from app.views.perfil import perfil_bp
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(cliente_bp)
@@ -108,6 +109,7 @@ def create_app(config_class=Config):
     app.register_blueprint(notif_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(especialista_bp)
+    app.register_blueprint(perfil_bp)
 
     # Crear tablas y usuario administrador por defecto si no existen
     with app.app_context():
