@@ -16,7 +16,7 @@
 
     h1 {
         font-family: 'Playfair Display', serif;
-        background: linear-gradient(135deg, #ff69b4 0%, #ff1493 50%, #c71585 100%);
+        background: linear-gradient(135deg, #ff1493 0%, #ff1493 50%, #c41e3a 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -35,22 +35,22 @@
 
     .tab-btn {
         padding: 1rem 2rem;
-        background: linear-gradient(135deg, #ffffff, #fffbfc);
-        border: 3px solid #ffb6c1;
+        background: linear-gradient(135deg, #ffffff, #fff0f6);
+        border: 3px solid #ffd6e8;
         border-radius: 20px;
         font-weight: 700;
-        color: #c71585;
+        color: #c41e3a;
         cursor: pointer;
         transition: all 0.3s;
     }
 
     .tab-btn:hover {
         transform: translateY(-3px);
-        border-color: #ff69b4;
+        border-color: #ff1493;
     }
 
     .tab-btn.active {
-        background: linear-gradient(135deg, #ff69b4, #ff1493);
+        background: linear-gradient(135deg, #ff1493, #ff1493);
         color: white;
         border-color: #ff1493;
     }
@@ -70,8 +70,8 @@
     }
 
     .cita-card {
-        background: linear-gradient(135deg, #ffffff, #fffbfc);
-        border: 3px solid #ffb6c1;
+        background: linear-gradient(135deg, #ffffff, #fff0f6);
+        border: 3px solid #ffd6e8;
         border-radius: 20px;
         padding: 2rem;
         transition: all 0.3s;
@@ -82,7 +82,7 @@
     .cita-card:hover {
         transform: translateY(-5px);
         box-shadow: 0 10px 30px rgba(255, 105, 180, 0.3);
-        border-color: #ff69b4;
+        border-color: #ff1493;
     }
 
     .cita-header {
@@ -110,19 +110,19 @@
     }
 
     .estado-pendiente_pago {
-        background: linear-gradient(135deg, #ffd700, #ffed4e);
-        color: #c71585;
-        border: 2px solid #ff69b4;
+        background: linear-gradient(135deg, #ffd6e8, #ffed4e);
+        color: #c41e3a;
+        border: 2px solid #ff1493;
     }
 
     .estado-confirmada {
-        background: linear-gradient(135deg, #28a745, #20c997);
+        background: linear-gradient(135deg, #c41e3a, #c41e3a);
         color: white;
-        border: 2px solid #20c997;
+        border: 2px solid #c41e3a;
     }
 
     .estado-completada {
-        background: linear-gradient(135deg, #6c757d, #5a6268);
+        background: linear-gradient(135deg, #6b7280, #5a6268);
         color: white;
         border: 2px solid #5a6268;
     }
@@ -161,7 +161,7 @@
     }
 
     .cita-detalles {
-        background: linear-gradient(135deg, #e3f2fd, #f0f8ff);
+        background: linear-gradient(135deg, #fff0f6, #fff0f6);
         border: 2px solid rgba(255, 105, 180, 0.3);
         border-radius: 15px;
         padding: 1rem;
@@ -207,7 +207,7 @@
     }
 
     .btn-ver {
-        background: linear-gradient(135deg, #ff69b4, #ff1493);
+        background: linear-gradient(135deg, #ff1493, #ff1493);
         color: white;
     }
 
@@ -217,7 +217,7 @@
     }
 
     .btn-nueva {
-        background: linear-gradient(135deg, #ff69b4, #ff1493);
+        background: linear-gradient(135deg, #ff1493, #ff1493);
         color: white;
         padding: 1.2rem 2rem;
         border-radius: 20px;
@@ -234,10 +234,10 @@
     .empty-state {
         text-align: center;
         padding: 4rem 2rem;
-        background: linear-gradient(135deg, #fffbfc, #ffffff);
-        border: 3px dashed #ffb6c1;
+        background: linear-gradient(135deg, #fff0f6, #ffffff);
+        border: 3px dashed #ffd6e8;
         border-radius: 20px;
-        color: #c71585;
+        color: #c41e3a;
     }
 
     .empty-icon {
@@ -259,7 +259,7 @@
         padding: 0.3rem 0.6rem;
         border-radius: 5px;
         font-weight: 700;
-        color: #c71585;
+        color: #c41e3a;
     }
 
     .btn-volver {
@@ -292,15 +292,15 @@
         padding: 0.8rem;
         border-radius: 10px;
         margin-top: 0.5rem;
-        color: #c71585;
+        color: #c41e3a;
         font-size: 0.9rem;
     }
 
     /* Badge confirmada animado */
     .estado-confirmada-anim {
-        background: linear-gradient(135deg, #dcfce7, #bbf7d0) !important;
-        color: #166534 !important;
-        border: 2px solid #86efac !important;
+        background: linear-gradient(135deg, #fff0f6, #ffd6e8) !important;
+        color: #9f1239 !important;
+        border: 2px solid #ffb3d1 !important;
         animation: popConfirm 0.5s ease;
     }
     @keyframes popConfirm {
@@ -374,7 +374,7 @@
                                 <div class="info-valor">{{ empleado.nombre }}</div>
                                 {% else %}
                                 <div style="display:flex;align-items:center;gap:0.4rem;">
-                                    <span style="background:#fef9c3;color:#854d0e;padding:0.2rem 0.7rem;
+                                    <span style="background:#fff0f6;color:#9f1239;padding:0.2rem 0.7rem;
                                                  border-radius:20px;font-size:0.82rem;font-weight:700;">
                                         ⏳ Por asignar
                                     </span>
@@ -433,7 +433,7 @@
                         </a>
                         {% if cita.token_gestion %}
                         <a href="{{ url_for('gestionar_cita', token=cita.token_gestion) }}"
-                           class="btn" style="background:linear-gradient(135deg,#2563eb,#3b82f6);color:white;">
+                           class="btn" style="background:linear-gradient(135deg,#c41e3a,#ff1493);color:white;">
                             🔄 Gestionar / Reprogramar
                         </a>
                         {% endif %}
@@ -441,7 +441,7 @@
                             📄 Descargar PDF
                         </a>
                         {% if cita.estado == 'pendiente_pago' %}
-                        <a href="{{ url_for('cliente_pagos_registrar', id_cita=cita.id_cita) }}" class="btn" style="background: linear-gradient(135deg, #ffd700, #ffed4e); color: #c71585;">
+                        <a href="{{ url_for('cliente_pagos_registrar', id_cita=cita.id_cita) }}" class="btn" style="background: linear-gradient(135deg, #ffd6e8, #ffed4e); color: #c41e3a;">
                             💳 Pagar Saldo
                         </a>
                         {% endif %}
@@ -488,8 +488,8 @@
                     </div>
 
                     {% if cita.estado == 'no_asistio' %}
-                    <div style="background:#fff7ed;border:1.5px solid #fed7aa;border-radius:12px;
-                                padding:1rem;margin:0.8rem 0;font-size:0.88rem;color:#92400e;">
+                    <div style="background:#fff0f6;border:1.5px solid #ffd6e8;border-radius:12px;
+                                padding:1rem;margin:0.8rem 0;font-size:0.88rem;color:#9f1239;">
                         <strong>⚠️ No registramos tu asistencia.</strong><br>
                         El abono de <strong>${{ '{:,.0f}'.format(cita.monto_abono or 5000) }} COP</strong>
                         no es reembolsable según nuestra política.<br>
@@ -530,7 +530,7 @@
                     <div class="cita-acciones">
                         {% if cita.estado == 'no_asistio' %}
                         <a href="{{ url_for('reagendar_no_asistio', id_cita=cita.id_cita) }}"
-                           class="btn" style="background:linear-gradient(135deg,#f59e0b,#d97706);
+                           class="btn" style="background:linear-gradient(135deg,#c41e3a,#c41e3a);
                                               color:white;font-weight:700;">
                             📅 Reagendar con crédito de ${{ '{:,.0f}'.format(cita.monto_abono or 5000) }}
                         </a>
@@ -655,7 +655,7 @@
                 toast.style.cssText = `
                     position:fixed;bottom:28px;left:50%;
                     transform:translateX(-50%) translateY(80px);
-                    background:#16a34a;color:white;
+                    background:#c41e3a;color:white;
                     padding:0.9rem 2rem;border-radius:30px;
                     font-weight:700;font-size:0.95rem;
                     box-shadow:0 8px 30px rgba(0,0,0,0.2);

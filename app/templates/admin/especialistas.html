@@ -16,8 +16,8 @@
 .rmx-modal-body{padding:1.6rem 1.8rem;overflow-y:auto;flex:1;}
 .rmx-modal-footer{padding:1rem 1.8rem 1.6rem;border-top:1.5px solid #f0f0f0;background:#fafafa;display:flex;gap:0.8rem;flex-shrink:0;}
 .rmx-toast{position:fixed;bottom:2rem;right:2rem;z-index:9999;padding:0.9rem 1.4rem;border-radius:14px;font-weight:600;font-size:0.9rem;display:flex;align-items:center;gap:0.6rem;box-shadow:0 8px 30px rgba(0,0,0,0.18);animation:toastIn 0.35s ease;pointer-events:none;}
-.rmx-toast.success{background:#ecfdf5;color:#166534;border:1.5px solid #86efac;}
-.rmx-toast.error{background:#fef2f2;color:#991b1b;border:1.5px solid #fca5a5;}
+.rmx-toast.success{background:#fff0f6;color:#9f1239;border:1.5px solid #ffb3d1;}
+.rmx-toast.error{background:#fef2f2;color:#991b1b;border:1.5px solid #ffb3d1;}
 @keyframes toastIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
 </style>
 {% endblock %}
@@ -67,7 +67,7 @@
                     <td style="color:#6b7280;font-size:0.88rem;">{{ c.email }}</td>
                     <td>
                         {% if c.empleado_vinculado %}
-                            <span style="background:#f0fdf4;color:#166534;padding:0.2rem 0.7rem;border-radius:20px;font-size:0.8rem;font-weight:600;">
+                            <span style="background:#fff0f6;color:#9f1239;padding:0.2rem 0.7rem;border-radius:20px;font-size:0.8rem;font-weight:600;">
                                 <i class="bi bi-link-45deg"></i> {{ c.empleado_vinculado.nombre }}
                             </span>
                         {% else %}
@@ -81,7 +81,7 @@
                     <td>
                         <div style="display:flex;gap:0.4rem;">
                             <button onclick="abrirResetPassword({{ c.id }}, '{{ c.nombre }}')"
-                                    style="background:#fef3c7;color:#c41e3a;border:none;padding:0.4rem 0.8rem;
+                                    style="background:#fff0f6;color:#c41e3a;border:none;padding:0.4rem 0.8rem;
                                            border-radius:8px;font-size:0.82rem;font-weight:600;cursor:pointer;"
                                     title="Cambiar contraseña">
                                 <i class="bi bi-key-fill"></i>
@@ -121,7 +121,7 @@
         {% for emp in empleados_sin_cuenta %}
         <div style="background:#f8f9fa;border:1.5px solid #e5e7eb;border-radius:12px;
                     padding:0.7rem 1rem;display:flex;align-items:center;gap:0.6rem;">
-            <div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#ede9ff,#d4caff);
+            <div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#fff0f6,#ffd6e8);
                         color:#c41e3a;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.82rem;">
                 {{ emp.nombre[0].upper() }}
             </div>

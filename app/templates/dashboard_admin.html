@@ -272,7 +272,7 @@
                 <div>
                     <h3 style="margin:0 0 0.2rem; font-size:1.1rem; color:#1a1a1a;">{{ esp.nombre }}</h3>
                     <div style="font-size:0.85rem; color:#666;">
-                        <strong>{{ esp.total_citas }}</strong> citas • <strong style="color:#059669;">${{ "{:,.0f}".format(esp.ingresos_generados) }}</strong>
+                        <strong>{{ esp.total_citas }}</strong> citas • <strong style="color:#c41e3a;">${{ "{:,.0f}".format(esp.ingresos_generados) }}</strong>
                     </div>
                 </div>
             </div>
@@ -351,13 +351,13 @@
         </a>
 
         <a href="{{ url_for('admin_pagos_confirmar') }}" class="module-card" style="border-color:#ffb3d1;">
-            <div class="module-icon-wrap mi-gold" style="background:linear-gradient(135deg,#fef3c7,#fde68a);color:#d97706;">
+            <div class="module-icon-wrap mi-gold" style="background:linear-gradient(135deg,#fff0f6,#ffd6e8);color:#c41e3a;">
                 <i class="bi bi-clock-history"></i>
             </div>
             <div class="module-body">
                 <h3>Pagos por Confirmar
                     {% if stats.pagos_pendientes > 0 %}
-                    <span style="background:#d97706;color:white;border-radius:12px;padding:0.1rem 0.55rem;font-size:0.78rem;font-weight:700;margin-left:0.4rem;">{{ stats.pagos_pendientes }}</span>
+                    <span style="background:#c41e3a;color:white;border-radius:12px;padding:0.1rem 0.55rem;font-size:0.78rem;font-weight:700;margin-left:0.4rem;">{{ stats.pagos_pendientes }}</span>
                     {% endif %}
                 </h3>
                 <p>Verifica abonos recibidos y confirma citas de clientes</p>
@@ -433,7 +433,7 @@
                     <h3 style="margin:0;color:white;font-size:1.05rem;font-weight:800;">
                         Nuevo Empleado
                     </h3>
-                    <p style="margin:0;color:rgba(255,255,255,0.8);font-size:0.82rem;">
+                    <p style="margin:0;color:#444;font-size:0.82rem;">
                         Completa los datos del nuevo miembro del equipo
                     </p>
                 </div>
@@ -544,7 +544,7 @@
                     <h3 style="margin:0;color:white;font-size:1.05rem;font-weight:800;">
                         Nuevo Servicio
                     </h3>
-                    <p style="margin:0;color:rgba(255,255,255,0.8);font-size:0.82rem;">
+                    <p style="margin:0;color:#444;font-size:0.82rem;">
                         Agrega un nuevo servicio al catálogo del salón
                     </p>
                 </div>
@@ -600,7 +600,7 @@
                             Precio *
                         </label>
                         <div style="display:flex;align-items:center;gap:0.5rem;">
-                            <span style="font-weight:700;color:#059669;font-size:1.1rem;">$</span>
+                            <span style="font-weight:700;color:#c41e3a;font-size:1.1rem;">$</span>
                             <input type="number" name="precio_total" min="0" step="1000"
                                    required placeholder="50000"
                                    style="flex:1;padding:0.75rem 1rem;border:1.5px solid #e5e7eb;
@@ -693,10 +693,10 @@ async function abrirModalEmpleado() {
             <label style="display:flex;align-items:center;gap:0.6rem;padding:0.55rem 0.7rem;
                           border-radius:10px;cursor:pointer;border:1.5px solid #f0f0f0;
                           transition:all 0.15s;font-size:0.85rem;"
-                   onmouseover="this.style.borderColor='#c41e3a';this.style.background='#f5f3ff';"
+                   onmouseover="this.style.borderColor='#c41e3a';this.style.background='#fff0f6';"
                    onmouseout="this.style.borderColor='#f0f0f0';this.style.background='';">
                 <input type="checkbox" name="servicios" value="${s.id}"
-                       style="width:15px;height:15px;accent-color:#7c3aed;">
+                       style="width:15px;height:15px;accent-color:#c41e3a;">
                 <div>
                     <div style="font-weight:600;color:#1a1a1a;">${s.nombre}</div>
                     <div style="font-size:0.72rem;color:#9ca3af;">

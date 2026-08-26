@@ -124,7 +124,7 @@
             width: 280px; background: white;
             border-radius: 14px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.13);
-            border: 1.5px solid #f0e8ff;
+            border: 1.5px solid #fff0f6;
             z-index: 2000; overflow: hidden;
             animation: fadeInDown 0.2s ease;
         }
@@ -290,7 +290,7 @@
             display: flex; align-items: center; gap: 0.6rem;
             border-left: 4px solid transparent;
         }
-        .flash-success { background: #f0fdf4; color: #166534; border-color: #c41e3a; }
+        .flash-success { background: #fff0f6; color: #9f1239; border-color: #c41e3a; }
         .flash-error   { background: #fff1f2; color: #9f1239; border-color: #f43f5e; }
         @keyframes slideIn {
             from { transform: translateX(350px); opacity: 0; }
@@ -369,8 +369,8 @@
         .badge-estado   { padding: 0.25rem 0.8rem; border-radius: 20px; font-size: 0.78rem; font-weight: 600; }
         .be-pendiente   { background: #fff0f6; color: #c41e3a; }
         .be-confirmada  { background: #fff0f6; color: #c41e3a; }
-        .be-completada  { background: #dcfce7; color: #166534; }
-        .be-cancelada   { background: #fee2e2; color: #991b1b; }
+        .be-completada  { background: #fff0f6; color: #9f1239; }
+        .be-cancelada   { background: #fff0f6; color: #dc2626; }
         .be-atencion    { background: #ffd6e8; color: #9f1239; }
 
         /* ── FORMULARIOS ────────────────────────────────────── */
@@ -462,7 +462,7 @@
             font-size: 1.8rem; font-weight: 700; color: #1a1a1a; margin: 0;
         }
         .page-header .breadcrumb-r {
-            font-size: 0.85rem; color: #111827; margin-top: 0.2rem; font-weight: 500;
+            font-size: 0.85rem; color: #1a1a1a; margin-top: 0.2rem; font-weight: 500;
             display: flex; align-items: center; gap: 0.4rem;
         }
         .page-header .breadcrumb-r a { color: #c41e3a; text-decoration: none; }
@@ -604,9 +604,9 @@
                     <span style="font-size:0.75rem;font-weight:700;color:#c41e3a;padding:0.3rem 1.2rem;letter-spacing:0.5px;text-transform:uppercase;">Finanzas</span>
                     <a href="{{ url_for('admin.pagos') }}"><i class="bi bi-credit-card-fill"></i>Pagos</a>
                     {% if pagos_por_confirmar and pagos_por_confirmar > 0 %}
-                    <a href="{{ url_for('admin.pagos_confirmar') }}" style="color:#d97706;">
+                    <a href="{{ url_for('admin.pagos_confirmar') }}" style="color:#c41e3a;">
                         <i class="bi bi-clock-history"></i>Pagos por Confirmar
-                        <span style="margin-left:auto;background:#d97706;color:white;border-radius:10px;padding:0.1rem 0.5rem;font-size:0.75rem;font-weight:700;">{{ pagos_por_confirmar }}</span>
+                        <span style="margin-left:auto;background:#c41e3a;color:white;border-radius:10px;padding:0.1rem 0.5rem;font-size:0.75rem;font-weight:700;">{{ pagos_por_confirmar }}</span>
                     </a>
                     {% endif %}
                     <div class="nav-mobile-divider"></div>
@@ -1049,9 +1049,9 @@ function rossmixConfirm({ titulo='Confirmar', mensaje='', tipo='danger', okText=
                        ibg:'linear-gradient(135deg,#fff0f6,#ffd6e8)',
                        grad:'linear-gradient(135deg,#c41e3a,#c41e3a)',
                        shadow:'rgba(196,30,58,0.3)', emoji:'⚠️' },
-            info:    { band:'linear-gradient(90deg,#2563eb,#3b82f6)',
+            info:    { band:'linear-gradient(90deg,#c41e3a,#ff1493)',
                        ibg:'linear-gradient(135deg,#fff0f6,#ffd6e8)',
-                       grad:'linear-gradient(135deg,#2563eb,#3b82f6)',
+                       grad:'linear-gradient(135deg,#c41e3a,#ff1493)',
                        shadow:'rgba(196,30,58,0.4)', emoji:'ℹ️' },
             success: { band:'linear-gradient(90deg,#c41e3a,#ff1493)',
                        ibg:'linear-gradient(135deg,#fff0f6,#ffd6e8)',

@@ -42,12 +42,12 @@
         transition: all 0.4s;
     }
     .estado-pendiente {
-        background: #fef3c7; color: #d97706;
-        border: 1.5px solid #fde68a;
+        background: #fff0f6; color: #c41e3a;
+        border: 1.5px solid #ffd6e8;
     }
     .estado-confirmada {
-        background: #dcfce7; color: #16a34a;
-        border: 1.5px solid #86efac;
+        background: #fff0f6; color: #c41e3a;
+        border: 1.5px solid #ffb3d1;
         animation: popIn 0.5s ease;
     }
     @keyframes popIn {
@@ -59,18 +59,18 @@
     /* ── Panel de confirmación (oculto hasta que admin confirme) ── */
     .confirmed-panel {
         display: none;
-        background: linear-gradient(135deg, #f0fff4, #dcfce7);
-        border: 2px solid #86efac;
+        background: linear-gradient(135deg, #f0fff4, #fff0f6);
+        border: 2px solid #ffb3d1;
         border-radius: 16px;
         padding: 1.5rem 2rem;
         margin-bottom: 1.5rem;
         animation: popIn 0.5s ease;
     }
     .confirmed-panel h3 {
-        color: #16a34a; font-size: 1.3rem;
+        color: #c41e3a; font-size: 1.3rem;
         font-weight: 700; margin-bottom: 0.4rem;
     }
-    .confirmed-panel p { color: #166534; font-size: 0.95rem; margin: 0; }
+    .confirmed-panel p { color: #9f1239; font-size: 0.95rem; margin: 0; }
 
     /* ── Código de reserva ── */
     .code-box {
@@ -93,7 +93,7 @@
     /* ── Detalles ── */
     .details-box {
         background: #fafafa;
-        border: 1.5px solid #f0e8ff;
+        border: 1.5px solid #fff0f6;
         border-radius: 16px;
         overflow: hidden;
         margin: 1.5rem 0;
@@ -146,9 +146,9 @@
 
     /* ── Nota ── */
     .note-box {
-        background: #fff9e6; border: 1.5px solid #fde68a;
+        background: #fff9e6; border: 1.5px solid #ffd6e8;
         border-radius: 12px; padding: 1rem 1.4rem;
-        font-size: 0.88rem; color: #92400e;
+        font-size: 0.88rem; color: #9f1239;
         text-align: left; margin-top: 1.5rem;
     }
 
@@ -262,7 +262,7 @@
     <div class="action-buttons">
         {% if cita.token_gestion %}
         <a href="{{ url_for('gestionar_cita', token=cita.token_gestion) }}"
-           class="btn-download" style="background:linear-gradient(135deg,#2563eb,#3b82f6);">
+           class="btn-download" style="background:linear-gradient(135deg,#c41e3a,#ff1493);">
             <i class="bi bi-calendar-event"></i> Gestionar / Reprogramar
         </a>
         {% endif %}

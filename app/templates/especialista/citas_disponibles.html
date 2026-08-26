@@ -5,8 +5,8 @@
 <style>
 @keyframes rmxSlideUp{from{opacity:0;transform:translateY(30px);}to{opacity:1;transform:translateY(0);}}
 .rmx-toast{position:fixed;bottom:2rem;right:2rem;z-index:9999;padding:0.9rem 1.4rem;border-radius:14px;font-weight:600;font-size:0.9rem;display:flex;align-items:center;gap:0.6rem;box-shadow:0 8px 30px rgba(0,0,0,0.18);animation:toastIn 0.35s ease;pointer-events:none;}
-.rmx-toast.success{background:#ecfdf5;color:#166534;border:1.5px solid #86efac;}
-.rmx-toast.error{background:#fef2f2;color:#991b1b;border:1.5px solid #fca5a5;}
+.rmx-toast.success{background:#fff0f6;color:#9f1239;border:1.5px solid #ffb3d1;}
+.rmx-toast.error{background:#fef2f2;color:#991b1b;border:1.5px solid #ffb3d1;}
 @keyframes toastIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
 .cita-card{background:white;border-radius:18px;padding:1.4rem 1.8rem;box-shadow:0 2px 14px rgba(0,0,0,0.07);border:2px solid #f0f0f0;transition:all 0.2s;animation:rmxSlideUp 0.3s ease;}
 .cita-card:hover{border-color:#ff1493;box-shadow:0 8px 28px rgba(196,30,58,0.13);transform:translateY(-2px);}
@@ -56,7 +56,7 @@
                 </div>
             </div>
             <div style="text-align:right;">
-                <div style="font-size:1.1rem;font-weight:800;color:#059669;">${{ "{:,.0f}".format(servicio.precio_total) }}</div>
+                <div style="font-size:1.1rem;font-weight:800;color:#c41e3a;">${{ "{:,.0f}".format(servicio.precio_total) }}</div>
                 <div style="font-size:0.72rem;color:#888;">precio del servicio</div>
             </div>
         </div>
@@ -73,14 +73,14 @@
             <div style="background:#f8faff;border-radius:10px;padding:0.7rem 0.9rem;">
                 <div style="font-size:0.72rem;color:#888;font-weight:600;text-transform:uppercase;margin-bottom:0.2rem;">Hora</div>
                 <div style="font-weight:700;color:#1a1a1a;font-size:0.9rem;">
-                    <i class="bi bi-clock" style="color:#2563eb;"></i>
+                    <i class="bi bi-clock" style="color:#c41e3a;"></i>
                     {{ cita.fecha_hora_inicio.strftime('%H:%M') }}
                 </div>
             </div>
             <div style="background:#f8faff;border-radius:10px;padding:0.7rem 0.9rem;">
                 <div style="font-size:0.72rem;color:#888;font-weight:600;text-transform:uppercase;margin-bottom:0.2rem;">Clienta</div>
                 <div style="font-weight:700;color:#1a1a1a;font-size:0.9rem;">
-                    <i class="bi bi-person" style="color:#7c3aed;"></i>
+                    <i class="bi bi-person" style="color:#c41e3a;"></i>
                     {{ cliente.nombre.split()[0] }}
                 </div>
             </div>
@@ -144,7 +144,7 @@ async function aceptarCita(id, btn) {
             const card = document.getElementById(`cita-card-${id}`);
             card.classList.add('tomada');
             card.innerHTML = `
-                <div style="text-align:center;padding:1.5rem;color:#166534;">
+                <div style="text-align:center;padding:1.5rem;color:#9f1239;">
                     <div style="font-size:2rem;margin-bottom:0.5rem;">✅</div>
                     <strong>¡Cita aceptada!</strong><br>
                     <span style="font-size:0.85rem;color:#888;">La clienta ha sido notificada.</span>

@@ -9,23 +9,23 @@
 
 /* Banner de crédito */
 .credito-banner {
-    background:linear-gradient(135deg,#fff7ed,#fef3c7);
-    border:2px solid #f59e0b;
+    background:linear-gradient(135deg,#fff0f6,#fff0f6);
+    border:2px solid #c41e3a;
     border-radius:16px; padding:1.2rem 1.5rem;
     display:flex; align-items:center; gap:1rem;
     margin-bottom:1.5rem;
 }
 .credito-icon {
     width:50px; height:50px; border-radius:50%;
-    background:linear-gradient(135deg,#f59e0b,#d97706);
+    background:linear-gradient(135deg,#c41e3a,#c41e3a);
     color:white; display:flex; align-items:center;
     justify-content:center; font-size:1.4rem; flex-shrink:0;
 }
-.credito-texto h3 { font-size:1rem; font-weight:700; color:#92400e; margin:0 0 0.2rem; }
-.credito-texto p  { font-size:0.88rem; color:#92400e; margin:0; }
+.credito-texto h3 { font-size:1rem; font-weight:700; color:#9f1239; margin:0 0 0.2rem; }
+.credito-texto p  { font-size:0.88rem; color:#9f1239; margin:0; }
 .credito-monto {
     margin-left:auto; font-size:1.6rem; font-weight:800;
-    color:#d97706; white-space:nowrap;
+    color:#c41e3a; white-space:nowrap;
 }
 
 /* Grid principal */
@@ -52,21 +52,21 @@
 
 /* Resumen de costo */
 .costo-box {
-    background:#f0fdf4; border:1.5px solid #86efac;
+    background:#fff0f6; border:1.5px solid #ffb3d1;
     border-radius:12px; padding:1rem; margin-top:1rem;
 }
 .costo-row { display:flex; justify-content:space-between;
              font-size:0.88rem; padding:0.25rem 0; }
 .costo-row .lbl { color:#555; }
 .costo-row .val { font-weight:700; }
-.costo-row.total { border-top:1.5px solid #86efac; margin-top:0.4rem;
+.costo-row.total { border-top:1.5px solid #ffb3d1; margin-top:0.4rem;
                    padding-top:0.5rem; font-size:1rem; }
-.costo-row.total .val { color:#16a34a; font-size:1.2rem; }
+.costo-row.total .val { color:#c41e3a; font-size:1.2rem; }
 
 /* Selector de disponibilidad */
 .selector-card {
     background:white; border-radius:16px; padding:1.5rem;
-    border:1.5px solid #f0e8ff;
+    border:1.5px solid #fff0f6;
     box-shadow:0 4px 16px rgba(0,0,0,0.06);
 }
 .selector-card h3 {
@@ -80,7 +80,7 @@
     border:1.5px solid #e5e7eb; background:white; color:#555;
 }
 .prof-tab.active, .prof-tab:hover {
-    background:linear-gradient(135deg,#f59e0b,#d97706);
+    background:linear-gradient(135deg,#c41e3a,#c41e3a);
     color:white; border-color:transparent;
 }
 .slots-grid {
@@ -88,29 +88,29 @@
     gap:0.5rem; max-height:300px; overflow-y:auto; padding-right:4px;
 }
 .slots-grid::-webkit-scrollbar { width:4px; }
-.slots-grid::-webkit-scrollbar-thumb { background:#fde68a; border-radius:4px; }
+.slots-grid::-webkit-scrollbar-thumb { background:#ffd6e8; border-radius:4px; }
 .slot-btn {
     border:1.5px solid #e5e7eb; border-radius:10px;
     padding:0.6rem 0.4rem; text-align:center;
     font-size:0.82rem; font-weight:600; color:#555;
     cursor:pointer; background:white; transition:all 0.2s;
 }
-.slot-btn:hover { border-color:#f59e0b; color:#d97706; background:#fff7ed; }
+.slot-btn:hover { border-color:#c41e3a; color:#c41e3a; background:#fff0f6; }
 .slot-btn.selected {
-    background:linear-gradient(135deg,#f59e0b,#d97706);
+    background:linear-gradient(135deg,#c41e3a,#c41e3a);
     color:white; border-color:transparent;
 }
 .slot-fecha { font-size:0.7rem; color:inherit; display:block; }
 .no-slots { text-align:center; padding:2rem; color:#aaa; font-size:0.9rem; }
 .seleccion-actual {
-    background:#fff7ed; border:1.5px solid #fde68a;
+    background:#fff0f6; border:1.5px solid #ffd6e8;
     border-radius:10px; padding:0.8rem 1rem;
-    font-size:0.88rem; color:#d97706; font-weight:600;
+    font-size:0.88rem; color:#c41e3a; font-weight:600;
     margin-top:1rem; display:none;
 }
 .btn-confirmar-reagendar {
     width:100%; margin-top:1.2rem;
-    background:linear-gradient(135deg,#f59e0b,#d97706);
+    background:linear-gradient(135deg,#c41e3a,#c41e3a);
     color:white; border:none; border-radius:12px;
     padding:0.9rem; font-size:1rem; font-weight:700;
     cursor:pointer; transition:all 0.25s;
@@ -137,7 +137,7 @@
     transition:transform 0.4s ease; z-index:9999;
 }
 #toastReagendar.show    { transform:translateX(-50%) translateY(0); }
-#toastReagendar.success { background:#10b981; }
+#toastReagendar.success { background:#c41e3a; }
 #toastReagendar.error   { background:#dc2626; }
 </style>
 {% endblock %}
@@ -148,7 +148,7 @@
         <i class="bi bi-arrow-left"></i> Volver a Mis Citas
     </a>
     <div class="reagendar-header">
-        <h1><i class="bi bi-calendar-plus" style="color:#f59e0b;"></i> Reagendar Cita</h1>
+        <h1><i class="bi bi-calendar-plus" style="color:#c41e3a;"></i> Reagendar Cita</h1>
         <p style="color:#888;font-size:0.9rem;margin-top:0.3rem;">
             Tu abono previo se aplica como crédito en la nueva cita.
         </p>
@@ -193,7 +193,7 @@
                 </div>
                 <div class="costo-row">
                     <span class="lbl">Crédito aplicado</span>
-                    <span class="val" style="color:#16a34a;">- ${{ '{:,.0f}'.format(abono_credito) }} COP</span>
+                    <span class="val" style="color:#c41e3a;">- ${{ '{:,.0f}'.format(abono_credito) }} COP</span>
                 </div>
                 <div class="costo-row total">
                     <span class="lbl"><strong>Saldo a pagar</strong></span>
@@ -248,7 +248,7 @@
 
             {% else %}
             <div class="no-slots">
-                <i class="bi bi-calendar-x" style="font-size:2.5rem;color:#e9d5ff;display:block;margin-bottom:0.8rem;"></i>
+                <i class="bi bi-calendar-x" style="font-size:2.5rem;color:#fff0f6;display:block;margin-bottom:0.8rem;"></i>
                 No hay horarios disponibles en los próximos 7 días.<br>
                 Comunícate por <a href="https://api.whatsapp.com/send?phone=573173824030" target="_blank" style="color:#25D366;font-weight:600;">WhatsApp</a>.
             </div>

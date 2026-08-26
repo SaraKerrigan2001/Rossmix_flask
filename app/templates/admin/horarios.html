@@ -16,8 +16,8 @@
 .rmx-modal-body{padding:1.6rem 1.8rem;overflow-y:auto;flex:1;}
 .rmx-modal-footer{padding:1rem 1.8rem 1.6rem;border-top:1.5px solid #f0f0f0;background:#fafafa;display:flex;gap:0.8rem;flex-shrink:0;}
 .rmx-toast{position:fixed;bottom:2rem;right:2rem;z-index:9999;padding:0.9rem 1.4rem;border-radius:14px;font-weight:600;font-size:0.9rem;display:flex;align-items:center;gap:0.6rem;box-shadow:0 8px 30px rgba(0,0,0,0.18);animation:toastIn 0.35s ease;pointer-events:none;}
-.rmx-toast.success{background:#ecfdf5;color:#166534;border:1.5px solid #86efac;}
-.rmx-toast.error{background:#fef2f2;color:#991b1b;border:1.5px solid #fca5a5;}
+.rmx-toast.success{background:#fff0f6;color:#9f1239;border:1.5px solid #ffb3d1;}
+.rmx-toast.error{background:#fef2f2;color:#991b1b;border:1.5px solid #ffb3d1;}
 @keyframes toastIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
 .emp-card {
     border-radius: 16px;
@@ -214,8 +214,8 @@
                 </div>
 
                 <div id="infoDia" style="display:none;margin-bottom:1rem;">
-                    <div style="background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:10px;
-                                padding:0.7rem 1rem;font-size:0.88rem;color:#1e40af;">
+                    <div style="background:#fff0f6;border:1.5px solid #ffb3d1;border-radius:10px;
+                                padding:0.7rem 1rem;font-size:0.88rem;color:#9f1239;">
                         <i class="bi bi-info-circle-fill"></i>
                         No se puede cambiar el día. Elimina y crea un nuevo horario si necesitas modificarlo.
                     </div>
@@ -232,8 +232,8 @@
                     </div>
                 </div>
 
-                <div style="background:#f0f9ff;border:1.5px solid #bae6fd;border-radius:10px;
-                            padding:0.8rem 1rem;margin-top:1rem;font-size:0.85rem;color:#0369a1;">
+                <div style="background:#f0f9ff;border:1.5px solid #ffd6e8;border-radius:10px;
+                            padding:0.8rem 1rem;margin-top:1rem;font-size:0.85rem;color:#c41e3a;">
                     <i class="bi bi-lightbulb-fill"></i>
                     <strong>Duración calculada:</strong>
                     <span id="durCalc" style="font-weight:700;">—</span>
@@ -268,7 +268,7 @@
             </button>
         </div>
         <div style="padding:1.4rem 1.6rem;">
-            <p style="color:#374151;margin-bottom:1.2rem;">¿Confirmas la eliminación de este horario?</p>
+            <p style="color:#333;margin-bottom:1.2rem;">¿Confirmas la eliminación de este horario?</p>
             <div style="display:flex;gap:0.8rem;">
                 <button onclick="cerrarModalElimHorario()" class="btn-secondary-r" style="flex:1;">Cancelar</button>
                 <button id="btnConfirmarHor" onclick="ejecutarEliminarHorario()"
