@@ -642,14 +642,27 @@
                 <!-- Perfil con dropdown -->
                 <li class="profile-dropdown-wrap">
                     <a href="#" class="profile-btn" id="profileBtn">
-                        <span class="avatar">{{ session.nombre[0]|upper }}</span>
+                        {% if session.get('foto_perfil') %}
+                            <img src="{{ url_for('static', filename=session.foto_perfil) }}"
+                                 alt="Foto"
+                                 style="width:28px;height:28px;border-radius:50%;object-fit:cover;flex-shrink:0;">
+                        {% else %}
+                            <span class="avatar">{{ session.nombre[0]|upper }}</span>
+                        {% endif %}
                         {{ session.nombre|title }}
                         <i class="bi bi-chevron-down icon-small"></i>
                     </a>
                     <div class="profile-menu" id="profileMenu">
                         <!-- Header con datos del usuario -->
                         <div class="profile-menu-header">
-                            <div class="pm-avatar">{{ session.nombre[0]|upper }}</div>
+                            <div class="pm-avatar">
+                                {% if session.get('foto_perfil') %}
+                                    <img src="{{ url_for('static', filename=session.foto_perfil) }}"
+                                         alt="Foto" style="width:48px;height:48px;border-radius:50%;object-fit:cover;">
+                                {% else %}
+                                    {{ session.nombre[0]|upper }}
+                                {% endif %}
+                            </div>
                             <div class="pm-name">{{ session.nombre|title }}</div>
                             <div class="pm-email">{{ session.get('email', '') }}</div>
                             <span class="pm-badge">

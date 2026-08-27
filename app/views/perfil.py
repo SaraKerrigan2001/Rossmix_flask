@@ -1,13 +1,23 @@
 """Panel de perfil editable para Admin, Cliente y Especialista."""
+import os
 import re
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session
+import uuid
+from flask import (Blueprint, render_template, request, redirect,
+                   url_for, flash, session, current_app)
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 from app.extensions import db
 from app.models import Usuario, Cita
 from app.utils.decorators import login_required
 from app.models.auditoria import registrar_auditoria
 
 perfil_bp = Blueprint('perfil', __name__, url_prefix='/perfil')
+
+ALLOWED = {'png', 'jpg', 'jpeg', 'webp'}
+
+
+def _extension_valida(filename: str) -> bool:
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED
 
 
 def _stats_para_rol(usuario):
@@ -166,5 +176,88 @@ def cambiar_password():
         db.session.commit()
 
         flash('¡Contraseña actualizada correctamente!', 'success')
+
+    return redirect(url_for('perfil.mi_perfil'))
+
+
+@perfil_bp.route('/foto', methods=['POST'])
+@login_required
+def subir_foto():
+    """Recibe y guarda la foto de perfil del usuario."""
+    usuario = db.session.get(Usuario, session['usuario_id'])
+    if not usuario:
+        return redirect(url_for('auth.login'))
+
+    archivo = request.files.get('foto')
+    if not archivo or archivo.filename == '':
+        flash('No seleccionaste ninguna imagen.', 'error')
+        return redirect(url_for('perfil.mi_perfil'))
+
+    if not _extension_valida(archivo.filename):
+        flash('Formato no válido. Usa PNG, JPG, JPEG o WEBP.', 'error')
+        return redirect(url_for('perfil.mi_perfil'))
+
+    # Nombre único para evitar colisiones
+    ext        = archivo.filename.rsplit('.', 1)[1].lower()
+    nombre_archivo = f'user_{usuario.id}_{uuid.uuid4().hex[:8]}.{ext}'
+
+    # Carpeta de destino (dentro de static para ser servida directamente)
+    carpeta = os.path.join(current_app.root_path, 'static', 'uploads', 'perfiles')
+    os.makedirs(carpeta, exist_ok=True)
+
+    # Eliminar foto anterior si existe
+    if usuario.foto_perfil:
+        ruta_antigua = os.path.join(current_app.root_path, 'static', usuario.foto_perfil)
+        if os.path.exists(ruta_antigua):
+            try:
+                os.remove(ruta_antigua)
+            except OSError:
+                pass
+
+    ruta_destino = os.path.join(carpeta, nombre_archivo)
+    archivo.save(ruta_destino)
+
+    # Guardar ruta relativa a static/ en la BD
+    usuario.foto_perfil = f'uploads/perfiles/{nombre_archivo}'
+    db.session.commit()
+
+    # Actualizar sesión
+    session['foto_perfil'] = usuario.foto_perfil
+
+    registrar_auditoria(
+        accion='subir_foto',
+        id_usuario=usuario.id,
+        id_actor=usuario.id,
+        nombre=usuario.nombre,
+        email=usuario.email,
+        tipo_usuario=usuario.tipo_usuario,
+        detalle='Usuario actualizó su foto de perfil',
+        ip_address=request.remote_addr,
+    )
+    db.session.commit()
+
+    flash('¡Foto de perfil actualizada!', 'success')
+    return redirect(url_for('perfil.mi_perfil'))
+
+
+@perfil_bp.route('/foto/eliminar', methods=['POST'])
+@login_required
+def eliminar_foto():
+    """Elimina la foto de perfil y vuelve al avatar con inicial."""
+    usuario = db.session.get(Usuario, session['usuario_id'])
+    if not usuario:
+        return redirect(url_for('auth.login'))
+
+    if usuario.foto_perfil:
+        ruta = os.path.join(current_app.root_path, 'static', usuario.foto_perfil)
+        if os.path.exists(ruta):
+            try:
+                os.remove(ruta)
+            except OSError:
+                pass
+        usuario.foto_perfil = None
+        db.session.commit()
+        session.pop('foto_perfil', None)
+        flash('Foto de perfil eliminada.', 'success')
 
     return redirect(url_for('perfil.mi_perfil'))

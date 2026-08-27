@@ -161,7 +161,35 @@
     <!-- ── SIDEBAR ──────────────────────────────────── -->
     <aside class="perfil-sidebar">
         <div class="perfil-sidebar-header">
-            <div class="perfil-avatar-grande">{{ usuario.nombre[0]|upper }}</div>
+            <!-- Foto de perfil -->
+            <div style="position:relative;display:inline-block;margin-bottom:0.8rem;">
+                {% if usuario.foto_perfil %}
+                    <img src="{{ url_for('static', filename=usuario.foto_perfil) }}"
+                         alt="Foto de {{ usuario.nombre }}"
+                         style="width:90px;height:90px;border-radius:50%;object-fit:cover;
+                                border:3px solid rgba(255,255,255,0.6);display:block;">
+                {% else %}
+                    <div class="perfil-avatar-grande">{{ usuario.nombre[0]|upper }}</div>
+                {% endif %}
+                <!-- Botón editar foto -->
+                <label for="inputFotoPerfil"
+                       style="position:absolute;bottom:0;right:0;width:28px;height:28px;
+                              background:#fff;border-radius:50%;display:flex;align-items:center;
+                              justify-content:center;cursor:pointer;
+                              box-shadow:0 2px 8px rgba(0,0,0,0.2);border:2px solid #c41e3a;"
+                       title="Cambiar foto">
+                    <i class="bi bi-camera-fill" style="color:#c41e3a;font-size:0.75rem;"></i>
+                </label>
+                <input type="file" id="inputFotoPerfil" name="foto"
+                       accept="image/png,image/jpeg,image/webp"
+                       style="display:none;"
+                       onchange="document.getElementById('formFoto').submit()">
+                <form id="formFoto" method="POST"
+                      action="{{ url_for('perfil.subir_foto') }}"
+                      enctype="multipart/form-data" style="display:none;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                </form>
+            </div>
             <div class="perfil-nombre-sidebar">{{ usuario.nombre }}</div>
             <div class="perfil-email-sidebar">{{ usuario.email }}</div>
             <span class="perfil-rol-badge">
@@ -169,6 +197,20 @@
                 {% elif usuario.tipo_usuario == 'especialista' %}Especialista
                 {% else %}Cliente{% endif %}
             </span>
+            {% if usuario.foto_perfil %}
+            <br>
+            <form method="POST" action="{{ url_for('perfil.eliminar_foto') }}"
+                  style="display:inline;margin-top:0.5rem;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit"
+                        style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.4);
+                               color:white;font-size:0.72rem;padding:0.2rem 0.7rem;border-radius:12px;
+                               cursor:pointer;margin-top:0.5rem;"
+                        onclick="return confirm('¿Eliminar foto de perfil?')">
+                    <i class="bi bi-trash3"></i> Quitar foto
+                </button>
+            </form>
+            {% endif %}
         </div>
         <div class="perfil-sidebar-links">
             <a href="{{ url_for('perfil.mi_perfil') }}" class="perfil-sidebar-link active">

@@ -25,6 +25,9 @@ class Usuario(db.Model):
     id_empleado = db.Column(db.Integer, db.ForeignKey('empleados.id_empleado', ondelete='SET NULL'), nullable=True)
     empleado_vinculado = db.relationship('Empleado', foreign_keys=[id_empleado], backref='usuario_cuenta', uselist=False)
 
+    # Foto de perfil (ruta relativa a static/uploads/perfiles/)
+    foto_perfil = db.Column(db.String(200), nullable=True)
+
     # Relaciones
     citas = db.relationship('Cita', backref='cliente', lazy=True, foreign_keys='Cita.id_cliente')
     notificaciones = db.relationship('Notificacion', backref='usuario', lazy=True)

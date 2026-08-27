@@ -64,7 +64,11 @@ class Config:
         seconds=int(os.environ.get('SESSION_LIFETIME_SECONDS', 8 * 60 * 60))
     )
 
-    # ── Seguridad de cookies ──────────────────────────────────────────────────
+    # ── Subida de archivos ────────────────────────────────────────────────────
+    UPLOAD_FOLDER      = os.path.join(os.path.dirname(os.path.dirname(__file__)),
+                                      'app', 'static', 'uploads', 'perfiles')
+    MAX_CONTENT_LENGTH = 3 * 1024 * 1024   # 3 MB máximo
+    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'}
     # Secure=True solo en producción (requiere HTTPS)
     SESSION_COOKIE_SECURE   = os.environ.get('FLASK_ENV') == 'production'
     SESSION_COOKIE_HTTPONLY = True    # JS no puede leer la cookie de sesión

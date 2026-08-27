@@ -77,7 +77,8 @@ def login():
             session['usuario_id']   = usuario.id
             session['nombre']       = usuario.nombre
             session['tipo_usuario'] = usuario.tipo_usuario
-            session['email']        = usuario.email   # usado en base.html dropdown
+            session['email']        = usuario.email
+            session['foto_perfil']  = usuario.foto_perfil or ''
 
             registrar_auditoria(
                 accion='login',
