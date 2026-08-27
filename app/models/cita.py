@@ -1,4 +1,4 @@
-﻿"""Modelo de Cita."""
+"""Modelo de Cita."""
 from datetime import datetime
 from app.extensions import db
 
@@ -24,8 +24,6 @@ class Cita(db.Model):
         ),
         nullable=False, default='pendiente_pago', index=True,
     )
-    fecha_hora_inicio = db.Column(db.DateTime, nullable=False, index=True)
-    fecha_hora_fin    = db.Column(db.DateTime, nullable=False)
     reembolsado = db.Column(db.Boolean, default=False)
     codigo_reserva = db.Column(db.String(20), unique=True)
     token_gestion = db.Column(db.String(32), unique=True)  # Token URL-safe para link de gestión/reprogramación

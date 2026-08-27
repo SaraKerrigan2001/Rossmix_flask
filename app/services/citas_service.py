@@ -1,5 +1,6 @@
-﻿"""Lógica de negocio para la gestión de citas."""
+"""Lógica de negocio para la gestión de citas."""
 import secrets
+import random
 from datetime import datetime, timedelta
 from decimal import Decimal
 from app.extensions import db
