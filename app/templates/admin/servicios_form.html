@@ -20,7 +20,7 @@
 
 <div class="r-card" style="max-width: 720px;">
     <div class="r-card-header">
-        <h2><i class="bi bi-scissors" style="color:#c41e3a;"></i>
+        <h2><i class="bi bi-scissors" style="color:#e45296;"></i>
             {{ 'Editar' if servicio else 'Nuevo' }} Servicio
         </h2>
     </div>
@@ -66,7 +66,7 @@
             {% if servicio %}
             <div class="mb-4">
                 <label style="display:flex; align-items:center; gap:0.7rem; cursor:pointer;">
-                    <input type="checkbox" name="activo" style="width:18px;height:18px;accent-color:#c41e3a;"
+                    <input type="checkbox" name="activo" style="width:18px;height:18px;accent-color:#e45296;"
                            {% if servicio.activo %}checked{% endif %}>
                     <span class="r-form-label" style="margin:0;">Servicio activo (visible para agendar)</span>
                 </label>

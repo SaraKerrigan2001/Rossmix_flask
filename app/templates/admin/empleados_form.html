@@ -20,7 +20,7 @@
 
 <div class="r-card" style="max-width: 720px;">
     <div class="r-card-header">
-        <h2><i class="bi bi-person-lines-fill" style="color:#c41e3a;"></i>
+        <h2><i class="bi bi-person-lines-fill" style="color:#e45296;"></i>
             {{ 'Editar' if empleado else 'Nuevo' }} Empleado
         </h2>
     </div>
@@ -54,7 +54,7 @@
                                       border-radius:8px; cursor:pointer; border:1.5px solid #f0f0f0;
                                       transition:all 0.15s;" class="svc-check-label">
                             <input type="checkbox" name="servicios" value="{{ servicio.id_servicio }}"
-                                   style="width:16px;height:16px;accent-color:#c41e3a;"
+                                   style="width:16px;height:16px;accent-color:#e45296;"
                                    {% if empleado and servicio.id_servicio in servicios_empleado %}checked{% endif %}>
                             <div>
                                 <div style="font-size:0.88rem; font-weight:600; color:#1a1a1a;">{{ servicio.nombre_servicio }}</div>
@@ -66,7 +66,7 @@
                 {% else %}
                     <div style="background:#fff8fc; border:1.5px solid #ffb3d1; border-radius:10px; padding:1.2rem; color:#888; font-size:0.9rem;">
                         No hay servicios disponibles.
-                        <a href="{{ url_for('admin_servicios_crear') }}" style="color:#c41e3a; font-weight:600;">Crear un servicio primero</a>
+                        <a href="{{ url_for('admin_servicios_crear') }}" style="color:#e45296; font-weight:600;">Crear un servicio primero</a>
                     </div>
                 {% endif %}
             </div>
@@ -74,7 +74,7 @@
             {% if empleado %}
             <div class="mb-4">
                 <label style="display:flex; align-items:center; gap:0.7rem; cursor:pointer;">
-                    <input type="checkbox" name="activo" style="width:18px;height:18px;accent-color:#c41e3a;"
+                    <input type="checkbox" name="activo" style="width:18px;height:18px;accent-color:#e45296;"
                            {% if empleado.activo %}checked{% endif %}>
                     <span class="r-form-label" style="margin:0;">Empleado activo</span>
                 </label>
@@ -95,7 +95,7 @@
 
 <style>
 .svc-check-label:hover { border-color:#ffb3d1; background:#fff8fc; }
-.svc-check-label:has(input:checked) { border-color:#c41e3a; background:#fff0f6; }
+.svc-check-label:has(input:checked) { border-color:#e45296; background:#fff0f6; }
 </style>
 
 <script>

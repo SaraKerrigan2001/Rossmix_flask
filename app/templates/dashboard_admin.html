@@ -51,12 +51,12 @@
 }
 .topbar-btn-primary {
     background: linear-gradient(135deg, #fff0f6, #ffd6e8);
-    color: #c41e3a; border: 1px solid #ffb3d1;
+    color: #e45296; border: 1px solid #ffb3d1;
 }
-.topbar-btn-primary:hover { opacity: 0.95; color: #c41e3a; transform: translateY(-2px); }
+.topbar-btn-primary:hover { opacity: 0.95; color: #e45296; transform: translateY(-2px); }
 .topbar-btn-outline {
     background: rgba(255, 255, 255, 0.65);
-    color: #c41e3a;
+    color: #e45296;
     border: 1px solid rgba(255, 255, 255, 0.8);
     backdrop-filter: blur(8px);
 }
@@ -89,8 +89,8 @@
 .stat-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(218, 165, 32, 0.15); }
 .stat-card.pink   { border-color: #ff1493; }
 .stat-card.purple { border-color: #ff1493; }
-.stat-card.gold   { border-color: #c41e3a; }
-.stat-card.green  { border-color: #c41e3a; }
+.stat-card.gold   { border-color: #e45296; }
+.stat-card.green  { border-color: #e45296; }
 
 .stat-icon {
     width: 54px; height: 54px; border-radius: 14px;
@@ -99,8 +99,8 @@
 }
 .stat-icon.pink   { background: #fff0f6; color: #ff1493; }
 .stat-icon.purple { background: #fff0f6; color: #ff1493; }
-.stat-icon.gold   { background: #fff0f6; color: #c41e3a; }
-.stat-icon.green  { background: #fff0f6; color: #c41e3a; }
+.stat-icon.gold   { background: #fff0f6; color: #e45296; }
+.stat-icon.green  { background: #fff0f6; color: #e45296; }
 
 .stat-info .stat-num {
     font-size: 1.9rem;
@@ -150,11 +150,11 @@
     display: flex; align-items: center; justify-content: center;
     font-size: 1.5rem; flex-shrink: 0;
 }
-.mi-pink   { background: linear-gradient(135deg, #ffe0ef, #ffc0d8); color: #c41e3a; }
-.mi-purple { background: linear-gradient(135deg, #fff0f6, #ffd6e8); color: #c41e3a; }
-.mi-teal   { background: linear-gradient(135deg, #fff0f6, #ffd6e8); color: #c41e3a; }
-.mi-gold   { background: linear-gradient(135deg, #fff0f6, #ffd6e8); color: #c41e3a; }
-.mi-blue   { background: linear-gradient(135deg, #fff0f6, #ffd6e8); color: #c41e3a; }
+.mi-pink   { background: linear-gradient(135deg, #ffe0ef, #ffc0d8); color: #e45296; }
+.mi-purple { background: linear-gradient(135deg, #fff0f6, #ffd6e8); color: #e45296; }
+.mi-teal   { background: linear-gradient(135deg, #fff0f6, #ffd6e8); color: #e45296; }
+.mi-gold   { background: linear-gradient(135deg, #fff0f6, #ffd6e8); color: #e45296; }
+.mi-blue   { background: linear-gradient(135deg, #fff0f6, #ffd6e8); color: #e45296; }
 .mi-gray   { background: linear-gradient(135deg, #f3f4f6, #e5e7eb); color: #6b7280; }
 
 .module-body h3 {
@@ -192,13 +192,13 @@
     text-decoration: none; font-size: 0.9rem; font-weight: 600;
     transition: all 0.2s;
 }
-.ql-pink   { background: #fff0f6; color: #c41e3a; }
-.ql-purple { background: #fff0f6; color: #c41e3a; }
-.ql-teal   { background: #fff0f6; color: #c41e3a; }
-.ql-gold   { background: #fff0f6; color: #c41e3a; }
-.ql-blue   { background: #fff0f6; color: #c41e3a; }
+.ql-pink   { background: #fff0f6; color: #e45296; }
+.ql-purple { background: #fff0f6; color: #e45296; }
+.ql-teal   { background: #fff0f6; color: #e45296; }
+.ql-gold   { background: #fff0f6; color: #e45296; }
+.ql-blue   { background: #fff0f6; color: #e45296; }
 .quick-link:hover { filter: brightness(0.93); transform: translateY(-2px); }
-.text-growth-up   { color: #c41e3a; }
+.text-growth-up   { color: #e45296; }
 .text-growth-down { color: #9f1239; }
 </style>
 {% endblock %}
@@ -210,7 +210,7 @@
     <div class="admin-topbar">
         <div class="admin-topbar-left">
             <h1>Panel de Administración</h1>
-            <p style="color: #c41e3a;">Bienvenido, <strong style="color: #c41e3a;">{{ session.nombre }}</strong> — Rossmix Beauty Salon</p>
+            <p style="color: #e45296;">Bienvenido, <strong style="color: #e45296;">{{ session.nombre }}</strong> — Rossmix Beauty Salon</p>
         </div>
         <div class="admin-topbar-right">
             <button onclick="abrirModalEmpleado()" class="topbar-btn topbar-btn-primary">
@@ -262,17 +262,17 @@
 
     <!-- TOP ESPECIALISTAS -->
     <div class="quick-section" style="margin-bottom: 2.5rem;">
-        <h2><i class="bi bi-star-fill" style="color:#c41e3a;"></i> Top Especialistas del Mes</h2>
+        <h2><i class="bi bi-star-fill" style="color:#e45296;"></i> Top Especialistas del Mes</h2>
         <div style="display:flex; gap:1.5rem; overflow-x:auto; padding-bottom:0.5rem;">
             {% for esp in stats.top_especialistas %}
             <div style="min-width: 280px; flex:1; background:linear-gradient(135deg, #fff0f6, #ffe5f3); border-radius:14px; padding:1.2rem; border:1px solid #ffd6e8; display:flex; align-items:center; gap:1rem;">
-                <div style="width:48px; height:48px; border-radius:50%; background:#c41e3a; color:white; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:1.2rem;">
+                <div style="width:48px; height:48px; border-radius:50%; background:#e45296; color:white; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:1.2rem;">
                     {{ loop.index }}
                 </div>
                 <div>
                     <h3 style="margin:0 0 0.2rem; font-size:1.1rem; color:#1a1a1a;">{{ esp.nombre }}</h3>
                     <div style="font-size:0.85rem; color:#666;">
-                        <strong>{{ esp.total_citas }}</strong> citas • <strong style="color:#c41e3a;">${{ "{:,.0f}".format(esp.ingresos_generados) }}</strong>
+                        <strong>{{ esp.total_citas }}</strong> citas • <strong style="color:#e45296;">${{ "{:,.0f}".format(esp.ingresos_generados) }}</strong>
                     </div>
                 </div>
             </div>
@@ -340,7 +340,7 @@
         </a>
 
         <a href="{{ url_for('admin_pagos') }}" class="module-card">
-            <div class="module-icon-wrap mi-teal" style="background:linear-gradient(135deg,#fff0f6,#ffd6e8);color:#c41e3a;">
+            <div class="module-icon-wrap mi-teal" style="background:linear-gradient(135deg,#fff0f6,#ffd6e8);color:#e45296;">
                 <i class="bi bi-credit-card"></i>
             </div>
             <div class="module-body">
@@ -351,28 +351,28 @@
         </a>
 
         <a href="{{ url_for('admin_pagos_confirmar') }}" class="module-card" style="border-color:#ffb3d1;">
-            <div class="module-icon-wrap mi-gold" style="background:linear-gradient(135deg,#fff0f6,#ffd6e8);color:#c41e3a;">
+            <div class="module-icon-wrap mi-gold" style="background:linear-gradient(135deg,#fff0f6,#ffd6e8);color:#e45296;">
                 <i class="bi bi-clock-history"></i>
             </div>
             <div class="module-body">
                 <h3>Pagos por Confirmar
                     {% if stats.pagos_pendientes > 0 %}
-                    <span style="background:#c41e3a;color:white;border-radius:12px;padding:0.1rem 0.55rem;font-size:0.78rem;font-weight:700;margin-left:0.4rem;">{{ stats.pagos_pendientes }}</span>
+                    <span style="background:#e45296;color:white;border-radius:12px;padding:0.1rem 0.55rem;font-size:0.78rem;font-weight:700;margin-left:0.4rem;">{{ stats.pagos_pendientes }}</span>
                     {% endif %}
                 </h3>
                 <p>Verifica abonos recibidos y confirma citas de clientes</p>
-                <span class="module-tag" style="background:#fff0f6;color:#c41e3a;border-color:#ffb3d1;">Requiere revisión</span>
+                <span class="module-tag" style="background:#fff0f6;color:#e45296;border-color:#ffb3d1;">Requiere revisión</span>
             </div>
         </a>
 
         <a href="{{ url_for('admin_agenda_diaria') }}" class="module-card" style="border-color:#ffb3d1;">
-            <div class="module-icon-wrap mi-blue" style="background:linear-gradient(135deg,#fff0f6,#ffd6e8);color:#c41e3a;">
+            <div class="module-icon-wrap mi-blue" style="background:linear-gradient(135deg,#fff0f6,#ffd6e8);color:#e45296;">
                 <i class="bi bi-calendar-week"></i>
             </div>
             <div class="module-body">
                 <h3>Agenda Diaria</h3>
                 <p>Vista operativa del día — marcar en atención y liquidar citas</p>
-                <span class="module-tag" style="background:#fff0f6;color:#c41e3a;border-color:#ffb3d1;">Operaciones del día</span>
+                <span class="module-tag" style="background:#fff0f6;color:#e45296;border-color:#ffb3d1;">Operaciones del día</span>
             </div>
         </a>
     </div>
@@ -399,10 +399,10 @@
             <a href="{{ url_for('admin_pagos') }}" class="quick-link ql-teal">
                 <i class="bi bi-cash-stack"></i> Ver Pagos
             </a>
-            <a href="{{ url_for('admin_pagos_confirmar') }}" class="quick-link" style="background:#fff0f6;color:#c41e3a;">
+            <a href="{{ url_for('admin_pagos_confirmar') }}" class="quick-link" style="background:#fff0f6;color:#e45296;">
                 <i class="bi bi-clock-history"></i> Pagos por Confirmar
             </a>
-            <a href="{{ url_for('admin_agenda_diaria') }}" class="quick-link" style="background:#fff0f6;color:#c41e3a;">
+            <a href="{{ url_for('admin_agenda_diaria') }}" class="quick-link" style="background:#fff0f6;color:#e45296;">
                 <i class="bi bi-calendar-week"></i> Agenda Diaria
             </a>
         </div>
@@ -421,7 +421,7 @@
                 box-shadow:0 32px 80px rgba(0,0,0,0.28);overflow:hidden;
                 animation:rmxPopIn 0.35s cubic-bezier(0.34,1.56,0.64,1);">
         <!-- Header -->
-        <div style="background:#c41e3a;
+        <div style="background:#e45296;
                     padding:1.4rem 1.8rem;display:flex;align-items:center;
                     justify-content:space-between;flex-shrink:0;">
             <div style="display:flex;align-items:center;gap:1rem;">
@@ -464,7 +464,7 @@
                                style="width:100%;padding:0.75rem 1rem;border:1.5px solid #e5e7eb;
                                       border-radius:12px;font-size:0.9rem;box-sizing:border-box;
                                       transition:border-color 0.2s;"
-                               onfocus="this.style.borderColor='#c41e3a'"
+                               onfocus="this.style.borderColor='#e45296'"
                                onblur="this.style.borderColor='#e5e7eb'">
                     </div>
                     <div>
@@ -478,7 +478,7 @@
                                style="width:100%;padding:0.75rem 1rem;border:1.5px solid #e5e7eb;
                                       border-radius:12px;font-size:0.9rem;box-sizing:border-box;
                                       transition:border-color 0.2s;"
-                               onfocus="this.style.borderColor='#c41e3a'"
+                               onfocus="this.style.borderColor='#e45296'"
                                onblur="this.style.borderColor='#e5e7eb'">
                     </div>
                 </div>
@@ -510,7 +510,7 @@
                 Cancelar
             </button>
             <button onclick="guardarEmpleado()" id="btnGuardarEmpleado"
-                    style="flex:2;background:#c41e3a;
+                    style="flex:2;background:#e45296;
                            color:white;border:none;padding:0.75rem;border-radius:12px;
                            font-weight:700;font-size:0.9rem;cursor:pointer;
                            box-shadow:0 6px 20px rgba(196,30,58,0.3);
@@ -532,7 +532,7 @@
                 box-shadow:0 32px 80px rgba(0,0,0,0.28);overflow:hidden;
                 animation:rmxPopIn 0.35s cubic-bezier(0.34,1.56,0.64,1);">
         <!-- Header -->
-        <div style="background:#c41e3a;
+        <div style="background:#e45296;
                     padding:1.4rem 1.8rem;display:flex;align-items:center;
                     justify-content:space-between;flex-shrink:0;">
             <div style="display:flex;align-items:center;gap:1rem;">
@@ -574,7 +574,7 @@
                            style="width:100%;padding:0.75rem 1rem;border:1.5px solid #e5e7eb;
                                   border-radius:12px;font-size:0.9rem;box-sizing:border-box;
                                   transition:border-color 0.2s;"
-                           onfocus="this.style.borderColor='#c41e3a'"
+                           onfocus="this.style.borderColor='#e45296'"
                            onblur="this.style.borderColor='#e5e7eb'">
                 </div>
                 <div style="margin-bottom:1.2rem;">
@@ -589,7 +589,7 @@
                                      border-radius:12px;font-size:0.9rem;resize:vertical;
                                      box-sizing:border-box;font-family:'Inter',sans-serif;
                                      transition:border-color 0.2s;"
-                              onfocus="this.style.borderColor='#c41e3a'"
+                              onfocus="this.style.borderColor='#e45296'"
                               onblur="this.style.borderColor='#e5e7eb'"></textarea>
                 </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
@@ -600,13 +600,13 @@
                             Precio *
                         </label>
                         <div style="display:flex;align-items:center;gap:0.5rem;">
-                            <span style="font-weight:700;color:#c41e3a;font-size:1.1rem;">$</span>
+                            <span style="font-weight:700;color:#e45296;font-size:1.1rem;">$</span>
                             <input type="number" name="precio_total" min="0" step="1000"
                                    required placeholder="50000"
                                    style="flex:1;padding:0.75rem 1rem;border:1.5px solid #e5e7eb;
                                           border-radius:12px;font-size:0.9rem;
                                           transition:border-color 0.2s;"
-                                   onfocus="this.style.borderColor='#c41e3a'"
+                                   onfocus="this.style.borderColor='#e45296'"
                                    onblur="this.style.borderColor='#e5e7eb'">
                         </div>
                         <p style="font-size:0.75rem;color:#9ca3af;margin:0.3rem 0 0;">
@@ -625,7 +625,7 @@
                                    style="flex:1;padding:0.75rem 1rem;border:1.5px solid #e5e7eb;
                                           border-radius:12px;font-size:0.9rem;
                                           transition:border-color 0.2s;"
-                                   onfocus="this.style.borderColor='#c41e3a'"
+                                   onfocus="this.style.borderColor='#e45296'"
                                    onblur="this.style.borderColor='#e5e7eb'">
                             <span style="font-weight:700;color:#888;white-space:nowrap;">min</span>
                         </div>
@@ -648,7 +648,7 @@
                 Cancelar
             </button>
             <button onclick="guardarServicio()" id="btnGuardarServicio"
-                    style="flex:2;background:#c41e3a;
+                    style="flex:2;background:#e45296;
                            color:white;border:none;padding:0.75rem;border-radius:12px;
                            font-weight:700;font-size:0.9rem;cursor:pointer;
                            box-shadow:0 6px 20px rgba(196,30,58,0.3);
@@ -686,17 +686,17 @@ async function abrirModalEmpleado() {
     if (serviciosDisponibles.length === 0) {
         grid.innerHTML = `<div style="color:#888;font-size:0.88rem;padding:0.5rem;grid-column:1/-1;">
             No hay servicios disponibles.
-            <a href="/admin/servicios/crear" style="color:#c41e3a;font-weight:600;">Crear primero</a>
+            <a href="/admin/servicios/crear" style="color:#e45296;font-weight:600;">Crear primero</a>
         </div>`;
     } else {
         grid.innerHTML = serviciosDisponibles.map(s => `
             <label style="display:flex;align-items:center;gap:0.6rem;padding:0.55rem 0.7rem;
                           border-radius:10px;cursor:pointer;border:1.5px solid #f0f0f0;
                           transition:all 0.15s;font-size:0.85rem;"
-                   onmouseover="this.style.borderColor='#c41e3a';this.style.background='#fff0f6';"
+                   onmouseover="this.style.borderColor='#e45296';this.style.background='#fff0f6';"
                    onmouseout="this.style.borderColor='#f0f0f0';this.style.background='';">
                 <input type="checkbox" name="servicios" value="${s.id}"
-                       style="width:15px;height:15px;accent-color:#c41e3a;">
+                       style="width:15px;height:15px;accent-color:#e45296;">
                 <div>
                     <div style="font-weight:600;color:#1a1a1a;">${s.nombre}</div>
                     <div style="font-size:0.72rem;color:#9ca3af;">
@@ -734,7 +734,7 @@ async function guardarEmpleado() {
         const data = await res.json();
         if (data.success) {
             cerrarModalEmpleado();
-            mostrarToastDash(`✅ ${data.message}`, '#c41e3a');
+            mostrarToastDash(`✅ ${data.message}`, '#e45296');
             setTimeout(() => location.reload(), 1500);
         } else {
             errDiv.textContent     = data.message;
@@ -780,7 +780,7 @@ async function guardarServicio() {
         if (data.success) {
             cerrarModalServicio();
             serviciosDisponibles = []; // limpiar caché
-            mostrarToastDash(`✅ ${data.message}`, '#c41e3a');
+            mostrarToastDash(`✅ ${data.message}`, '#e45296');
             setTimeout(() => location.reload(), 1500);
         } else {
             errDiv.textContent   = data.message;

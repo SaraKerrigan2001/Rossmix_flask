@@ -207,7 +207,7 @@
 
 .text-nowrap        { white-space: nowrap; }
 .overflow-x-auto    { overflow-x: auto; }
-.icon-accent        { color: #c41e3a; }
+.icon-accent        { color: #e45296; }
 .small-muted        { color: #6b7280; }
 
 .cell-muted {
@@ -256,7 +256,7 @@
 
 .pill-count {
     background: #fff0f6;
-    color: #c41e3a;
+    color: #e45296;
     padding: 0.2rem 0.7rem;
     border-radius: 20px;
     font-size: 0.8rem;
@@ -288,7 +288,7 @@
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    color: #C41E3A;
+    color: #E45296;
     font-size: 0.9rem;
     flex-shrink: 0;
 }
@@ -324,13 +324,13 @@
 }
 
 .btn-filter:hover {
-    color: #C41E3A;
+    color: #E45296;
     background: rgba(255, 255, 255, 0.7);
 }
 
 .btn-filter.active {
     background: #ffffff;
-    color: #C41E3A;
+    color: #E45296;
     font-weight: 600;
     box-shadow: 0 1px 6px rgba(196, 30, 58, 0.12);
 }
@@ -374,10 +374,10 @@
 .history-action:hover   { background: #ffe5f3; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(255,20,147,0.22); }
 
 /* Eliminar — rojo pastel */
-.delete-action          { background: #fff0f6; color: #c41e3a; }
+.delete-action          { background: #fff0f6; color: #e45296; }
 .delete-action:hover    { background: #ffd6e8; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(196,30,58,0.2); }
 
-.btn-danger-gradient { background: linear-gradient(135deg, #dc2626, #c41e3a); }
+.btn-danger-gradient { background: linear-gradient(135deg, #dc2626, #e45296); }
 
 
 /* =============================================================================

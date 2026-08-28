@@ -17,7 +17,7 @@
     box-shadow:0 4px 16px rgba(0,0,0,0.06);
 }
 .cita-actual h3 {
-    font-size:1rem; font-weight:700; color:#c41e3a;
+    font-size:1rem; font-weight:700; color:#e45296;
     margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem;
 }
 .det-row {
@@ -53,7 +53,7 @@
     border:1.5px solid #e5e7eb; background:white; color:#555;
 }
 .prof-tab.active, .prof-tab:hover {
-    background:#c41e3a;
+    background:#e45296;
     color:white; border-color:transparent;
 }
 .prof-tab.actual-badge::after {
@@ -73,9 +73,9 @@
     font-size:0.82rem; font-weight:600; color:#555;
     cursor:pointer; background:white; transition:all 0.2s;
 }
-.slot-btn:hover { border-color:#c41e3a; color:#c41e3a; background:#fff0f6; }
+.slot-btn:hover { border-color:#e45296; color:#e45296; background:#fff0f6; }
 .slot-btn.selected {
-    background:#c41e3a;
+    background:#e45296;
     color:white; border-color:transparent;
 }
 .slot-fecha { font-size:0.7rem; color:inherit; display:block; }
@@ -86,7 +86,7 @@
 /* Botón confirmar */
 .btn-confirmar-repro {
     width:100%; margin-top:1.2rem;
-    background:#c41e3a;
+    background:#e45296;
     color:white; border:none; border-radius:12px;
     padding:0.9rem; font-size:1rem; font-weight:700;
     cursor:pointer; transition:all 0.25s;
@@ -100,13 +100,13 @@
     color:#888; text-decoration:none; font-size:0.9rem;
     margin-bottom:1rem; transition:color 0.2s;
 }
-.btn-volver:hover { color:#c41e3a; }
+.btn-volver:hover { color:#e45296; }
 
 /* Selección actual */
 .seleccion-actual {
     background:#fff0f6; border:1.5px solid #ffd6e8;
     border-radius:10px; padding:0.8rem 1rem;
-    font-size:0.88rem; color:#c41e3a; font-weight:600;
+    font-size:0.88rem; color:#e45296; font-weight:600;
     margin-top:1rem; display:none;
 }
 
@@ -120,7 +120,7 @@
     transition:transform 0.4s ease; z-index:9999;
 }
 #toastRepro.show { transform:translateX(-50%) translateY(0); }
-#toastRepro.success { background:#c41e3a; }
+#toastRepro.success { background:#e45296; }
 #toastRepro.error   { background:#dc2626; }
 </style>
 {% endblock %}
@@ -131,7 +131,7 @@
         <i class="bi bi-arrow-left"></i> Volver a Gestionar Cita
     </a>
     <div class="repro-header">
-        <h1><i class="bi bi-calendar-event" style="color:#c41e3a;"></i> Reprogramar Cita</h1>
+        <h1><i class="bi bi-calendar-event" style="color:#e45296;"></i> Reprogramar Cita</h1>
         <p>Elige la nueva fecha, hora y especialista. Tu abono queda conservado.</p>
     </div>
 
@@ -145,7 +145,7 @@
             </div>
             <div class="det-row">
                 <span class="lbl">Fecha y hora actual</span>
-                <span class="val" style="color:#c41e3a;">
+                <span class="val" style="color:#e45296;">
                     {{ cita.fecha_hora_inicio.strftime('%d/%m/%Y a las %H:%M') }}
                 </span>
             </div>

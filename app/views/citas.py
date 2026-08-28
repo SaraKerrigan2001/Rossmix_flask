@@ -501,7 +501,7 @@ def descargar_cita_pdf(id_cita):
         story  = []
 
         title_style = ParagraphStyle('title', parent=styles['Title'],
-                                     fontSize=22, textColor=colors.HexColor('#c41e3a'),
+                                     fontSize=22, textColor=colors.HexColor('#e45296'),
                                      spaceAfter=6)
         story.append(Paragraph('Rossmix — Salón de Belleza', title_style))
         story.append(Paragraph('Comprobante de Cita', styles['Heading2']))
@@ -522,7 +522,7 @@ def descargar_cita_pdf(id_cita):
         ]
         t = Table(data, colWidths=[5*cm, 12*cm])
         t.setStyle(TableStyle([
-            ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#c41e3a')),
+            ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#e45296')),
             ('TEXTCOLOR',  (0,0), (-1,0), colors.white),
             ('FONTNAME',   (0,0), (-1,0), 'Helvetica-Bold'),
             ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, colors.HexColor('#fff0f6')]),

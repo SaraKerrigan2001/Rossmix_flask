@@ -10,9 +10,9 @@
 .btn-estado{border:none;padding:0.4rem 0.9rem;border-radius:8px;font-weight:700;font-size:0.78rem;
             cursor:pointer;transition:all 0.2s;display:inline-flex;align-items:center;gap:0.3rem;white-space:nowrap;}
 .btn-iniciar{background:linear-gradient(135deg,#ffd6e8,#ffb3d1);color:#9f1239;}
-.btn-iniciar:hover{background:linear-gradient(135deg,#c41e3a,#9f1239);color:white;transform:scale(1.05);}
+.btn-iniciar:hover{background:linear-gradient(135deg,#e45296,#9f1239);color:white;transform:scale(1.05);}
 .btn-completar{background:linear-gradient(135deg,#fff0f6,#ffd6e8);color:#9f1239;}
-.btn-completar:hover{background:linear-gradient(135deg,#ff1493,#c41e3a);color:white;transform:scale(1.05);}
+.btn-completar:hover{background:linear-gradient(135deg,#ff1493,#e45296);color:white;transform:scale(1.05);}
 .btn-estado:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
 </style>
 {% endblock %}
@@ -35,7 +35,7 @@
 <!-- Próximas -->
 <div class="r-card" style="margin-bottom:1.5rem;">
     <div class="r-card-header">
-        <h2><i class="bi bi-calendar-check" style="color:#c41e3a;"></i> Próximas ({{ proximas|length }})</h2>
+        <h2><i class="bi bi-calendar-check" style="color:#e45296;"></i> Próximas ({{ proximas|length }})</h2>
     </div>
     {% if proximas %}
     <div style="overflow-x:auto;">
@@ -56,13 +56,13 @@
                 <tr id="fila-{{ cita.id_cita }}">
                     <td><strong>{{ cita.fecha_hora_inicio.strftime('%d/%m/%Y') }}</strong></td>
                     <td>
-                        <span style="background:#fff0f6;color:#c41e3a;padding:0.25rem 0.7rem;border-radius:20px;font-weight:700;font-size:0.85rem;">
+                        <span style="background:#fff0f6;color:#e45296;padding:0.25rem 0.7rem;border-radius:20px;font-weight:700;font-size:0.85rem;">
                             {{ cita.fecha_hora_inicio.strftime('%H:%M') }}
                         </span>
                     </td>
                     <td>
                         <div style="display:flex;align-items:center;gap:0.5rem;">
-                            <div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#fff0f6,#ffd6e8);color:#c41e3a;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.82rem;flex-shrink:0;">
+                            <div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#fff0f6,#ffd6e8);color:#e45296;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.82rem;flex-shrink:0;">
                                 {{ cliente.nombre[0].upper() }}
                             </div>
                             {{ cliente.nombre }}
@@ -102,7 +102,7 @@
     {% else %}
     <div style="text-align:center;padding:2.5rem;color:#9ca3af;">
         <i class="bi bi-calendar-x" style="font-size:2rem;display:block;margin-bottom:0.5rem;"></i>
-        No tienes citas próximas. <a href="{{ url_for('especialista_citas_disponibles') }}" style="color:#c41e3a;font-weight:600;">Ver disponibles</a>
+        No tienes citas próximas. <a href="{{ url_for('especialista_citas_disponibles') }}" style="color:#e45296;font-weight:600;">Ver disponibles</a>
     </div>
     {% endif %}
 </div>
@@ -194,7 +194,7 @@ async function cambiarEstado(idCita, nuevoEstado, btn) {
                     badge.classList.add('be-completada');
                     badge.textContent = 'Completada';
                     if (accion) {
-                        accion.innerHTML = '<span style="font-size:0.8rem;color:#c41e3a;font-weight:600;"><i class="bi bi-check-all"></i> Finalizada</span>';
+                        accion.innerHTML = '<span style="font-size:0.8rem;color:#e45296;font-weight:600;"><i class="bi bi-check-all"></i> Finalizada</span>';
                     }
                 }
             }

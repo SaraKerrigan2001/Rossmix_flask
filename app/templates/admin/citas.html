@@ -54,7 +54,7 @@
 <div class="r-card">
     <div class="r-card-header d-flex justify-content-between align-items-center">
         <div>
-            <h2><i class="bi bi-calendar3" style="color:#c41e3a;"></i>
+            <h2><i class="bi bi-calendar3" style="color:#e45296;"></i>
                 {% if cliente_filtrado %}
                     Citas de {{ cliente_filtrado.nombre }}
                 {% else %}
@@ -64,7 +64,7 @@
             <span style="font-size:0.85rem; color:#888;">{{ citas|length }} resultado(s)</span>
         </div>
         <div class="dropdown">
-            <button class="btn-rossmix dropdown-toggle" type="button" id="exportCitasDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="background:#c41e3a;">
+            <button class="btn-rossmix dropdown-toggle" type="button" id="exportCitasDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="background:#e45296;">
                 <i class="bi bi-file-earmark-excel"></i> Exportar a Excel
             </button>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="exportCitasDropdown">
@@ -105,7 +105,7 @@
                             {% if cita.estado in ['pendiente_pago','confirmada','cancelada','no_asistio'] %}
                             <br>
                             <button onclick="abrirReasignar({{ cita.id_cita }})"
-                                    style="margin-top:0.3rem;background:#fff0f6;color:#c41e3a;
+                                    style="margin-top:0.3rem;background:#fff0f6;color:#e45296;
                                            border:1.5px solid #ffb3d1;border-radius:8px;
                                            padding:0.25rem 0.7rem;font-size:0.78rem;font-weight:700;
                                            cursor:pointer;white-space:nowrap;">
@@ -116,7 +116,7 @@
                     </td>
                     <td>{{ cita.fecha_hora_inicio.strftime('%d/%m/%Y') }}</td>
                     <td>{{ cita.fecha_hora_inicio.strftime('%H:%M') }} – {{ cita.fecha_hora_fin.strftime('%H:%M') }}</td>
-                    <td><strong style="color:#c41e3a;">${{ "{:,.0f}".format(cita.monto_total) }}</strong></td>
+                    <td><strong style="color:#e45296;">${{ "{:,.0f}".format(cita.monto_total) }}</strong></td>
                     <td>
                         <select class="estado-select r-form-control"
                                 data-cita-id="{{ cita.id_cita }}"
@@ -137,7 +137,7 @@
                             </span>
                         {% else %}
                             <a href="{{ url_for('admin_pagos_registrar', id_cita=cita.id_cita) }}"
-                               style="background:#fff0f6;color:#c41e3a;padding:0.35rem 0.8rem;
+                               style="background:#fff0f6;color:#e45296;padding:0.35rem 0.8rem;
                                       border-radius:8px;font-size:0.8rem;font-weight:600;
                                       text-decoration:none;white-space:nowrap;">
                                 <i class="bi bi-plus-circle"></i> Registrar
@@ -307,7 +307,7 @@ function seleccionarEmpleado(id, nombre, el) {
         c.style.borderColor  = '#e5e7eb';
         c.style.background   = 'white';
     });
-    el.style.borderColor = '#c41e3a';
+    el.style.borderColor = '#e45296';
     el.style.background  = '#fff0f6';
     empleadoReasignarId  = id;
     document.getElementById('btnReasignarConfirmar').disabled = false;
@@ -340,7 +340,7 @@ async function confirmarReasignar() {
 
         cerrarReasignar();
         if (data.success) {
-            mostrarToastCitas(`✅ ${data.message}`, '#c41e3a');
+            mostrarToastCitas(`✅ ${data.message}`, '#e45296');
             setTimeout(() => location.reload(), 1800);
         } else {
             mostrarToastCitas('❌ ' + data.message, '#dc2626');

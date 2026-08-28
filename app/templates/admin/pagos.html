@@ -28,7 +28,7 @@
 <!-- Resumen rápido -->
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.2rem;margin-bottom:2rem;">
     <div class="r-card" style="padding:1.4rem;display:flex;align-items:center;gap:1rem;">
-        <div style="background:#fff0f6;color:#c41e3a;width:46px;height:46px;border-radius:12px;
+        <div style="background:#fff0f6;color:#e45296;width:46px;height:46px;border-radius:12px;
                     display:flex;align-items:center;justify-content:center;font-size:1.3rem;">
             <i class="bi bi-cash-stack"></i>
         </div>
@@ -38,7 +38,7 @@
         </div>
     </div>
     <div class="r-card" style="padding:1.4rem;display:flex;align-items:center;gap:1rem;">
-        <div style="background:#fff0f6;color:#c41e3a;width:46px;height:46px;border-radius:12px;
+        <div style="background:#fff0f6;color:#e45296;width:46px;height:46px;border-radius:12px;
                     display:flex;align-items:center;justify-content:center;font-size:1.3rem;">
             <i class="bi bi-currency-dollar"></i>
         </div>
@@ -51,13 +51,13 @@
             <div style="font-size:0.82rem;color:#888;">Total Recaudado</div>
         </div>
     </div>
-    <div class="r-card" style="padding:1.4rem;display:flex;align-items:center;gap:1rem;border-left:4px solid #c41e3a;">
-        <div style="background:#fff0f6;color:#c41e3a;width:46px;height:46px;border-radius:12px;
+    <div class="r-card" style="padding:1.4rem;display:flex;align-items:center;gap:1rem;border-left:4px solid #e45296;">
+        <div style="background:#fff0f6;color:#e45296;width:46px;height:46px;border-radius:12px;
                     display:flex;align-items:center;justify-content:center;font-size:1.3rem;">
             <i class="bi bi-hourglass-split"></i>
         </div>
         <div>
-            <div style="font-size:1rem;font-weight:700;color:#c41e3a;">Registrar pago</div>
+            <div style="font-size:1rem;font-weight:700;color:#e45296;">Registrar pago</div>
             <div style="font-size:0.82rem;color:#888;">Desde la sección Citas</div>
         </div>
     </div>
@@ -67,12 +67,12 @@
 <div class="r-card">
     <div class="r-card-header d-flex justify-content-between align-items-center">
         <div>
-            <h2><i class="bi bi-credit-card" style="color:#c41e3a;"></i> Pagos Registrados</h2>
+            <h2><i class="bi bi-credit-card" style="color:#e45296;"></i> Pagos Registrados</h2>
             <span style="font-size:0.85rem;color:#888;">{{ pagos|length }} pago(s)</span>
         </div>
         <div class="dropdown">
             <button class="btn-rossmix dropdown-toggle" type="button" id="exportPagosDropdown"
-                    data-bs-toggle="dropdown" aria-expanded="false" style="background:#c41e3a;">
+                    data-bs-toggle="dropdown" aria-expanded="false" style="background:#e45296;">
                 <i class="bi bi-file-earmark-excel"></i> Exportar
             </button>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="exportPagosDropdown">
@@ -105,7 +105,7 @@
                         <div style="display:flex;align-items:center;gap:0.5rem;">
                             <div style="width:30px;height:30px;border-radius:50%;
                                         background:linear-gradient(135deg,#fff0f6,#ffd6e8);
-                                        color:#c41e3a;display:flex;align-items:center;
+                                        color:#e45296;display:flex;align-items:center;
                                         justify-content:center;font-weight:800;font-size:0.8rem;flex-shrink:0;">
                                 {{ usuario.nombre[0].upper() }}
                             </div>
@@ -113,9 +113,9 @@
                         </div>
                     </td>
                     <td style="color:#6b7280;">{{ servicio.nombre_servicio }}</td>
-                    <td><strong style="color:#c41e3a;">${{ "{:,.0f}".format(pago.monto) }}</strong></td>
+                    <td><strong style="color:#e45296;">${{ "{:,.0f}".format(pago.monto) }}</strong></td>
                     <td>
-                        <span style="background:#f0f9ff;color:#c41e3a;padding:0.25rem 0.7rem;
+                        <span style="background:#f0f9ff;color:#e45296;padding:0.25rem 0.7rem;
                                      border-radius:20px;font-size:0.78rem;font-weight:600;text-transform:capitalize;">
                             {% if pago.metodo_pago == 'efectivo' %}<i class="bi bi-cash"></i>
                             {% elif pago.metodo_pago == 'tarjeta' %}<i class="bi bi-credit-card"></i>
@@ -157,7 +157,7 @@
     <div class="r-card-body" style="text-align:center;padding:3rem;color:#9ca3af;">
         <i class="bi bi-credit-card" style="font-size:2.5rem;display:block;margin-bottom:0.8rem;"></i>
         No hay pagos registrados aún.
-        <br><a href="{{ url_for('admin_citas') }}" style="color:#c41e3a;font-weight:600;">Registrar desde Citas</a>
+        <br><a href="{{ url_for('admin_citas') }}" style="color:#e45296;font-weight:600;">Registrar desde Citas</a>
     </div>
     {% endif %}
 </div>
@@ -169,7 +169,7 @@
                 box-shadow:0 32px 80px rgba(0,0,0,0.3);animation:rmxSlideUp 0.3s cubic-bezier(0.34,1.56,0.64,1);">
 
         <!-- Header naranja para reembolso -->
-        <div style="background:linear-gradient(135deg,#c41e3a,#c41e3a);padding:1.4rem 1.8rem;
+        <div style="background:linear-gradient(135deg,#e45296,#e45296);padding:1.4rem 1.8rem;
                     display:flex;align-items:center;gap:1rem;">
             <div style="width:48px;height:48px;border-radius:14px;background:rgba(255,255,255,0.2);
                         display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;">
@@ -210,7 +210,7 @@
                     <i class="bi bi-x-lg"></i> Cancelar
                 </button>
                 <button id="btnConfirmarReembolso" onclick="ejecutarReembolso()"
-                        style="flex:2;background:linear-gradient(135deg,#c41e3a,#c41e3a);color:white;
+                        style="flex:2;background:linear-gradient(135deg,#e45296,#e45296);color:white;
                                border:none;padding:0.75rem;border-radius:12px;font-weight:700;
                                font-size:0.9rem;cursor:pointer;display:flex;align-items:center;
                                justify-content:center;gap:0.5rem;transition:all 0.2s;">

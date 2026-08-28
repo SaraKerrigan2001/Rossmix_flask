@@ -56,7 +56,7 @@
                 </div>
             </div>
             <div style="text-align:right;">
-                <div style="font-size:1.1rem;font-weight:800;color:#c41e3a;">${{ "{:,.0f}".format(servicio.precio_total) }}</div>
+                <div style="font-size:1.1rem;font-weight:800;color:#e45296;">${{ "{:,.0f}".format(servicio.precio_total) }}</div>
                 <div style="font-size:0.72rem;color:#888;">precio del servicio</div>
             </div>
         </div>
@@ -66,21 +66,21 @@
             <div style="background:#f8faff;border-radius:10px;padding:0.7rem 0.9rem;">
                 <div style="font-size:0.72rem;color:#888;font-weight:600;text-transform:uppercase;margin-bottom:0.2rem;">Fecha</div>
                 <div style="font-weight:700;color:#1a1a1a;font-size:0.9rem;">
-                    <i class="bi bi-calendar3" style="color:#c41e3a;"></i>
+                    <i class="bi bi-calendar3" style="color:#e45296;"></i>
                     {{ cita.fecha_hora_inicio.strftime('%d/%m/%Y') }}
                 </div>
             </div>
             <div style="background:#f8faff;border-radius:10px;padding:0.7rem 0.9rem;">
                 <div style="font-size:0.72rem;color:#888;font-weight:600;text-transform:uppercase;margin-bottom:0.2rem;">Hora</div>
                 <div style="font-weight:700;color:#1a1a1a;font-size:0.9rem;">
-                    <i class="bi bi-clock" style="color:#c41e3a;"></i>
+                    <i class="bi bi-clock" style="color:#e45296;"></i>
                     {{ cita.fecha_hora_inicio.strftime('%H:%M') }}
                 </div>
             </div>
             <div style="background:#f8faff;border-radius:10px;padding:0.7rem 0.9rem;">
                 <div style="font-size:0.72rem;color:#888;font-weight:600;text-transform:uppercase;margin-bottom:0.2rem;">Clienta</div>
                 <div style="font-weight:700;color:#1a1a1a;font-size:0.9rem;">
-                    <i class="bi bi-person" style="color:#c41e3a;"></i>
+                    <i class="bi bi-person" style="color:#e45296;"></i>
                     {{ cliente.nombre.split()[0] }}
                 </div>
             </div>
@@ -95,7 +95,7 @@
         <!-- Botón aceptar -->
         <button onclick="aceptarCita({{ cita.id_cita }}, this)"
                 id="btn-{{ cita.id_cita }}"
-                style="width:100%;background:#c41e3a;
+                style="width:100%;background:#e45296;
                        color:white;border:none;padding:0.8rem;border-radius:12px;
                        font-weight:800;font-size:0.95rem;cursor:pointer;
                        display:flex;align-items:center;justify-content:center;gap:0.5rem;

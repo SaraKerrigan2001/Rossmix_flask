@@ -16,7 +16,7 @@
 
     h1 {
         font-family: 'Playfair Display', serif;
-        background: linear-gradient(135deg, #ff1493 0%, #ff1493 50%, #c41e3a 100%);
+        background: linear-gradient(135deg, #ff1493 0%, #ff1493 50%, #e45296 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -39,7 +39,7 @@
         border: 3px solid #ffd6e8;
         border-radius: 20px;
         font-weight: 700;
-        color: #c41e3a;
+        color: #e45296;
         cursor: pointer;
         transition: all 0.3s;
     }
@@ -111,14 +111,14 @@
 
     .estado-pendiente_pago {
         background: linear-gradient(135deg, #ffd6e8, #ffed4e);
-        color: #c41e3a;
+        color: #e45296;
         border: 2px solid #ff1493;
     }
 
     .estado-confirmada {
-        background: linear-gradient(135deg, #c41e3a, #c41e3a);
+        background: linear-gradient(135deg, #e45296, #e45296);
         color: white;
-        border: 2px solid #c41e3a;
+        border: 2px solid #e45296;
     }
 
     .estado-completada {
@@ -237,7 +237,7 @@
         background: linear-gradient(135deg, #fff0f6, #ffffff);
         border: 3px dashed #ffd6e8;
         border-radius: 20px;
-        color: #c41e3a;
+        color: #e45296;
     }
 
     .empty-icon {
@@ -259,7 +259,7 @@
         padding: 0.3rem 0.6rem;
         border-radius: 5px;
         font-weight: 700;
-        color: #c41e3a;
+        color: #e45296;
     }
 
     .btn-volver {
@@ -292,7 +292,7 @@
         padding: 0.8rem;
         border-radius: 10px;
         margin-top: 0.5rem;
-        color: #c41e3a;
+        color: #e45296;
         font-size: 0.9rem;
     }
 
@@ -433,15 +433,15 @@
                         </a>
                         {% if cita.token_gestion %}
                         <a href="{{ url_for('gestionar_cita', token=cita.token_gestion) }}"
-                           class="btn" style="background:#c41e3a;color:white;">
+                           class="btn" style="background:#e45296;color:white;">
                             🔄 Gestionar / Reprogramar
                         </a>
                         {% endif %}
-                        <a href="{{ url_for('descargar_cita_pdf', id_cita=cita.id_cita) }}" class="btn" style="background:#c41e3a;color:white;">
+                        <a href="{{ url_for('descargar_cita_pdf', id_cita=cita.id_cita) }}" class="btn" style="background:#e45296;color:white;">
                             📄 Descargar PDF
                         </a>
                         {% if cita.estado == 'pendiente_pago' %}
-                        <a href="{{ url_for('cliente_pagos_registrar', id_cita=cita.id_cita) }}" class="btn" style="background: linear-gradient(135deg, #ffd6e8, #ffed4e); color: #c41e3a;">
+                        <a href="{{ url_for('cliente_pagos_registrar', id_cita=cita.id_cita) }}" class="btn" style="background: linear-gradient(135deg, #ffd6e8, #ffed4e); color: #e45296;">
                             💳 Pagar Saldo
                         </a>
                         {% endif %}
@@ -530,13 +530,13 @@
                     <div class="cita-acciones">
                         {% if cita.estado == 'no_asistio' %}
                         <a href="{{ url_for('reagendar_no_asistio', id_cita=cita.id_cita) }}"
-                           class="btn" style="background:linear-gradient(135deg,#c41e3a,#c41e3a);
+                           class="btn" style="background:linear-gradient(135deg,#e45296,#e45296);
                                               color:white;font-weight:700;">
                             📅 Reagendar con crédito de ${{ '{:,.0f}'.format(cita.monto_abono or 5000) }}
                         </a>
                         {% endif %}
                         <a href="{{ url_for('descargar_cita_pdf', id_cita=cita.id_cita) }}"
-                           class="btn" style="background:#c41e3a;color:white;">
+                           class="btn" style="background:#e45296;color:white;">
                             📄 Descargar PDF
                         </a>
                     </div>
@@ -655,7 +655,7 @@
                 toast.style.cssText = `
                     position:fixed;bottom:28px;left:50%;
                     transform:translateX(-50%) translateY(80px);
-                    background:#c41e3a;color:white;
+                    background:#e45296;color:white;
                     padding:0.9rem 2rem;border-radius:30px;
                     font-weight:700;font-size:0.95rem;
                     box-shadow:0 8px 30px rgba(0,0,0,0.2);

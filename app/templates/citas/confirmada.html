@@ -42,11 +42,11 @@
         transition: all 0.4s;
     }
     .estado-pendiente {
-        background: #fff0f6; color: #c41e3a;
+        background: #fff0f6; color: #e45296;
         border: 1.5px solid #ffd6e8;
     }
     .estado-confirmada {
-        background: #fff0f6; color: #c41e3a;
+        background: #fff0f6; color: #e45296;
         border: 1.5px solid #ffb3d1;
         animation: popIn 0.5s ease;
     }
@@ -67,7 +67,7 @@
         animation: popIn 0.5s ease;
     }
     .confirmed-panel h3 {
-        color: #c41e3a; font-size: 1.3rem;
+        color: #e45296; font-size: 1.3rem;
         font-weight: 700; margin-bottom: 0.4rem;
     }
     .confirmed-panel p { color: #9f1239; font-size: 0.95rem; margin: 0; }
@@ -86,7 +86,7 @@
     }
     .code-value {
         font-size: 2.2rem; font-weight: 800;
-        color: #c41e3a; letter-spacing: 6px;
+        color: #e45296; letter-spacing: 6px;
         font-family: 'Courier New', monospace;
     }
 
@@ -109,7 +109,7 @@
     .detail-row .lbl { color: #888; font-weight: 500;
                        display: flex; align-items: center; gap: 0.5rem; }
     .detail-row .val { font-weight: 700; color: #1a1a1a; }
-    .detail-row .val.pink { color: #c41e3a; }
+    .detail-row .val.pink { color: #e45296; }
 
     /* ── Botones ── */
     .action-buttons {
@@ -118,7 +118,7 @@
         margin-top: 2rem;
     }
     .btn-download {
-        background: #c41e3a;
+        background: #e45296;
         color: white; border: none;
         padding: 0.85rem 2rem; border-radius: 12px;
         font-weight: 700; font-size: 0.95rem;
@@ -140,7 +140,7 @@
         transition: all 0.25s;
     }
     .btn-outline:hover {
-        border-color: #c41e3a; color: #c41e3a;
+        border-color: #e45296; color: #e45296;
         transform: translateY(-2px);
     }
 
@@ -160,7 +160,7 @@
     }
     .dot-flashing {
         display: inline-block; width: 8px; height: 8px;
-        border-radius: 50%; background: #c41e3a;
+        border-radius: 50%; background: #e45296;
         animation: dotFlash 1.2s infinite;
         margin: 0 2px; vertical-align: middle;
     }
@@ -262,7 +262,7 @@
     <div class="action-buttons">
         {% if cita.token_gestion %}
         <a href="{{ url_for('gestionar_cita', token=cita.token_gestion) }}"
-           class="btn-download" style="background:#c41e3a;">
+           class="btn-download" style="background:#e45296;">
             <i class="bi bi-calendar-event"></i> Gestionar / Reprogramar
         </a>
         {% endif %}

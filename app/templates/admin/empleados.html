@@ -24,7 +24,7 @@
 }
 .rmx-modal-header {
     padding: 1.4rem 1.8rem;
-    background: #c41e3a;
+    background: #e45296;
     display: flex; align-items: center; gap: 1rem; flex-shrink: 0;
 }
 .rmx-modal-header .icon-wrap {
@@ -65,7 +65,7 @@
 .svc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px,1fr)); gap: 0.5rem; max-height: 220px; overflow-y: auto; border: 1.5px solid #e5e7eb; border-radius: 12px; padding: 0.8rem; }
 .svc-label { display: flex; align-items: center; gap: 0.6rem; padding: 0.6rem 0.8rem; border-radius: 8px; cursor: pointer; border: 1.5px solid #f0f0f0; transition: all 0.15s; }
 .svc-label:hover { border-color: #ffb3d1; background: #fff0f6; }
-.svc-label:has(input:checked) { border-color: #c41e3a; background: #fff0f6; }
+.svc-label:has(input:checked) { border-color: #e45296; background: #fff0f6; }
 </style>
 {% endblock %}
 
@@ -86,12 +86,12 @@
 <div class="r-card">
     <div class="r-card-header d-flex justify-content-between align-items-center">
         <div>
-            <h2><i class="bi bi-person-lines-fill" style="color:#c41e3a;"></i> Empleados</h2>
+            <h2><i class="bi bi-person-lines-fill" style="color:#e45296;"></i> Empleados</h2>
             <span style="font-size:0.85rem; color:#888;">{{ empleados|length }} empleado(s)</span>
         </div>
         <div class="dropdown">
             <button class="btn-rossmix dropdown-toggle" type="button" id="exportEmpleadosDropdown"
-                    data-bs-toggle="dropdown" aria-expanded="false" style="background:#c41e3a;">
+                    data-bs-toggle="dropdown" aria-expanded="false" style="background:#e45296;">
                 <i class="bi bi-file-earmark-excel"></i> Exportar a Excel
             </button>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="exportEmpleadosDropdown">
@@ -120,7 +120,7 @@
                             <div style="width:36px;height:36px;border-radius:50%;
                                         background:linear-gradient(135deg,#fff0f6,#ffd6e8);
                                         display:flex;align-items:center;justify-content:center;
-                                        font-weight:700;color:#c41e3a;font-size:0.9rem;flex-shrink:0;">
+                                        font-weight:700;color:#e45296;font-size:0.9rem;flex-shrink:0;">
                                 {{ emp.nombre[0].upper() }}
                             </div>
                             <strong>{{ emp.nombre }}</strong>
@@ -128,7 +128,7 @@
                     </td>
                     <td style="color:#6b7280;">{{ emp.especialidad or '—' }}</td>
                     <td>
-                        <span style="background:#f0f4ff;color:#c41e3a;padding:0.2rem 0.7rem;
+                        <span style="background:#f0f4ff;color:#e45296;padding:0.2rem 0.7rem;
                                      border-radius:20px;font-size:0.8rem;font-weight:600;">
                             {{ emp.num_servicios }} servicio(s)
                         </span>
@@ -143,7 +143,7 @@
                     <td>
                         <div style="display:flex;gap:0.4rem;flex-wrap:wrap;">
                             <button onclick="abrirModalEditar({{ emp.id_empleado }}, '{{ emp.nombre }}')"
-                                    style="background:#fff0f6;color:#c41e3a;border:none;padding:0.4rem 0.8rem;
+                                    style="background:#fff0f6;color:#e45296;border:none;padding:0.4rem 0.8rem;
                                            border-radius:8px;font-size:0.82rem;font-weight:600;cursor:pointer;
                                            transition:all 0.2s;" title="Editar"
                                     onmouseover="this.style.background='#ffd6e8'"
@@ -151,7 +151,7 @@
                                 <i class="bi bi-pencil-fill"></i>
                             </button>
                             <a href="{{ url_for('admin_horarios_crear', id_empleado=emp.id_empleado) }}"
-                               style="background:#fff0f6;color:#c41e3a;padding:0.4rem 0.8rem;
+                               style="background:#fff0f6;color:#e45296;padding:0.4rem 0.8rem;
                                       border-radius:8px;font-size:0.82rem;font-weight:600;
                                       text-decoration:none;transition:all 0.2s;" title="Horarios">
                                 <i class="bi bi-clock-fill"></i>
@@ -175,7 +175,7 @@
     <div class="r-card-body" style="text-align:center;padding:3rem;color:#9ca3af;">
         <i class="bi bi-people" style="font-size:2.5rem;display:block;margin-bottom:0.8rem;"></i>
         No hay empleados registrados.
-        <button onclick="abrirModalCrear()" style="color:#c41e3a;font-weight:600;background:none;border:none;cursor:pointer;">
+        <button onclick="abrirModalCrear()" style="color:#e45296;font-weight:600;background:none;border:none;cursor:pointer;">
             Crear el primero
         </button>
     </div>
@@ -217,7 +217,7 @@
                         {% for svc in servicios %}
                         <label class="svc-label">
                             <input type="checkbox" name="servicios" value="{{ svc.id_servicio }}"
-                                   style="width:16px;height:16px;accent-color:#c41e3a;">
+                                   style="width:16px;height:16px;accent-color:#e45296;">
                             <div>
                                 <div style="font-size:0.85rem;font-weight:600;color:#1a1a1a;">{{ svc.nombre_servicio }}</div>
                                 <div style="font-size:0.75rem;color:#9ca3af;">${{ "{:,.0f}".format(svc.precio_total) }} · {{ svc.duracion_minutos }}min</div>
@@ -229,7 +229,7 @@
                 <div id="wrapActivo" style="display:none;">
                     <label style="display:flex;align-items:center;gap:0.7rem;cursor:pointer;">
                         <input type="checkbox" id="empActivo" name="activo"
-                               style="width:18px;height:18px;accent-color:#c41e3a;">
+                               style="width:18px;height:18px;accent-color:#e45296;">
                         <span class="r-form-label" style="margin:0;">Empleado activo</span>
                     </label>
                 </div>
@@ -462,7 +462,7 @@ async function confirmarEliminar(id, nombre) {
                 tdServicio.style.cssText = 'padding:0.55rem 0.9rem;color:#555;';
                 tdServicio.textContent = a.servicio;
                 const tdFecha = document.createElement('td');
-                tdFecha.style.cssText = 'padding:0.55rem 0.9rem;color:#c41e3a;font-weight:600;';
+                tdFecha.style.cssText = 'padding:0.55rem 0.9rem;color:#e45296;font-weight:600;';
                 tdFecha.textContent = `${a.fecha} ${a.hora}`;
                 tr.appendChild(tdCliente);
                 tr.appendChild(tdServicio);

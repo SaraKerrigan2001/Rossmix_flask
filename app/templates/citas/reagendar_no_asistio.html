@@ -10,14 +10,14 @@
 /* Banner de crédito */
 .credito-banner {
     background:linear-gradient(135deg,#fff0f6,#fff0f6);
-    border:2px solid #c41e3a;
+    border:2px solid #e45296;
     border-radius:16px; padding:1.2rem 1.5rem;
     display:flex; align-items:center; gap:1rem;
     margin-bottom:1.5rem;
 }
 .credito-icon {
     width:50px; height:50px; border-radius:50%;
-    background:linear-gradient(135deg,#c41e3a,#c41e3a);
+    background:linear-gradient(135deg,#e45296,#e45296);
     color:white; display:flex; align-items:center;
     justify-content:center; font-size:1.4rem; flex-shrink:0;
 }
@@ -25,7 +25,7 @@
 .credito-texto p  { font-size:0.88rem; color:#9f1239; margin:0; }
 .credito-monto {
     margin-left:auto; font-size:1.6rem; font-weight:800;
-    color:#c41e3a; white-space:nowrap;
+    color:#e45296; white-space:nowrap;
 }
 
 /* Grid principal */
@@ -61,7 +61,7 @@
 .costo-row .val { font-weight:700; }
 .costo-row.total { border-top:1.5px solid #ffb3d1; margin-top:0.4rem;
                    padding-top:0.5rem; font-size:1rem; }
-.costo-row.total .val { color:#c41e3a; font-size:1.2rem; }
+.costo-row.total .val { color:#e45296; font-size:1.2rem; }
 
 /* Selector de disponibilidad */
 .selector-card {
@@ -80,7 +80,7 @@
     border:1.5px solid #e5e7eb; background:white; color:#555;
 }
 .prof-tab.active, .prof-tab:hover {
-    background:linear-gradient(135deg,#c41e3a,#c41e3a);
+    background:linear-gradient(135deg,#e45296,#e45296);
     color:white; border-color:transparent;
 }
 .slots-grid {
@@ -95,9 +95,9 @@
     font-size:0.82rem; font-weight:600; color:#555;
     cursor:pointer; background:white; transition:all 0.2s;
 }
-.slot-btn:hover { border-color:#c41e3a; color:#c41e3a; background:#fff0f6; }
+.slot-btn:hover { border-color:#e45296; color:#e45296; background:#fff0f6; }
 .slot-btn.selected {
-    background:linear-gradient(135deg,#c41e3a,#c41e3a);
+    background:linear-gradient(135deg,#e45296,#e45296);
     color:white; border-color:transparent;
 }
 .slot-fecha { font-size:0.7rem; color:inherit; display:block; }
@@ -105,12 +105,12 @@
 .seleccion-actual {
     background:#fff0f6; border:1.5px solid #ffd6e8;
     border-radius:10px; padding:0.8rem 1rem;
-    font-size:0.88rem; color:#c41e3a; font-weight:600;
+    font-size:0.88rem; color:#e45296; font-weight:600;
     margin-top:1rem; display:none;
 }
 .btn-confirmar-reagendar {
     width:100%; margin-top:1.2rem;
-    background:linear-gradient(135deg,#c41e3a,#c41e3a);
+    background:linear-gradient(135deg,#e45296,#e45296);
     color:white; border:none; border-radius:12px;
     padding:0.9rem; font-size:1rem; font-weight:700;
     cursor:pointer; transition:all 0.25s;
@@ -125,7 +125,7 @@
     color:#888; text-decoration:none; font-size:0.9rem;
     margin-bottom:1rem; transition:color 0.2s;
 }
-.btn-volver:hover { color:#c41e3a; }
+.btn-volver:hover { color:#e45296; }
 
 /* Toast */
 #toastReagendar {
@@ -137,7 +137,7 @@
     transition:transform 0.4s ease; z-index:9999;
 }
 #toastReagendar.show    { transform:translateX(-50%) translateY(0); }
-#toastReagendar.success { background:#c41e3a; }
+#toastReagendar.success { background:#e45296; }
 #toastReagendar.error   { background:#dc2626; }
 </style>
 {% endblock %}
@@ -148,7 +148,7 @@
         <i class="bi bi-arrow-left"></i> Volver a Mis Citas
     </a>
     <div class="reagendar-header">
-        <h1><i class="bi bi-calendar-plus" style="color:#c41e3a;"></i> Reagendar Cita</h1>
+        <h1><i class="bi bi-calendar-plus" style="color:#e45296;"></i> Reagendar Cita</h1>
         <p style="color:#888;font-size:0.9rem;margin-top:0.3rem;">
             Tu abono previo se aplica como crédito en la nueva cita.
         </p>
@@ -193,7 +193,7 @@
                 </div>
                 <div class="costo-row">
                     <span class="lbl">Crédito aplicado</span>
-                    <span class="val" style="color:#c41e3a;">- ${{ '{:,.0f}'.format(abono_credito) }} COP</span>
+                    <span class="val" style="color:#e45296;">- ${{ '{:,.0f}'.format(abono_credito) }} COP</span>
                 </div>
                 <div class="costo-row total">
                     <span class="lbl"><strong>Saldo a pagar</strong></span>
