@@ -8,6 +8,7 @@ os.environ.setdefault("APP_TESTING", "1")
 os.environ.setdefault("FLASK_ENV", "testing")
 
 import pytest
+from sqlalchemy.pool import StaticPool
 from werkzeug.security import generate_password_hash
 from app import create_app
 from app.config import Config
@@ -18,6 +19,10 @@ from app.models.usuario import Usuario
 class TestConfig(Config):
     TESTING = True
     SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        "connect_args": {"check_same_thread": False},
+        "poolclass": StaticPool,
+    }
     WTF_CSRF_ENABLED = False
 
 
@@ -25,6 +30,8 @@ class TestConfig(Config):
 def app():
     """Crea una instancia de aplicación Flask para testing."""
     app = create_app(config_class=TestConfig)
+    with app.app_context():
+        db.create_all()
     return app
 
 
@@ -38,6 +45,9 @@ def app_context(app):
 @pytest.fixture(scope="function")
 def client(app, app_context):
     """Crea un cliente de prueba Flask."""
+    with app.app_context():
+        db.drop_all()
+        db.create_all()
     with app.test_client() as client:
         yield client
 
@@ -46,6 +56,7 @@ def client(app, app_context):
 def db_session(app, app_context):
     """Crea una sesión de base de datos limpia para cada test."""
     with app.app_context():
+        db.drop_all()
         db.create_all()
         yield db
         db.session.remove()
@@ -107,6 +118,7 @@ def especialista_user(db_session, app_context):
         id_usuario=especialista.id_usuario,
     )
     db_session.session.add(empleado)
+    db_session.session.flush()
     especialista.id_empleado = empleado.id_empleado
     db_session.session.commit()
     return especialista
@@ -117,6 +129,8 @@ def admin_logged_in(client, admin_user):
     """Cliente con sesión de admin iniciada."""
     with client.session_transaction() as sess:
         sess["usuario_id"] = admin_user.id_usuario
+        sess["nombre"] = admin_user.nombre
+        sess["email"] = admin_user.email
         sess["tipo_usuario"] = "admin"
     return client
 
@@ -126,6 +140,8 @@ def cliente_logged_in(client, cliente_user):
     """Cliente con sesión de cliente iniciada."""
     with client.session_transaction() as sess:
         sess["usuario_id"] = cliente_user.id_usuario
+        sess["nombre"] = cliente_user.nombre
+        sess["email"] = cliente_user.email
         sess["tipo_usuario"] = "cliente"
     return client
 
@@ -135,5 +151,7 @@ def especialista_logged_in(client, especialista_user):
     """Cliente con sesión de especialista iniciada."""
     with client.session_transaction() as sess:
         sess["usuario_id"] = especialista_user.id_usuario
+        sess["nombre"] = especialista_user.nombre
+        sess["email"] = especialista_user.email
         sess["tipo_usuario"] = "especialista"
     return client

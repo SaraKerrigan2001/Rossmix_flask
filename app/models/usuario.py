@@ -1,6 +1,8 @@
 ﻿"""Modelo de Usuario (clientes, administradores y especialistas)."""
+import re
 from datetime import datetime
-from sqlalchemy import CheckConstraint
+
+from sqlalchemy.orm import validates
 
 from app.extensions import db
 
@@ -8,11 +10,9 @@ from app.extensions import db
 class Usuario(db.Model):
     """Usuarios del sistema: cliente | admin | especialista"""
     __tablename__ = 'usuario'
-    __table_args__ = (
-        CheckConstraint("telefono ~ '^[0-9]{10}$'", name='ck_usuario_telefono_10_digitos'),
-    )
 
     id = db.Column(db.Integer, primary_key=True)
+    id_usuario = db.synonym('id')
     nombre = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(150), unique=True, nullable=False)
     telefono = db.Column(db.String(10), nullable=False)
@@ -43,6 +43,17 @@ class Usuario(db.Model):
         self.id_empleado = id_empleado
         if fecha_registro:
             self.fecha_registro = fecha_registro
+
+    @validates('telefono')
+    def validate_telefono(self, key, value):
+        """Garantiza que el teléfono tenga exactamente 10 dígitos."""
+        if value is None:
+            raise ValueError('El teléfono es obligatorio.')
+
+        telefono = str(value).strip()
+        if not re.fullmatch(r'\d{10}', telefono):
+            raise ValueError('El teléfono debe contener exactamente 10 dígitos numéricos.')
+        return telefono
 
     @property
     def es_especialista(self):

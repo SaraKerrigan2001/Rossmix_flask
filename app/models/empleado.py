@@ -19,10 +19,11 @@ class Empleado(db.Model):
     citas = db.relationship('Cita', backref='empleado', lazy=True)
 
     # ── Paso 3: Constructor ───────────────────────────────────────────────
-    def __init__(self, nombre=None, especialidad=None, activo=True):
+    def __init__(self, nombre=None, especialidad=None, activo=True, id_usuario=None):
         self.nombre = nombre
         self.especialidad = especialidad
         self.activo = activo
+        self.id_usuario = id_usuario
 
     # ── Paso 5: Encapsulamiento (propiedades) ─────────────────────────────
 

@@ -1,4 +1,5 @@
 """Vistas principales (index, test_image, health check)."""
+from sqlalchemy import text
 from flask import Blueprint, render_template, jsonify
 from app.extensions import cache, db
 
@@ -24,8 +25,9 @@ def health():
     Verifica que la aplicación está corriendo y puede conectar a la BD.
     """
     try:
-        # Verificar conexión a la base de datos
-        db.session.execute("SELECT 1")
+        # Verificar conexión a la base de datos sin depender del motor concreto.
+        with db.engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
         db_status = "ok"
     except Exception as e:
         db_status = f"error: {str(e)}"
