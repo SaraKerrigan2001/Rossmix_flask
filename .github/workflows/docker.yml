@@ -31,7 +31,7 @@ jobs:
 
     - name: Test Docker Compose build
       run: |
-        docker-compose build
+        docker compose -f docker-compose.yml build
       env:
         DB_USER: postgres
         DB_PASSWORD: postgres
