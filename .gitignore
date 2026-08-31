@@ -39,6 +39,19 @@ antigravity-ide/
 *.sln
 *.swp
 
+# Testing y Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+coverage.xml
+.coverage.*
+
+# Linting y Formateo
+.ruff_cache/
+.mypy_cache/
+.pytype/
+
 # Binarios y herramientas externas — NO versionar
 cloudflared.exe
 ngrok/
@@ -48,4 +61,20 @@ iniciar_ngrok.py
 # Base de datos SQLite local (instancia de desarrollo)
 instance/
 *.db
+*.sqlite3
+
+# Logs
+logs/
+*.log
+
+# Build outputs
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# OS
+.DS_Store
+Thumbs.db
+
 *.sqlite3

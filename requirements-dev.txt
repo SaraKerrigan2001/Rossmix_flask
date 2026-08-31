@@ -1,0 +1,26 @@
+# Dependencias de desarrollo - Rossmix
+# Instalación: pip install -r requirements-dev.txt
+
+# Dependencias base (heredadas de requirements.txt)
+-r requirements.txt
+
+# Testing
+pytest>=7.4.0
+pytest-cov>=4.1.0
+pytest-flask>=1.2.0
+pytest-mock>=3.11.1
+
+# Linting y formateo
+ruff>=0.1.0
+black>=23.9.0
+isort>=5.12.0
+
+# Pre-commit
+pre-commit>=3.4.0
+
+# Debugging
+flask-debugtoolbar>=0.13.1
+ipython>=8.15.0
+
+# Documentación
+sphinx>=7.2.0

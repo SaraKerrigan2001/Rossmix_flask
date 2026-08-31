@@ -1,0 +1,72 @@
+# Pre-commit hooks para Rossmix
+# Uso: pre-commit install (una sola vez)
+# Los hooks se ejecutarán automáticamente antes de cada commit
+# Manual: pre-commit run --all-files
+
+repos:
+  # ── Ruff: linter de Python rápido ────────────────────────────────────────
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.7
+    hooks:
+      - id: ruff
+        args: ["--fix"]
+        stages: [commit]
+
+  # ── Black: formateador de código ─────────────────────────────────────────
+  - repo: https://github.com/psf/black
+    rev: 23.11.0
+    hooks:
+      - id: black
+        language_version: python3.13
+        stages: [commit]
+
+  # ── isort: organizador de imports ────────────────────────────────────────
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+        args: ["--profile", "black"]
+        stages: [commit]
+
+  # ── Trailing whitespace ──────────────────────────────────────────────────
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+        stages: [commit]
+      - id: end-of-file-fixer
+        stages: [commit]
+      - id: check-yaml
+        stages: [commit]
+      - id: check-json
+        stages: [commit]
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+        stages: [commit]
+      - id: detect-private-key
+        stages: [commit]
+
+  # ── Verificar que no haya merge conflicts ────────────────────────────────
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: check-merge-conflict
+        stages: [commit]
+
+# Archivos a excluir
+exclude: |
+  (?x)^(
+      venv/|
+      .venv/|
+      .venv313/|
+      __pycache__/|
+      \.git/|
+      instance/|
+      build/|
+      dist/|
+      \.eggs/|
+      .*\.egg-info/
+  )
+
+# Ejecutar solo en archivos Python
+files: \.py$

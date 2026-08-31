@@ -1,0 +1,41 @@
+# GitHub Actions - Docker Build CI
+# Verifica que la imagen Docker pueda construirse correctamente
+
+name: Docker Build
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Build Docker image
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        file: ./Dockerfile
+        push: false
+        tags: rossmix:latest
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    - name: Test Docker Compose build
+      run: |
+        docker-compose build
+      env:
+        DB_USER: postgres
+        DB_PASSWORD: postgres
+        DB_NAME: rossmix_test
+        DB_HOST: db
+        DB_PORT: 5432
+        FLASK_ENV: production

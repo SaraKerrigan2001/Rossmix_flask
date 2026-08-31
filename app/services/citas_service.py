@@ -1,10 +1,13 @@
 """Lógica de negocio para la gestión de citas."""
 import secrets
 import random
+import logging
 from datetime import datetime, timedelta
 from decimal import Decimal
 from app.extensions import db
 from app.models import Cita, Servicio, Empleado, EmpleadoServicio, HorarioEmpleado
+
+logger = logging.getLogger(__name__)
 
 
 class CitaService:
@@ -83,51 +86,89 @@ class CitaService:
 
     @staticmethod
     def bloquear_agenda_cita(cita_id):
-        cita = db.session.get(Cita, cita_id)
-        if not cita:
-            return False
+        """Bloquea la agenda de una cita (cambia a pendiente_pago)."""
+        try:
+            cita = db.session.get(Cita, cita_id)
+            if not cita:
+                logger.warning(f'Cita {cita_id} no encontrada para bloqueo')
+                return False
 
-        cita.estado = 'pendiente_pago'
-        db.session.commit()
-        return True
+            cita.estado = 'pendiente_pago'
+            db.session.commit()
+            logger.info(f'Cita {cita_id} bloqueada a pendiente_pago')
+            return True
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f'Error al bloquear cita {cita_id}: {str(e)}')
+            raise
 
     @staticmethod
     def desbloquear_agenda_cita(cita_id):
-        cita = db.session.get(Cita, cita_id)
-        if not cita:
-            return False
+        """Desbloquea la agenda de una cita (cambia a cancelada)."""
+        try:
+            cita = db.session.get(Cita, cita_id)
+            if not cita:
+                logger.warning(f'Cita {cita_id} no encontrada para desbloqueo')
+                return False
 
-        cita.estado = 'cancelada'
-        db.session.commit()
-        return True
+            cita.estado = 'cancelada'
+            db.session.commit()
+            logger.info(f'Cita {cita_id} desbloqueada (cancelada)')
+            return True
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f'Error al desbloquear cita {cita_id}: {str(e)}')
+            raise
 
     @staticmethod
     def crear_cita(id_cliente, id_servicio, id_empleado, fecha_hora_inicio, fecha_hora_fin):
-        servicio = db.session.get(Servicio, id_servicio)
-        if not servicio:
-            raise ValueError('Servicio no encontrado')
+        """
+        Crea una nueva cita con validación de disponibilidad.
+        Transacción explícita con rollback en caso de error.
+        """
+        try:
+            servicio = db.session.get(Servicio, id_servicio)
+            if not servicio:
+                logger.error(f'Servicio {id_servicio} no encontrado')
+                raise ValueError('Servicio no encontrado')
 
-        codigo_reserva = CitaService.generar_codigo_reserva()
-        token_gestion  = CitaService.generar_token_gestion()
-        monto_total = Decimal(str(servicio.precio_total))
-        saldo_pendiente = monto_total - CitaService.DEFAULT_ABONO
+            # Validar disponibilidad
+            if not CitaService.validar_disponibilidad_cita(id_empleado, fecha_hora_inicio, fecha_hora_fin):
+                logger.warning(
+                    f'Conflicto de agenda: empleado {id_empleado} '
+                    f'en {fecha_hora_inicio} - {fecha_hora_fin}'
+                )
+                raise ValueError('Horario no disponible')
 
-        cita = Cita(
-            id_cliente=id_cliente,
-            id_empleado=id_empleado,
-            id_servicio=id_servicio,
-            fecha_hora_inicio=fecha_hora_inicio,
-            fecha_hora_fin=fecha_hora_fin,
-            monto_total=monto_total,
-            monto_abono=CitaService.DEFAULT_ABONO,
-            saldo_pendiente=saldo_pendiente,
-            estado='pendiente_pago',
-            reembolsado=False,
-            codigo_reserva=codigo_reserva,
-            token_gestion=token_gestion,
-            fecha_creacion=datetime.now(),
-        )
+            codigo_reserva = CitaService.generar_codigo_reserva()
+            token_gestion  = CitaService.generar_token_gestion()
+            monto_total = Decimal(str(servicio.precio_total))
+            saldo_pendiente = monto_total - CitaService.DEFAULT_ABONO
 
-        db.session.add(cita)
-        db.session.commit()
-        return cita
+            cita = Cita(
+                id_cliente=id_cliente,
+                id_empleado=id_empleado,
+                id_servicio=id_servicio,
+                fecha_hora_inicio=fecha_hora_inicio,
+                fecha_hora_fin=fecha_hora_fin,
+                monto_total=monto_total,
+                monto_abono=CitaService.DEFAULT_ABONO,
+                saldo_pendiente=saldo_pendiente,
+                estado='pendiente_pago',
+                reembolsado=False,
+                codigo_reserva=codigo_reserva,
+                token_gestion=token_gestion,
+                fecha_creacion=datetime.now(),
+            )
+
+            db.session.add(cita)
+            db.session.commit()
+            logger.info(
+                f'Cita creada: {cita.id_cita} (cliente {id_cliente}, '
+                f'empleado {id_empleado}, código {codigo_reserva})'
+            )
+            return cita
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f'Error al crear cita: {str(e)}', exc_info=True)
+            raise

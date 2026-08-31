@@ -1,12 +1,18 @@
 import os
 import sys
+import logging
 from datetime import timedelta
 from dotenv import load_dotenv
 
 load_dotenv()
 
+logger = logging.getLogger(__name__)
+
 
 def _build_database_uri() -> str:
+    if os.environ.get('FLASK_ENV') == 'testing' or os.environ.get('APP_TESTING') == '1':
+        return 'sqlite:///:memory:'
+
     database_url = os.environ.get('DATABASE_URL')
     if database_url:
         return database_url
@@ -25,18 +31,16 @@ def _get_secret_key() -> str:
         return key
     # Entorno de producción sin clave: error crítico
     if os.environ.get('FLASK_ENV') == 'production':
-        print(
-            'ERROR CRÍTICO: SECRET_KEY no está definida en producción. '
-            'La aplicación se detendrá para evitar exponer sesiones inseguras.',
-            file=sys.stderr
+        logger.critical(
+            'SECRET_KEY no está definida en producción. '
+            'La aplicación se detendrá para evitar exponer sesiones inseguras.'
         )
         sys.exit(1)
     # Desarrollo: clave aleatoria con advertencia
-    print(
-        'ADVERTENCIA: SECRET_KEY no definida. '
+    logger.warning(
+        'SECRET_KEY no definida. '
         'Usando clave aleatoria — las sesiones se invalidarán en cada reinicio. '
-        'Define SECRET_KEY en el .env para desarrollo estable.',
-        file=sys.stderr
+        'Define SECRET_KEY en el .env para desarrollo estable.'
     )
     return os.urandom(32).hex()
 

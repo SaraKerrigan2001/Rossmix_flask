@@ -95,6 +95,7 @@
                 {% for cita, usuario, empleado, servicio in citas %}
                 <tr>
                     <td><code style="background:#f8f8f8;padding:0.2rem 0.5rem;border-radius:6px;font-size:0.82rem;">{{ cita.codigo_reserva }}</code></td>
+                    <td><code style="background:#f8f8f8;padding:0.2rem 0.5rem;border-radius:6px;font-size:0.82rem;">{{ loop.index }}</code></td>
                     <td><strong>{{ usuario.nombre }}</strong><br><small style="color:#9ca3af;">{{ usuario.email }}</small></td>
                     <td>{{ servicio.nombre_servicio }}</td>
                     <td>

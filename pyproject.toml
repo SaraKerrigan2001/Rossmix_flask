@@ -1,0 +1,138 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rossmix"
+version = "2.0.0"
+description = "Sistema de Agendamiento de Citas - Salón de Belleza Rossmix"
+readme = "README.md"
+requires-python = ">=3.13"
+authors = [
+    {name = "Rossmix Team", email = "dev@rossmix.com"}
+]
+license = {text = "MIT"}
+
+dependencies = [
+    "Flask==2.3.3",
+    "Flask-SQLAlchemy==3.1.1",
+    "SQLAlchemy==2.0.36",
+    "Werkzeug==2.3.7",
+    "psycopg[binary]==3.3.4",
+    "openpyxl==3.1.2",
+    "reportlab==4.2.5",
+    "python-dotenv==1.0.1",
+    "Flask-Mail==0.10.0",
+    "Flask-WTF==1.1.1",
+    "Flask-Caching==2.4.1",
+    "gunicorn==21.2.0",
+    "python-docx==1.1.2",
+    "email-validator==2.3.0",
+    "python-dateutil==2.9.0.post0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "pytest-flask>=1.2.0",
+    "ruff>=0.1.0",
+    "black>=23.9.0",
+    "pre-commit>=3.4.0",
+    "flask-debugtoolbar>=0.13.1",
+]
+
+[project.urls]
+Repository = "https://github.com/SaraKerrigan2001/Rossmix_flask.git"
+Documentation = "https://github.com/SaraKerrigan2001/Rossmix_flask/tree/main/docs"
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+exclude = [
+    ".git",
+    "__pycache__",
+    ".venv",
+    ".venv313",
+    "instance",
+    "build",
+    "dist",
+    ".pytest_cache",
+    ".ruff_cache",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "C",    # flake8-comprehensions
+    "B",    # flake8-bugbear
+    "UP",   # pyupgrade
+]
+ignore = [
+    "E501",  # line too long (handled by black)
+    "W503",  # line break before binary operator
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]  # unused imports
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
+
+[tool.black]
+line-length = 100
+target-version = ['py313']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+    \.git
+    | __pycache__
+    | \.venv
+    | \.venv313
+    | instance
+    | build
+    | dist
+    | \.pytest_cache
+)/
+'''
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+# addopts configurado aquí solo se ejecuta si pytest-cov está instalado
+# addopts = "--verbose --cov=app --cov-report=html --cov-report=term-missing"
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+]
+markers = [
+    "slow: marks tests as slow",
+    "integration: marks tests as integration tests",
+    "auth: marks tests related to authentication",
+    "citas: marks tests related to appointments",
+    "admin: marks tests related to administration",
+    "models: marks tests related to models",
+]
+
+[tool.coverage.run]
+source = ["app"]
+omit = [
+    "*/tests/*",
+    "*/__init__.py",
+    "*/migrations/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]

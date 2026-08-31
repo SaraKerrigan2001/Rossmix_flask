@@ -2,19 +2,32 @@
 Application Factory de Rossmix Flask.
 """
 import os
+import logging
 from flask import Flask
 from werkzeug.security import generate_password_hash
 from werkzeug.middleware.proxy_fix import ProxyFix
 from app.config import Config
 from app.extensions import db, mail, cache, csrf
 from app.utils.helpers import inject_notificaciones
+from app.utils.logging_config import setup_logging
+
+logger = logging.getLogger(__name__)
 
 
 def create_app(config_class=Config):
+    testing_mode = os.environ.get('APP_TESTING') == '1' or os.environ.get('FLASK_ENV') == 'testing'
+
     app = Flask(__name__)
     app.config.from_object(config_class)
 
+    if testing_mode:
+        app.config['TESTING'] = True
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
+
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
+
+    # Configurar logging
+    setup_logging(app)
 
     # Inicializar extensiones
     db.init_app(app)
@@ -112,35 +125,43 @@ def create_app(config_class=Config):
     app.register_blueprint(perfil_bp)
 
     # Crear tablas y usuario administrador por defecto si no existen
+    # Solo en modo no-testing o en testing con BD en memoria
     with app.app_context():
-        db.create_all()
+        try:
+            db.create_all()
 
-        # Importación tardía para evitar ciclos
-        from app.models.usuario import Usuario
+            # Importación tardía para evitar ciclos
+            from app.models.usuario import Usuario
 
-        admin_email    = os.environ.get('ADMIN_EMAIL',    'admin@rossmix.com')
-        admin_password = os.environ.get('ADMIN_PASSWORD')
+            admin_email    = os.environ.get('ADMIN_EMAIL',    'admin@rossmix.com')
+            admin_password = os.environ.get('ADMIN_PASSWORD')
 
-        admin = Usuario.query.filter_by(email=admin_email).first()
-        if not admin:
-            if not admin_password:
-                # No se creó ADMIN_PASSWORD: no generamos un admin con
-                # contraseña predecible. Definir ADMIN_PASSWORD en el .env
-                # para que el administrador por defecto se cree.
-                print(
-                    'Aviso: no se creó el usuario administrador por defecto '
-                    'porque falta la variable de entorno ADMIN_PASSWORD.'
-                )
+            admin = Usuario.query.filter_by(email=admin_email).first()
+            if not admin:
+                if not admin_password:
+                    # No se creó ADMIN_PASSWORD: no generamos un admin con
+                    # contraseña predecible. Definir ADMIN_PASSWORD en el .env
+                    # para que el administrador por defecto se cree.
+                    logger.warning(
+                        'No se creó el usuario administrador por defecto '
+                        'porque falta la variable de entorno ADMIN_PASSWORD.'
+                    )
+                else:
+                    admin = Usuario(
+                        nombre='Administrador',
+                        email=admin_email,
+                        telefono='3000000000',
+                        password=generate_password_hash(admin_password),
+                        tipo_usuario='admin'
+                    )
+                    db.session.add(admin)
+                    db.session.commit()
+                    logger.info(f'Usuario administrador creado por defecto: {admin_email}')
+        except Exception as e:
+            # En desarrollo sin BD disponible, solo loguear advertencia
+            if app.config.get('TESTING'):
+                logger.debug(f'BD no disponible en testing (esperado): {type(e).__name__}')
             else:
-                admin = Usuario(
-                    nombre='Administrador',
-                    email=admin_email,
-                    telefono='3000000000',
-                    password=generate_password_hash(admin_password),
-                    tipo_usuario='admin'
-                )
-                db.session.add(admin)
-                db.session.commit()
-                print(f'Usuario administrador creado por defecto: {admin_email}')
+                logger.warning(f'No se pudieron crear tablas: {type(e).__name__}. Continuando...')
 
     return app

@@ -105,3 +105,12 @@ El flujo estándar para arrancar el entorno usando contenedores es:
    ```
 
 El contenedor expone por defecto el puerto 5000 (o el configurado en `.env`), donde Gunicorn recibe las peticiones. En un ambiente productivo, se recomienda usar Nginx o Cloudflare Tunnels (el proyecto incluye un `cloudflared.exe`) como proxy inverso.
+
+---
+
+## 7. Solución de Errores Comunes (Troubleshooting)
+
+| Error Identificado | Solución Propuesta |
+|---|---|
+| **ModuleNotFoundError: No module named 'flask'** | El entorno virtual no está activado.<br>Active el entorno usando `venv\Scripts\Activate.ps1` o reinstale con `pip install -r requirements.txt`. |
+| **OperationalError: psycopg2 / PostgreSQL connection refused** | Verifique que el servicio de PostgreSQL se encuentre activo en la máquina local y que las credenciales del archivo `.env` coincidan con la BD. |
